@@ -1,0 +1,3476 @@
+{
+  "premise": "У тебя остался ключ от Ложкина — деревни, которую Предел стёр вместе с памятью соседей. Ты идёшь к Первой Кузнице вернуть дом или узнать, кто решил им расплатиться. Дороги и их крепления буквально выкованы; Кузнец Шагов удерживает край мира, но слабеет и ищет преемника. Клеймо возвращает тебя после гибели, сжигая конкретные ощущения из памяти. Четыре стража ведут к приказу об исчезновении деревни, а восемь логов хранят знания о работе Кузницы без владельца живых имён. Финал решает не только судьбу горна: кому ты доверяешь, кого удерживаешь и какую цену согласишься платить дальше.",
+  "tone": "Личное тёмное фэнтези о доме, ответственности и праве отказаться. Простая цель на первом экране, бытовые вещи как опоры памяти, короткая речь, редкий сухой юмор. Механика даёт надежду, но не обещает вернуть умерших и отменить последствия. Обращение к герою на «ты» без указания пола; герой не произносит реплик вне вариантов выбора.",
+  "characters": [
+    {
+      "id": "veya",
+      "name": "Вея",
+      "role": "Проводница. Карта троп и выход из лагеря.",
+      "secret": "Бывшая носительница Клейма. Отказалась от возвращений и привязала лагерь к своему настоящему имени. Её младший брат стал Серым Клыком; она узнаёт его по стуку зубов во сне.",
+      "arc": "Сначала говорит о брате как о звере, которого надо убрать с дороги. На зелёной тропе выдаёт себя. Перед боем просит остановить его, после называет по имени. Выбор у моста: сохранить дорогу беженцам — Вея остаётся свободной проводницей; сохранить слепок родной дороги — Вея добровольно становится неподвижной опорой моста и живёт у его устоя. В лагере остаётся её карта с живым голосом, а не притворно присутствующий NPC.",
+      "voice": "Короткие дорожные указания. Забота через полезные мелочи. Когда страшно, считает пряжки на чужих ремнях.",
+      "portraitPrompt": "Waist-up portrait of a lean middle-aged woman with windburned brown skin, short iron-gray hair, a chipped front tooth, patched moss-green travel coat, red measuring cord around one wrist, folded map and wooden walking staff. Alert tired eyes, practical warmth, painterly dark fantasy, plain dim background, no lettering."
+    },
+    {
+      "id": "mot",
+      "name": "Мот",
+      "role": "Торговец. Лавка, обмен жетонов логов.",
+      "secret": "Продавал Кузнице путевые отчёты носителей Клейма. Взамен договор поддерживает дыхание его брата Рута после смертельного ожога. Это живой человек, а не воскресшая копия; без подпитки он умрёт.",
+      "arc": "Торгует так, будто всё можно пересчитать. В Пустошах признаёт цену договора. Сжечь долговой лист — Рут умирает, Мот остаётся и начинает помогать должникам. Сохранить лист — Рут живёт, Мот обязан передавать маршрут и в Руинах выдаёт тайный вход в лагерь. Нима успевает вывести людей; игрок теряет доверие к нему. Мот остаётся лавочником под надзором и признаёт предательство. После любой концовки обязанность доносить прекращается; ожог Рута уже залечен к финалу, смерть брата необратима.",
+      "voice": "Считает вслух, торгуется с собственным страхом. Шутки про цену; о брате говорит без шуток.",
+      "portraitPrompt": "Waist-up portrait of a stocky man in his forties with deep-set hazel eyes, cropped black curls, a narrow burn along the jaw, faded plum merchant coat with mismatched buttons, brass weighing pan and two plain copper tokens. Guarded smile, painterly dark fantasy, no lettering."
+    },
+    {
+      "id": "kern",
+      "name": "Керн",
+      "role": "Кузнец-ремонтник. Снаряжение, возвышение реликвий.",
+      "secret": "Работал в Первой Кузнице и ставил Клейма, в том числе твоё. Ушёл, когда исчезла твоя деревня. В груди носит украденный отвод жара: благодаря ему лагерь принимает возвращения, но сам Керн постепенно превращается в окалину.",
+      "arc": "Прячет вину за разговорами о металле. В Пустошах узнаёт собственный заклёпочный шов. В Руинах признаёт, что помогал делать Странников, но не создавал их прошлую жизнь. В Пределе: снять отвод — Керн живёт, часть запаса жара теряется; оставить отвод — он по собственной воле сгорает, заранее закрепив запас в лагерной наковальне. Его запись и инструменты сохраняют кузницу как функцию без воскресшего продавца.",
+      "voice": "Грубоват, точен. Сначала проверяет ремень, потом говорит о беде. Не называет людей материалом.",
+      "portraitPrompt": "Waist-up portrait of an elderly broad-shouldered metalworker with dark umber skin, close white beard, soot-black linen apron, two missing fingertips, faint amber light visible through cracked skin at his collarbone, holding small repair tongs rather than a weapon. Painterly dark fantasy, no lettering."
+    },
+    {
+      "id": "sota",
+      "name": "Сота",
+      "role": "Писарь. Журнал, главы, свидетельства логов.",
+      "secret": "Живая вынесенная из Архива запись его создательницы. Первые страницы журнала написаны её рукой задолго до её нынешнего рождения. Помнит чужие шаги, но до Руин не знает, откуда у неё эта память.",
+      "arc": "Сначала просит бытовые подробности вместо героических подвигов. Собирает утраченные ощущения как внешние свидетельства. В Руинах выбирается судьба её основы: раскрыть имена — Сота получает собственную конечную жизнь и возвращает людям память, точный указатель старых мест рассыпается; сохранить указатель — Сота сознательно переносит себя в книгу, теряет тело и остаётся собеседницей в журнале. Ни один вариант не закрывает тайную концовку.",
+      "voice": "Любопытная, въедливая, иногда смешно буквальная. Исправляет красивые неточные слова. На полях рисует ложки.",
+      "portraitPrompt": "Waist-up portrait of a young adult woman with olive skin, tightly braided black hair, large attentive dark eyes, ink stains on fingers, plain ochre shawl, a tiny silver staple through one eyebrow, holding a thick book with blank weathered pages. Painterly dark fantasy, no visible writing."
+    },
+    {
+      "id": "nima",
+      "name": "Нима",
+      "role": "Лекарка. Зелья, отдых, экран возвращения.",
+      "secret": "Её мать была Странницей и вернулась однажды без памяти о дочери. Нима умеет останавливать боль от Клейма, но до знакомства с тобой намеренно не объясняла пациентам, что возвращение уносит память: боялась, что лагерь останется без защитников.",
+      "arc": "В первой сцене обещает рассказать о Клейме перед походом; на белой тропе объясняет возвращение и признаёт собственную прежнюю ложь. После третьей смерти показывает материнскую чашку. Если смертей нет, признание прозвучит в Руинах. Малый выбор после отступления: записывать ощущения в журнал или учить лагерь сигналам спасения. В финале Нима либо ведёт службу свидетелей, либо школу безопасных возвращений; если отступления не было, открывает обычную лечебницу. Её мать умерла до начала истории и не возвращается.",
+      "voice": "Спокойные простые слова. Не утешает обещаниями. Сухой юмор про бинты и плохую арифметику бессмертия.",
+      "portraitPrompt": "Waist-up portrait of a stout older woman with tawny skin, white hair in a short braid, steady gray eyes, dark blue wool dress and clean rolled sleeves, a mended ceramic cup in one hand and a bundle of fresh bandages in the other. Kind unsmiling expression, painterly dark fantasy, no lettering."
+    }
+  ],
+  "chapters": [
+    {
+      "id": "c1",
+      "title": "Дом, которого нет",
+      "opens": {
+        "flag": "intro_seen"
+      },
+      "objectives": [
+        {
+          "text": "Найди след родной дороги: белая тропа Чащи.",
+          "done": {
+            "trail": "thicket:white"
+          }
+        },
+        {
+          "text": "Доберись до моста: зелёная и оранжевая тропы.",
+          "done": {
+            "trail": "thicket:orange"
+          }
+        },
+        {
+          "text": "Реши, что удержит мост.",
+          "done": {
+            "flag": "bridge_decided"
+          }
+        },
+        {
+          "text": "Открой путь к Серому Клыку: фиолетовая тропа.",
+          "done": {
+            "trail": "thicket:purple"
+          }
+        },
+        {
+          "text": "Останови Серого Клыка и открой Пустоши.",
+          "done": {
+            "boss": "greyfang"
+          }
+        },
+        {
+          "text": "Проверь старую будку на красной тропе. Необязательно.",
+          "done": {
+            "trail": "thicket:red"
+          },
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "title": "Чем топят мир",
+      "opens": {
+        "boss": "greyfang"
+      },
+      "objectives": [
+        {
+          "text": "Найди след первой плавки: белая и зелёная тропы Пустошей.",
+          "done": {
+            "trail": "ashlands:green"
+          }
+        },
+        {
+          "text": "Доберись до долгового двора по оранжевой тропе.",
+          "done": {
+            "trail": "ashlands:orange"
+          }
+        },
+        {
+          "text": "Реши судьбу договора Мота.",
+          "done": {
+            "flag": "mot_decided"
+          }
+        },
+        {
+          "text": "Открой двор Королевы: фиолетовая тропа.",
+          "done": {
+            "trail": "ashlands:purple"
+          }
+        },
+        {
+          "text": "Останови Королеву Костра и открой Руины.",
+          "done": {
+            "boss": "pyre_queen"
+          }
+        },
+        {
+          "text": "Найди изнанку плавки на красной тропе. Необязательно.",
+          "done": {
+            "trail": "ashlands:red"
+          },
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "title": "Кто помнит тебя",
+      "opens": {
+        "boss": "pyre_queen"
+      },
+      "objectives": [
+        {
+          "text": "Достигни 30 уровня: откроется подкласс.",
+          "done": {
+            "level": 30
+          }
+        },
+        {
+          "text": "Выбери подкласс в навыках. Это твой способ держать Клеймо.",
+          "done": {
+            "flag": "subclass_chosen"
+          },
+          "optional": true
+        },
+        {
+          "text": "Найди основу Соты: до конца оранжевой тропы Руин.",
+          "done": {
+            "trail": "ruins:orange"
+          }
+        },
+        {
+          "text": "Реши, сохранить имена или точный указатель мест.",
+          "done": {
+            "flag": "sota_decided"
+          }
+        },
+        {
+          "text": "Доберись до Архивариуса: фиолетовая тропа.",
+          "done": {
+            "trail": "ruins:purple"
+          }
+        },
+        {
+          "text": "Открой Архив и дорогу в Предел.",
+          "done": {
+            "boss": "archivist"
+          }
+        },
+        {
+          "text": "Прочитай запись о своей деревне на красной тропе. Необязательно.",
+          "done": {
+            "trail": "ruins:red"
+          },
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "title": "Последний отвод",
+      "opens": {
+        "boss": "archivist"
+      },
+      "objectives": [
+        {
+          "text": "Различи себя и Эхо: белая и зелёная тропы Предела.",
+          "done": {
+            "trail": "limit:green"
+          }
+        },
+        {
+          "text": "Достигни 60 уровня: откроется профессия.",
+          "done": {
+            "level": 60
+          },
+          "optional": true
+        },
+        {
+          "text": "Выбери профессию в навыках. Дай своему делу точное имя.",
+          "done": {
+            "flag": "profession_chosen"
+          },
+          "optional": true
+        },
+        {
+          "text": "Дойди до отвода Керна по оранжевой тропе.",
+          "done": {
+            "trail": "limit:orange"
+          }
+        },
+        {
+          "text": "Реши судьбу Керна.",
+          "done": {
+            "flag": "kern_decided"
+          }
+        },
+        {
+          "text": "Открой дверь Кузнеца: фиолетовая тропа.",
+          "done": {
+            "trail": "limit:purple"
+          }
+        },
+        {
+          "text": "Увидь шов мира на красной тропе. Необязательно.",
+          "done": {
+            "trail": "limit:red"
+          },
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "title": "Восемь свидетелей",
+      "parallel": true,
+      "optional": true,
+      "opens": {
+        "trail": "thicket:green"
+      },
+      "objectives": [
+        {
+          "text": "Логово стаи: добудь первое свидетельство.",
+          "done": {
+            "lair": "lair_she_wolf"
+          }
+        },
+        {
+          "text": "Гадючья низина: узнай, что переживает возвращение.",
+          "done": {
+            "lair": "lair_viper_mother"
+          }
+        },
+        {
+          "text": "Пепельный двор: найди первую неверную меру.",
+          "done": {
+            "lair": "lair_ash_seneschal"
+          }
+        },
+        {
+          "text": "Багровая верста: узнай, чей труд забирали силой.",
+          "done": {
+            "lair": "lair_executioner"
+          }
+        },
+        {
+          "text": "Запечатанные хранилища: восстанови порядок операций.",
+          "done": {
+            "lair": "lair_first_scribe"
+          }
+        },
+        {
+          "text": "Склеп Вуали: найди способ вернуть себе границу.",
+          "done": {
+            "lair": "lair_widow"
+          }
+        },
+        {
+          "text": "Раскалённый разлом: отдели жар от памяти.",
+          "done": {
+            "lair": "lair_rift_heart"
+          }
+        },
+        {
+          "text": "Первая Кузница: найди место для второго молота.",
+          "done": {
+            "lair": "lair_forge_titan"
+          }
+        },
+        {
+          "text": "Сверь восемь свидетельств в журнале: появится четвёртое решение.",
+          "done": {
+            "flag": "shared_method"
+          }
+        }
+      ]
+    },
+    {
+      "id": "c6",
+      "title": "Кому принадлежит дорога",
+      "opens": {
+        "trail": "limit:purple"
+      },
+      "objectives": [
+        {
+          "text": "Победи Кузнеца Шагов. Допуск с 69 уровня; совет лагеря — около 72.",
+          "done": {
+            "boss": "smith"
+          }
+        },
+        {
+          "text": "У наковальни реши судьбу Кузницы. Можно сперва вернуться за свидетельствами.",
+          "done": {
+            "flag": "ending_resolved"
+          }
+        },
+        {
+          "text": "Вернись в лагерь и открой походы по оттискам.",
+          "done": {
+            "flag": "postgame_open"
+          }
+        }
+      ]
+    }
+  ],
+  "art": [
+    {
+      "id": "bg_camp",
+      "scenes": [
+        "class:warrior",
+        "class:mage",
+        "class:archer",
+        "class:bard",
+        "class:assassin",
+        "retreat:first",
+        "path:subclass",
+        "path:profession",
+        "postgame"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A small roadside camp built around a low repair anvil, five mismatched stools, a blue medical awning, a merchant cart and a journal desk. Red guide cords tie the tents to a stone bridge. Warm ordinary shelter against a horizon slowly losing its detail."
+    },
+    {
+      "id": "intro_home",
+      "scenes": [
+        "intro"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A person of indeterminate gender seen only from behind holding a plain house key at an empty crossroads. A village has been erased leaving a rectangular patch of bare earth, one suspended kitchen spoon and a path ending in pale nothingness. Modest grief, no heroic pose."
+    },
+    {
+      "id": "region_thicket",
+      "scenes": [
+        "region:thicket",
+        "trail:thicket:white",
+        "trail:thicket:green",
+        "trail:thicket:purple",
+        "trail:thicket:red"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. Whispering old woodland threaded by five narrow paths with subtle white chalk, green moss, orange mineral dust, violet lichen and red clay. A stone bridge in the middle distance and a pale wolf watching from the undergrowth."
+    },
+    {
+      "id": "region_ashlands",
+      "scenes": [
+        "region:ashlands",
+        "trail:ashlands:white",
+        "trail:ashlands:green",
+        "trail:ashlands:purple",
+        "trail:ashlands:red"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A burned plain whose hills resemble cooled hammered metal. A ruined foundry palace, low living embers under black earth, distant laborers carrying covered braziers, traces of abandoned homes below slag."
+    },
+    {
+      "id": "region_ruins",
+      "scenes": [
+        "region:ruins",
+        "trail:ruins:white",
+        "trail:ruins:green",
+        "trail:ruins:purple",
+        "trail:ruins:red"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An abandoned city of craftspeople and records, stone workshops and rune-operated archive mechanisms, paper caught in dry canals, a tall faceless stone registrar in a distant doorway, human scale beneath huge machinery."
+    },
+    {
+      "id": "region_limit",
+      "scenes": [
+        "region:limit",
+        "trail:limit:white",
+        "trail:limit:green",
+        "trail:limit:purple",
+        "trail:limit:red"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. The edge of a physically forged world, a road with visible riveted seams suspended over unfinished dark space. A small repair camp on the near side, an immense but failing forge across the gap. Blue cold and small amber lights."
+    },
+    {
+      "id": "bridge_choice",
+      "scenes": [
+        "trail:thicket:orange"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A stone bridge splitting at a failing iron support, refugees waiting on one side and a fragile cast of an erased village road on the other. A gray-haired female guide holds a red cord between both routes, difficult practical decision."
+    },
+    {
+      "id": "ash_ledger",
+      "scenes": [
+        "trail:ashlands:orange"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A stocky merchant beside a dying young adult man on a litter, a heated debt plate with abstract blank grooves chained to a furnace. A healer holds a pair of cutters, ash falling quietly."
+    },
+    {
+      "id": "sota_choice",
+      "scenes": [
+        "trail:ruins:orange"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An olive-skinned woman with braided black hair stands between a blank open book and a wall of sealed archive drawers. Threads of pale light connect her hands to the book; tiny scattered light reflects released memories without any writing."
+    },
+    {
+      "id": "kern_choice",
+      "scenes": [
+        "trail:limit:orange"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An elderly dark-skinned repair smith opens his apron at the chest, exposing a small furnace bypass glowing under cracked skin. Repair tongs, a waiting empty anvil socket, companions keeping a respectful distance."
+    },
+    {
+      "id": "greyfang_before",
+      "scenes": [
+        "boss_before:greyfang"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A huge gray wolf with remnants of a red wrist cord embedded in its fur guards an iron road bolt in an old stone gate. An anonymous traveler carries a folded map connected to a red guide cord disappearing toward a distant bridge. Restrained grief, no visible companions."
+    },
+    {
+      "id": "greyfang_after",
+      "scenes": [
+        "boss_after:greyfang"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An empty forest gate with its iron bolt released, gray wolf fur and an ordinary wooden whistle on damp stone. A gender-indeterminate gloved hand reaches for the whistle beside a folded map with a red guide cord, a clear passage toward orange distant hills."
+    },
+    {
+      "id": "pyre_queen_before",
+      "scenes": [
+        "boss_before:pyre_queen"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A woman almost entirely consumed into a crown-shaped living flame stands between two feeding braziers in a burned palace. Her posture suggests someone shielding absent children; slag has fused around her feet."
+    },
+    {
+      "id": "pyre_queen_after",
+      "scenes": [
+        "boss_after:pyre_queen"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A fire crown extinguished into a black cooking ring, a single protected cooling coal in a shallow bowl, two broken braziers and an archive doorway becoming visible through the ash."
+    },
+    {
+      "id": "archivist_before",
+      "scenes": [
+        "boss_before:archivist"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A massive faceless stone-and-paper archive keeper with human hands replaced by metal clasps. Countless narrow blank sheets spiral around its head like precise measuring tapes. An anonymous traveler stands before a sealed record of an ordinary house."
+    },
+    {
+      "id": "archivist_after",
+      "scenes": [
+        "boss_after:archivist"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A stone registrar kneels with its chest doors open, blank folded paper roads spilling gently onto a ruined workshop floor. An ink-stained open journal rests on a low reading stand beside a house key in a small empty drawer. No visible human companion."
+    },
+    {
+      "id": "smith_before",
+      "scenes": [
+        "boss_before:smith"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An exhausted ancient smith at a huge anvil, one hand merged into the world boundary, molten cracks in his arms, an unfinished anonymous human-shaped mold nearby. His hammer raised defensively, companions small in the doorway."
+    },
+    {
+      "id": "smith_after",
+      "scenes": [
+        "boss_after:smith",
+        "final:choice"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An ancient smith sits beside a stopped hammer, a cracked ring enclosing a miniature network of roads opened on the anvil. An anonymous traveler faces three physical tools: a hammer, a coal scoop and cold cutting tongs. A second empty hammer socket is visible."
+    },
+    {
+      "id": "relic_witness",
+      "scenes": [
+        "lair:lair_she_wolf",
+        "lair:lair_viper_mother",
+        "lair:lair_ash_seneschal",
+        "lair:lair_executioner",
+        "lair:lair_first_scribe",
+        "lair:lair_widow",
+        "lair:lair_rift_heart",
+        "lair:lair_forge_titan",
+        "witness:complete",
+        "set:full",
+        "lair:repeat"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. Eight mismatched worn relic fragments laid around a blank journal on a camp repair table. Subtle impressions of ordinary past travelers in the metal reflection, each distinct, no heroic apparition. A repaired spoon anchors the foreground."
+    },
+    {
+      "id": "death_return",
+      "scenes": [
+        "death:first",
+        "death:third",
+        "death:later"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A gender-indeterminate figure sitting upright beneath a blue healer awning, a wrist mark cooling from white to red. In an open blank journal an image of a kitchen fades at its edges while a mended cup remains sharply real. Intimate, non-gory."
+    },
+    {
+      "id": "ending_hearth",
+      "scenes": [
+        "ending:hearth"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A person of indeterminate gender seated at the great forge with one hand resting on the boundary anvil, a tiny walking silhouette cast from the other hand. Outside, villagers repair a road beneath a stabilized finite horizon. Tender confinement, steady orange light."
+    },
+    {
+      "id": "ending_bank",
+      "scenes": [
+        "ending:bank"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A carefully banked immense furnace under a heavy ash cover, an elderly smith sleeping on a cot beside it. An anonymous traveler carries a sealed ember toward a modest busy camp, the distant horizon stable but ending sharply."
+    },
+    {
+      "id": "ending_break",
+      "scenes": [
+        "ending:break"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A shattered empty world-forging anvil cooling in daylight, a finite landscape whose edge has become ordinary stone cliffs. An anonymous traveler joins neighbors laying a new village foundation with hand tools, no miraculous restored people."
+    },
+    {
+      "id": "ending_shared",
+      "scenes": [
+        "ending:shared"
+      ],
+      "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A disassembled great forge redistributed into several small roadside workshops, ordinary people taking turns at paired hammers, an anonymous traveler handing over a house key as a foundation marker. A finite stable horizon, fatigue, cooperation, no coronation."
+    }
+  ],
+  "scenes": {
+    "intro": {
+      "title": "Ключ без двери",
+      "art": "intro_home",
+      "trigger": {
+        "event": "intro"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Дорога к дому обрывается посреди поля. Ни забора, ни колодца. Ключ в твоей ладони ещё тёплый."
+        },
+        {
+          "who": "veya",
+          "text": "Имя на дорожной бирке — {name}. А деревни с таким знаком нет ни на одной карте."
+        },
+        {
+          "who": "narrator",
+          "text": "В день исчезновения ты с ключом за рекой. Он держит оттиск порога — и твою память о деревне, пока у других гаснет даже имя."
+        },
+        {
+          "who": "narrator",
+          "text": "Ты выводишь в пыли: «Ложкино». Вея качает головой. Для тебя там живут люди. Для неё это пустое место."
+        },
+        {
+          "who": "sota",
+          "text": "Я запишу название. Если мир спорит с твоей памятью, пусть хотя бы спор будет на бумаге."
+        },
+        {
+          "who": "veya",
+          "text": "Предел стирает места вместе с памятью о них. Дорога туда есть. Сначала через Чащу, к Серому Клыку."
+        },
+        {
+          "who": "kern",
+          "text": "На запястье — Клеймо Шага. С ним можно дойти до Первой Кузницы. Там делают дороги. И ломают тоже."
+        },
+        {
+          "who": "nima",
+          "text": "Перед первым походом расскажу про Клеймо. Возвращение стоит дороже бинтов."
+        },
+        {
+          "who": "mot",
+          "text": "Лавка справа. Первую цель предлагаю скромную: найти, куда делся дом. Потом предъявить счёт."
+        }
+      ],
+      "setsFlags": [
+        "intro_seen"
+      ],
+      "choice": {
+        "kind": "minor",
+        "prompt": "Сота ждёт первую запись о доме. Кому доверить её?",
+        "options": [
+          {
+            "label": "Открыть страницу лагерю: помощь в пути, но история дома станет общей.",
+            "flag": "journal_open",
+            "effect": {
+              "bonus": {
+                "id": "shared_page",
+                "name": "Открытая страница",
+                "description": "Лагерь учится по твоим заметкам: опыт +3%, золото -2% на общие запасы.",
+                "mods": {
+                  "xp": 0.03,
+                  "gold": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "sota",
+                "text": "Положу у общего котла. Там читают даже те, кто говорит, что не умеет."
+              }
+            ]
+          },
+          {
+            "label": "Запечатать страницу: сохранить личное, но готовиться без чужих советов.",
+            "flag": "journal_sealed",
+            "effect": {
+              "bonus": {
+                "id": "private_page",
+                "name": "Личная запись",
+                "description": "Бережная подготовка: лечение +3%, опыт -2% без общих разборов.",
+                "mods": {
+                  "heal": 0.03,
+                  "xp": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "sota",
+                "text": "Печать твоя. Снаружи напишу только имя. Содержимое не трону."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "class:warrior": {
+      "title": "То, что осталось при тебе",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "after_scene",
+        "scene": "intro",
+        "class": "warrior"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "kern",
+          "text": "На твоём щите — зарубки от дверного косяка. В Ложкине так отмечают рост детей."
+        },
+        {
+          "who": "narrator",
+          "text": "Рука находит нужную зарубку. Лица ребёнка в памяти нет. Пустое место за щитом остаётся."
+        },
+        {
+          "who": "veya",
+          "text": "Дорогу держат не ради дороги. Пойдём выясним, кого ещё можно закрыть собой."
+        }
+      ]
+    },
+    "class:mage": {
+      "title": "То, что осталось при тебе",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "after_scene",
+        "scene": "intro",
+        "class": "mage"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Ты рисуешь план деревни. Заклятие признаёт каждый дом. Земля под ним отвечает пустотой."
+        },
+        {
+          "who": "sota",
+          "text": "Две верные вещи противоречат друг другу. Это уже задача. Очень скверная, но задача."
+        },
+        {
+          "who": "kern",
+          "text": "Ищи шов. Любая ковка оставляет шов. Даже если мастер зовёт это чудом."
+        }
+      ]
+    },
+    "class:archer": {
+      "title": "То, что осталось при тебе",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "after_scene",
+        "scene": "intro",
+        "class": "archer"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "У обрыва дороги лежит обломок твоей стрелы. Второй обломок всё ещё в колчане."
+        },
+        {
+          "who": "veya",
+          "text": "След не исчез. Его разрезали вместе с местом."
+        },
+        {
+          "who": "veya",
+          "text": "У тебя глаз замечает то, что карта прячет. Нам сейчас как раз нужен такой глаз."
+        }
+      ]
+    },
+    "class:bard": {
+      "title": "То, что осталось при тебе",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "after_scene",
+        "scene": "intro",
+        "class": "bard"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Песня о Ложкине держится в памяти до последнего куплета. В последнем куплете всегда молчание."
+        },
+        {
+          "who": "sota",
+          "text": "Запишу мелодию. Слова потом. Не надо заполнять дырку красивой рифмой."
+        },
+        {
+          "who": "nima",
+          "text": "Если песня найдёт своих людей, пусть сперва спросит, хотят ли они подпевать."
+        }
+      ]
+    },
+    "class:assassin": {
+      "title": "То, что осталось при тебе",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "after_scene",
+        "scene": "intro",
+        "class": "assassin"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В твоём кармане — договор на убийство. Имя цели исчезает с бумаги. Воск хранит знак Первой Кузницы."
+        },
+        {
+          "who": "mot",
+          "text": "Платить больше некому. Редкий случай, когда мой совет — не заканчивать работу."
+        },
+        {
+          "who": "veya",
+          "text": "Но можно найти того, кто вычёркивает заказчиков вместе с домами. Для этого и идём."
+        }
+      ]
+    },
+    "region:thicket": {
+      "title": "Где дорога ещё шепчет",
+      "art": "region_thicket",
+      "trigger": {
+        "event": "region:thicket"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "veya",
+          "text": "В Чаще пять троп. Цвет — глубина старого шва. Белая лежит сверху, красная почти у основания."
+        },
+        {
+          "who": "veya",
+          "text": "Каждая закреплённая тропа даёт опору для следующей. После фиолетовой можно вынуть засов Серого Клыка."
+        },
+        {
+          "who": "sota",
+          "text": "Красная не нужна для прохода. Но под основанием часто лежит то, что забыли указать в отчёте."
+        },
+        {
+          "who": "narrator",
+          "text": "В коре дерева проступает след ложки. Такой же знак вырезан на твоём ключе."
+        },
+        {
+          "who": "kern",
+          "text": "Клеймо держит выученные движения даже после возвращения. Уровень — насколько сложный шаг тело умеет повторить без разрыва."
+        },
+        {
+          "who": "veya",
+          "text": "Старые тропы расходятся снова. Повторный поход крепит шов и приносит припасы. Новая тропа проверяет, выдержишь ли следующий."
+        }
+      ]
+    },
+    "region:ashlands": {
+      "title": "Земля первой плавки",
+      "art": "region_ashlands",
+      "trigger": {
+        "event": "region:ashlands"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Под ногами пепел. Ниже — стекло. Ещё ниже видны крыши."
+        },
+        {
+          "who": "kern",
+          "text": "Первая плавка. Кузнец сделал твёрдую землю из того, что уже жило. Потом назвал это началом мира."
+        },
+        {
+          "who": "mot",
+          "text": "Королева Костра охраняет подачу жара. Пока она жжёт всё вокруг, до Архива не добраться."
+        },
+        {
+          "who": "nima",
+          "text": "Посмотри на крыши ещё раз. Началом это было не для всех."
+        }
+      ]
+    },
+    "region:ruins": {
+      "title": "Город, который всё записывает",
+      "art": "region_ruins",
+      "trigger": {
+        "event": "region:ruins"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Из стены выдвигается лист с числом твоих шагов. Число растёт, пока ты читаешь."
+        },
+        {
+          "who": "sota",
+          "text": "Архивариус помнит каждый твой шаг. Хорошо бы ещё узнать, зачем."
+        },
+        {
+          "who": "kern",
+          "text": "Архив хранит формы исчезнувших мест. Если след дома уцелел, он здесь."
+        },
+        {
+          "who": "sota",
+          "text": "На запертом ящике моя подпись. Бумага старше меня лет на сто. Мне это не нравится."
+        }
+      ]
+    },
+    "region:limit": {
+      "title": "Дальше земли пока нет",
+      "art": "region_limit",
+      "trigger": {
+        "event": "region:limit"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Дорога звенит под ногами. За её краем темнота, которой ещё не придумали расстояние."
+        },
+        {
+          "who": "sota",
+          "text": "Предел — не зверь снаружи. Это незакреплённый край мира. Кузнец слабеет, и швы распускаются."
+        },
+        {
+          "who": "nima",
+          "text": "Твою деревню не сожрали. Её крепление пошло на чужое возвращение. Это сделали люди."
+        },
+        {
+          "who": "veya",
+          "text": "Кузнец впереди. До него надо дойти с собой внутри. Проверь, что ещё держится."
+        },
+        {
+          "who": "narrator",
+          "text": "На развилке Эхо повторяет твоё движение. На его ладони ключ. У него тоже есть причина идти."
+        }
+      ]
+    },
+    "trail:thicket:white": {
+      "title": "Цена обратной дороги",
+      "art": "region_thicket",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "thicket:white",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "nima",
+          "text": "Клеймо собирает тебя в лагере после гибели. Кузнец берёт плату: одно ощущение из памяти о доме."
+        },
+        {
+          "who": "nima",
+          "text": "Было ли утро холодным. Как звучал чей-то смех. Запись сохранит факт, но не вернёт тепло."
+        },
+        {
+          "who": "nima",
+          "text": "Раньше я молчала об этом. Боялась, что никто не пойдёт нас защищать. Ты имеешь право знать."
+        },
+        {
+          "who": "sota",
+          "text": "На белой тропе нашлась межа Ложкина. Дом был. Теперь у нас есть доказательство."
+        }
+      ],
+      "setsFlags": [
+        "price_known"
+      ]
+    },
+    "trail:thicket:green": {
+      "title": "Чужая дудка",
+      "art": "region_thicket",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "thicket:green",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "У входа в логово стаи висит деревянная дудка. Вея прячет её быстрее, чем успевает придумать причину."
+        },
+        {
+          "who": "veya",
+          "text": "Брат вырезал такие. Потом стал ходить с Клеймом. Потом перестал узнавать слова."
+        },
+        {
+          "who": "veya",
+          "text": "Логово теперь открыто. Его мать-волчица хранит вещи тех, кого стая не съела."
+        }
+      ]
+    },
+    "trail:thicket:orange": {
+      "title": "Что удержит мост",
+      "art": "bridge_choice",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "thicket:orange",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Один мост держит две дороги. По одной идут беженцы. На другой проступает точный слепок пути в Ложкино."
+        },
+        {
+          "who": "kern",
+          "text": "Железа хватит на одну опору. Вторую дорогу удержит только живое имя."
+        },
+        {
+          "who": "veya",
+          "text": "Если оставляем путь к дому, я стану опорой беженцам. Жить смогу. Уйти от моста — уже нет."
+        },
+        {
+          "who": "sota",
+          "text": "Если выбираем мост для людей, точный путь к дому пропадёт. Память о деревне останется."
+        }
+      ],
+      "choice": {
+        "kind": "major",
+        "prompt": "На какую дорогу уйдёт железо?",
+        "options": [
+          {
+            "label": "Укрепить мост беженцам. Вея свободна; точный путь к дому исчезнет.",
+            "flag": "bridge_people",
+            "effect": {
+              "bonus": {
+                "id": "bridge_people",
+                "name": "Общий переход",
+                "description": "Помощь спасённых: лечение +5%; урон -2% из-за облегчённого снаряжения.",
+                "mods": {
+                  "heal": 0.05,
+                  "dmg": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Слепок дороги осыпается. Люди переходят мост. Вея в первый раз перестаёт считать чужие ремни."
+              },
+              {
+                "who": "veya",
+                "text": "Твой дом теперь придётся искать иначе. Я пойду рядом."
+              }
+            ]
+          },
+          {
+            "label": "Закрепить путь к дому. Вея добровольно останется опорой моста.",
+            "flag": "bridge_home",
+            "effect": {
+              "bonus": {
+                "id": "bridge_home",
+                "name": "Точный след",
+                "description": "Родная дорога направляет руку: урон +5%; лечение -2% без Веи в походах.",
+                "mods": {
+                  "dmg": 0.05,
+                  "heal": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Вея затягивает красный шнур на устое. Беженцы проходят. Её следующий шаг остаётся у камня."
+              },
+              {
+                "who": "veya",
+                "text": "Я согласна. Не считай это долгом передо мной. Просто приноси новости."
+              }
+            ]
+          }
+        ],
+        "setsFlags": [
+          "bridge_decided"
+        ]
+      }
+    },
+    "trail:thicket:purple": {
+      "title": "Засов и обещание",
+      "art": "region_thicket",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "thicket:purple",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "На четвёртом шве проступает засов. Лесная дорога дальше держится на дыхании Серого Клыка."
+        },
+        {
+          "who": "veya",
+          "text": "Его звали Тир. Он хотел уберечь стаю беженцев. Клеймо оставило ему только приказ: не пускать никого."
+        },
+        {
+          "who": "veya",
+          "text": "Теперь оно слышит «никого» громче, чем «уберечь». Останови его."
+        },
+        {
+          "who": "sota",
+          "text": "Красная тропа открыта тоже. До боя или после — как решишь."
+        }
+      ]
+    },
+    "trail:thicket:red": {
+      "title": "Будка у межи",
+      "art": "region_thicket",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "thicket:red",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "На красной глине стоит будка. На досках Тир отмечал рост волчат. Рядом такие же зарубки для детей."
+        },
+        {
+          "who": "veya",
+          "text": "Он не забыл, зачем охранял дорогу. Просто больше не различал, кого охраняет."
+        },
+        {
+          "who": "sota",
+          "text": "Здесь зарисован мост с двумя опорами. Значит, один путь может держать больше одного человека."
+        }
+      ],
+      "setsFlags": [
+        "red_thicket"
+      ]
+    },
+    "trail:ashlands:white": {
+      "title": "Знакомый шов",
+      "art": "region_ashlands",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ashlands:white",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "На старом отводе жара Керн находит три косые заклёпки. Под его фартуком светятся такие же."
+        },
+        {
+          "who": "kern",
+          "text": "Мой почерк. Да, я работал здесь. Нет, сейчас не время прятаться за словом «давно»."
+        },
+        {
+          "who": "nima",
+          "text": "Вернёмся — доскажешь. Жар у тебя уже проступает через рубаху."
+        }
+      ]
+    },
+    "trail:ashlands:green": {
+      "title": "Кому несут уголь",
+      "art": "region_ashlands",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ashlands:green",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Открывается дорога к Пепельному двору. Под пеплом лежат квитанции с оттисками ладоней."
+        },
+        {
+          "who": "mot",
+          "text": "Дань платили не монетой. Отдавали куски собственной жизни. Я знаю эти бланки."
+        },
+        {
+          "who": "mot",
+          "text": "У меня такой на брата. Рут живёт, пока я отправляю Кузнице отчёты о твоих дорогах."
+        }
+      ]
+    },
+    "trail:ashlands:orange": {
+      "title": "Брат в долговом листе",
+      "art": "ash_ledger",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ashlands:orange",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Рут лежит у тихой жаровни. На его груди ожог, который перестаёт дымить, пока Мот держит долговую пластину."
+        },
+        {
+          "who": "nima",
+          "text": "Это его настоящее дыхание. Если разбить договор сейчас, он умрёт. Подпитка нужна до заживления."
+        },
+        {
+          "who": "mot",
+          "text": "Но по этому же листу связаны другие должники. Сожжём — отпустим их. Сохраним — я обязан доносить."
+        },
+        {
+          "who": "mot",
+          "text": "Даже про вход в лагерь. Так и написано. Теперь ты знаешь всю цену."
+        }
+      ],
+      "choice": {
+        "kind": "major",
+        "prompt": "Разорвать договор или дать Руту дожить до заживления?",
+        "options": [
+          {
+            "label": "Сжечь лист: освободить должников; Рут лишится подпитки и умрёт.",
+            "flag": "mot_freed",
+            "effect": {
+              "bonus": {
+                "id": "open_debts",
+                "name": "Без долгового огня",
+                "description": "Свободные мастера помогают: добыча +5%; золото -3% на похороны и помощь.",
+                "mods": {
+                  "drop": 0.05,
+                  "gold": -0.03
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Рут просит воды. Мот держит кружку обеими руками. Когда жар гаснет, брат уже не дышит."
+              },
+              {
+                "who": "mot",
+                "text": "Я останусь. Не ради прощения. Эти люди теперь без денег и без хозяев. Второе у них уже хорошо."
+              }
+            ]
+          },
+          {
+            "label": "Сохранить лист: Рут выживет; должники связаны, Мот продолжит доносить.",
+            "flag": "mot_bound",
+            "effect": {
+              "bonus": {
+                "id": "warm_debt",
+                "name": "Тёплый долг",
+                "description": "Договор оплачивает снабжение: золото +5%; получаемый урон +3% из-за слежки.",
+                "mods": {
+                  "gold": 0.05,
+                  "taken": 0.03
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "mot",
+                "text": "Брат живёт. Должники остаются у печей. И мой следующий отчёт уйдёт вместе с рассветом."
+              },
+              {
+                "who": "nima",
+                "text": "Я перенесу больных. На твою честность перед сделкой я надеюсь. На сам договор — нет."
+              }
+            ]
+          }
+        ],
+        "setsFlags": [
+          "mot_decided"
+        ]
+      }
+    },
+    "trail:ashlands:purple": {
+      "title": "Две жаровни",
+      "art": "region_ashlands",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ashlands:purple",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Фиолетовый шов ведёт к Королеве. Две жаровни кормят её тем, что остаётся в долговых печах."
+        },
+        {
+          "who": "kern",
+          "text": "Сначала разбей подачу. Пока они целы, каждый её ожог снова становится силой."
+        },
+        {
+          "who": "nima",
+          "text": "Она хотела согреть людей после первой плавки. Теперь для неё всё живое — что-то, чему ещё холодно."
+        }
+      ]
+    },
+    "trail:ashlands:red": {
+      "title": "Уголь вместо людей",
+      "art": "region_ashlands",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ashlands:red",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Под красной тропой цел склад обычного угля. Печати на дверях не дают его брать."
+        },
+        {
+          "who": "kern",
+          "text": "Топить можно углём. Память горит удобнее: не надо таскать, и никто не знает, сколько взяли."
+        },
+        {
+          "who": "sota",
+          "text": "Записываю: жестокость здесь не закон природы. Это чей-то выбор, который выдают за закон."
+        }
+      ],
+      "setsFlags": [
+        "red_ashlands"
+      ]
+    },
+    "trail:ruins:white": {
+      "title": "Вход со двора",
+      "art": "region_ruins",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ruins:white",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "mot",
+          "text": "Отчёт ушёл. Писцы пришли через служебный вход. Это я его выдал.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "nima",
+          "text": "Больных я вывела заранее. Никто не погиб. Но больше ты не получишь карту лагеря.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "mot",
+          "text": "Освобождённые должники закрыли двор от писцов. Я дал им ключ от лавки.",
+          "if": "mot_freed"
+        },
+        {
+          "who": "sota",
+          "text": "У моих старых чернил есть запах. Я помню его с детства, которого у меня вроде бы не было."
+        }
+      ]
+    },
+    "trail:ruins:green": {
+      "title": "Рука из старой книги",
+      "art": "region_ruins",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ruins:green",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Открываются Запечатанные хранилища. Внутри лежит черновик Соты, написанный до её рождения."
+        },
+        {
+          "who": "sota",
+          "text": "Я не потомок автора. Я её вынесенная запись. Кому-то удалось сделать память человеком."
+        },
+        {
+          "who": "nima",
+          "text": "Значит, человек. В карточке так и оставим. С происхождением потом разберёмся."
+        }
+      ]
+    },
+    "trail:ruins:orange": {
+      "title": "Имя или указатель",
+      "art": "sota_choice",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ruins:orange",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Архив держит имена людей в указателе мест. Чтобы отдать имена живым, придётся разобрать сам указатель."
+        },
+        {
+          "who": "sota",
+          "text": "Я часть этого узла. Разберём — у меня будет своя жизнь, у людей вернётся память. Точные адреса пропадут."
+        },
+        {
+          "who": "sota",
+          "text": "Сохраним — я удержу указатель изнутри. Тела не станет. Буду в книге. Это моё согласие, а не приказ Архива."
+        },
+        {
+          "who": "kern",
+          "text": "Адрес дома поможет найти место для новой деревни. Умерших жителей указатель не вернёт."
+        }
+      ],
+      "choice": {
+        "kind": "major",
+        "prompt": "Что вынести из Архива?",
+        "options": [
+          {
+            "label": "Раскрыть имена: вернуть память людям и жизнь Соте; потерять точный указатель.",
+            "flag": "sota_names",
+            "effect": {
+              "bonus": {
+                "id": "names_outside",
+                "name": "Имена снаружи",
+                "description": "Опыт +5% благодаря свидетелям; добыча -3% без точных карт хранилищ.",
+                "mods": {
+                  "xp": 0.05,
+                  "drop": -0.03
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Сота впервые замечает, как быстро бьётся её сердце. За окном кто-то вспоминает имя собственной матери."
+              },
+              {
+                "who": "sota",
+                "text": "Оказывается, страшно иметь своё будущее. Пока запишу: оно есть."
+              }
+            ]
+          },
+          {
+            "label": "Сохранить указатель: оставить адреса; Сота будет жить голосом в книге.",
+            "flag": "sota_index",
+            "effect": {
+              "bonus": {
+                "id": "living_index",
+                "name": "Живой указатель",
+                "description": "Добыча +5% по точным адресам; скорость -3% на сверку с книгой.",
+                "mods": {
+                  "drop": 0.05,
+                  "speed": -0.03
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Книга закрывается сама. На стуле Соты остаётся тёплая шаль."
+              },
+              {
+                "who": "sota",
+                "text": "Слышно? Пожалуйста, не ставь на меня чай. У тела всё-таки были преимущества."
+              }
+            ]
+          }
+        ],
+        "setsFlags": [
+          "sota_decided"
+        ]
+      }
+    },
+    "trail:ruins:purple": {
+      "title": "В твоём деле нет первой страницы",
+      "art": "region_ruins",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ruins:purple",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В деле о Клейме первая страница вырвана. Остальные описывают твою походку, раны и способы вернуться."
+        },
+        {
+          "who": "kern",
+          "text": "Клеймо ставил я. Твоя жизнь была раньше него. Кузнец не сделал тебе детство. Он сделал из тебя заготовку преемника."
+        },
+        {
+          "who": "kern",
+          "text": "Я ушёл, когда Ложкино отдали на подпитку. Унёс отвод. Хорошее дело после плохого не отменяет плохое."
+        },
+        {
+          "who": "sota",
+          "text": "Архивариус держит последнюю дверь. Пора потребовать первую страницу."
+        }
+      ]
+    },
+    "trail:ruins:red": {
+      "title": "Чей шаг стоил деревни",
+      "art": "region_ruins",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "ruins:red",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В расходной книге: «Ложкино. Крепление снято на возврат носителя № 41». Имя носителя выскоблено."
+        },
+        {
+          "who": "sota",
+          "text": "Это не ты. Твоё Клеймо поставлено позже. Исчезновение деревни не было твоей виной."
+        },
+        {
+          "who": "sota",
+          "text": "Умерший Странник тоже не знал, чем заплатят. Под строкой только подпись Кузнеца."
+        },
+        {
+          "who": "nima",
+          "text": "Моя мать однажды вернулась и спросила, чья я девочка. С тех пор я не доверяю слову «бесплатно»."
+        }
+      ],
+      "setsFlags": [
+        "red_ruins",
+        "nima_truth_known"
+      ]
+    },
+    "trail:limit:white": {
+      "title": "Тот же ключ",
+      "art": "region_limit",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "limit:white",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Эхо Странника идёт вровень с тобой. Та же хватка. Та же пауза у края."
+        },
+        {
+          "who": "sota",
+          "text": "Это отброшенный вариант твоего возвращения. Клеймо не собралось до конца, но желание дойти осталось."
+        },
+        {
+          "who": "nima",
+          "text": "Не называй его пустяком. Он пытается вернуться домой. Как и ты."
+        }
+      ]
+    },
+    "trail:limit:green": {
+      "title": "Паломник без просьбы",
+      "art": "region_limit",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "limit:green",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Пустой паломник стоит у Раскалённого разлома. На всех его бирках одно отверстие вместо имени."
+        },
+        {
+          "who": "sota",
+          "text": "Он дошёл до края, но все причины идти сгорели раньше. Кузнец предложил молот. Он уже не понял зачем."
+        },
+        {
+          "who": "kern",
+          "text": "Не надо доказывать, что выдержишь ещё. Скажи себе, для чего выдерживаешь."
+        }
+      ]
+    },
+    "trail:limit:orange": {
+      "title": "Последняя работа Керна",
+      "art": "kern_choice",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "limit:orange",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Отвод в груди Керна подключается к старой наковальне. Окалиной осыпается кожа."
+        },
+        {
+          "who": "kern",
+          "text": "Можно вынуть. Я поживу ещё. Но часть лагерного жара рассеется, и на снаряжение его станет меньше."
+        },
+        {
+          "who": "kern",
+          "text": "Можно закрепить запас целиком. Я сгорю. Не Кузнец решает и не долг за деревню. Я согласен, если это поможет."
+        },
+        {
+          "who": "nima",
+          "text": "И жить ты тоже имеешь право. Согласие не требует обязательно умереть."
+        }
+      ],
+      "choice": {
+        "kind": "major",
+        "prompt": "Снять отвод или дать Керну закрепить запас?",
+        "options": [
+          {
+            "label": "Снять отвод: Керн будет жить; часть запаса жара потеряется.",
+            "flag": "kern_release",
+            "effect": {
+              "bonus": {
+                "id": "living_hands",
+                "name": "Живые руки",
+                "description": "Скорость +5% благодаря ремонту Керна; урон -3% из-за потери жара.",
+                "mods": {
+                  "speed": 0.05,
+                  "dmg": -0.03
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Нима зажимает трубку. Керн долго дышит без красного света под кожей."
+              },
+              {
+                "who": "kern",
+                "text": "Ну вот. Теперь обычная боль в спине. Соскучился."
+              }
+            ]
+          },
+          {
+            "label": "Принять его согласие: Керн сгорит; запас надолго останется лагерю.",
+            "flag": "kern_anchor",
+            "effect": {
+              "bonus": {
+                "id": "last_temper",
+                "name": "Последняя закалка",
+                "description": "Получаемый урон -5% благодаря закалке; скорость -3% без живого ремонтника.",
+                "mods": {
+                  "taken": -0.05,
+                  "speed": -0.03
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Керн ставит последний штифт. Оставляет на столе очки. До утра у наковальни никто не работает."
+              },
+              {
+                "who": "nima",
+                "text": "Не называй это оплатой. Человек сделал выбор. Нам с ним жить."
+              }
+            ]
+          }
+        ],
+        "setsFlags": [
+          "kern_decided"
+        ]
+      }
+    },
+    "trail:limit:purple": {
+      "title": "Дверь для преемника",
+      "art": "region_limit",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "limit:purple",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Дверь Кузнеца открывается на твой шаг. Клеймо знает эту дверь раньше тебя."
+        },
+        {
+          "who": "sota",
+          "text": "Ему нужен преемник. Дороги, бои и возвращения закаляли человека, который выдержит наковальню."
+        },
+        {
+          "who": "nima",
+          "text": "Но выдержать — не значит согласиться. Внутри сперва будет бой. Решение останется за тобой."
+        }
+      ]
+    },
+    "trail:limit:red": {
+      "title": "Изнанка горизонта",
+      "art": "region_limit",
+      "trigger": {
+        "event": "first_trail_clear",
+        "trail": "limit:red",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Под дорогой видны пустые гнёзда для десятков молотов. Их не выломали. Их ни разу не использовали."
+        },
+        {
+          "who": "sota",
+          "text": "Кузница рассчитана на многих. Один мастер держит все места, потому что не отдаёт право ковать."
+        },
+        {
+          "who": "sota",
+          "text": "Без восьми свидетельств это только догадка. С ними можно проверить порядок работы, не рискуя людьми.",
+          "ifNot": "shared_method"
+        },
+        {
+          "who": "sota",
+          "text": "Эти гнёзда подтверждают восемь свидетельств. Можно было работать вместе. Теперь у нас есть и расчёт, и сама наковальня.",
+          "if": "shared_method"
+        }
+      ],
+      "setsFlags": [
+        "red_limit"
+      ]
+    },
+    "boss_before:greyfang": {
+      "title": "Тир больше не слышит слов",
+      "art": "greyfang_before",
+      "trigger": {
+        "event": "first_guardian_battle",
+        "boss": "greyfang"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Серый Клык не бросается сразу. Сначала закрывает лапой засов."
+        },
+        {
+          "who": "veya",
+          "text": "Тир. Это я. Дорога нужна живым."
+        },
+        {
+          "who": "narrator",
+          "text": "На имя волк скалится. Красный шнур в его шерсти стягивается, как чужая рука."
+        },
+        {
+          "who": "sota",
+          "text": "Он был Странником. После каждого возвращения терял человеческое. Последним осталось обещание защищать."
+        },
+        {
+          "who": "veya",
+          "text": "Не зови это спасением. Просто не дай ему больше убивать тех, кого он когда-то выводил из леса."
+        },
+        {
+          "who": "narrator",
+          "text": "Волки выходят на зов. Перед прыжком Клык приседает. У тебя есть время поднять защиту."
+        }
+      ]
+    },
+    "boss_after:greyfang": {
+      "title": "Имя остаётся у дороги",
+      "art": "greyfang_after",
+      "trigger": {
+        "event": "first_guardian_victory",
+        "boss": "greyfang"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "С волка осыпается серый свет. Засов больше не держит дорогу. Тир не встаёт."
+        },
+        {
+          "who": "veya",
+          "text": "Он стучал зубами во сне. Я сердилась, что мешает спать. Вот что почему-то помню."
+        },
+        {
+          "who": "sota",
+          "text": "Запишу это рядом с именем. Не с числом побед."
+        },
+        {
+          "who": "veya",
+          "text": "Я останусь у моста. Карта донесёт мой голос дальше.",
+          "if": "bridge_home"
+        },
+        {
+          "who": "veya",
+          "text": "Я пойду с тобой. Больше не хочу называть брата просто зверем.",
+          "if": "bridge_people"
+        },
+        {
+          "who": "narrator",
+          "text": "В засове открывается клеймо Пустошей: отсюда когда-то шёл жар, которым собирали Тира."
+        },
+        {
+          "who": "mot",
+          "text": "Нам туда. Если у исчезнувшей деревни есть счёт, огонь помнит, кто его оплатил."
+        }
+      ],
+      "setsFlags": [
+        "boss_greyfang"
+      ]
+    },
+    "boss_before:pyre_queen": {
+      "title": "Кому всё ещё холодно",
+      "art": "pyre_queen_before",
+      "trigger": {
+        "event": "first_guardian_battle",
+        "boss": "pyre_queen"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Королева сидит между жаровнями. В огне её пальцев видны маленькие варежки."
+        },
+        {
+          "who": "narrator",
+          "text": "Королева: «Дети мёрзнут. Подайте ещё»."
+        },
+        {
+          "who": "sota",
+          "text": "Странница Ожена вывела людей из первой плавки. Потом попросила Кузнеца дать им вечное тепло."
+        },
+        {
+          "who": "nima",
+          "text": "Люди давно ушли. Она возвращалась к костру, пока не забыла всё, кроме холода."
+        },
+        {
+          "who": "narrator",
+          "text": "Королева: «Тебе тоже холодно. Подойди»."
+        },
+        {
+          "who": "nima",
+          "text": "Сначала жаровни. Нам нужен закрытый огонь и проход к Архиву. Ещё одно тело в костре ничего не исправит."
+        }
+      ]
+    },
+    "boss_after:pyre_queen": {
+      "title": "Огонь в миске",
+      "art": "pyre_queen_after",
+      "trigger": {
+        "event": "first_guardian_victory",
+        "boss": "pyre_queen"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Корона падает и становится чёрным обручем для котла. Ожена больше не просит угля."
+        },
+        {
+          "who": "nima",
+          "text": "Один уголь оставлю под крышкой. Он согреет воду и никого не съест."
+        },
+        {
+          "who": "mot",
+          "text": "Рут уже дышит без подпитки. Лист больше не нужен для его жизни. Но мои отчёты всё ещё требует.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "mot",
+          "text": "На этом дворе работал Рут. Квитанцию я оставлю у его могилы.",
+          "if": "mot_freed"
+        },
+        {
+          "who": "narrator",
+          "text": "Без огненного занавеса становится видна дверь в Руины. На пороге — номер дела о Ложкине."
+        },
+        {
+          "who": "sota",
+          "text": "Наш дом нашёлся хотя бы в чужой бухгалтерии. Займёмся теми, кто её ведёт."
+        }
+      ],
+      "setsFlags": [
+        "boss_pyre_queen"
+      ]
+    },
+    "boss_before:archivist": {
+      "title": "Память без человека",
+      "art": "archivist_before",
+      "trigger": {
+        "event": "first_guardian_battle",
+        "boss": "archivist"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Архивариус разворачивает лист. На нём то движение, которое ты сделаешь через мгновение."
+        },
+        {
+          "who": "narrator",
+          "text": "Архивариус: «Странник Предела. Форма годна. Личное содержимое расходуется штатно»."
+        },
+        {
+          "who": "sota",
+          "text": "Он был человеком. Сам записал себя в механизм, чтобы не забыть ни одного исчезнувшего места."
+        },
+        {
+          "who": "sota",
+          "text": "Потом стал исправлять людей по записям. Если живое расходилось с листом, неправильным считалось живое."
+        },
+        {
+          "who": "nima",
+          "text": "Твоя память не расходник. И моя мать была человеком, даже когда больше меня не узнавала.",
+          "ifNot": "nima_truth_known"
+        },
+        {
+          "who": "narrator",
+          "text": "Архивариус: «Я помню каждый твой шаг. Этого достаточно»."
+        },
+        {
+          "who": "sota",
+          "text": "Для счёта — да. Для человека — нет. Открой дверь."
+        }
+      ],
+      "setsFlags": [
+        "nima_truth_known"
+      ]
+    },
+    "boss_after:archivist": {
+      "title": "Первая страница",
+      "art": "archivist_after",
+      "trigger": {
+        "event": "first_guardian_victory",
+        "boss": "archivist"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Из раскрытой груди Архивариуса падает первая страница. На ней два разных оттиска твоего ключа."
+        },
+        {
+          "who": "sota",
+          "text": "Первый — до Клейма. Деревня и твоя жизнь настоящие. Второй — после отбора в преемники."
+        },
+        {
+          "who": "narrator",
+          "text": "Приказ Кузнеца: «Снять крепление Ложкина для возврата носителя № 41. Жителей вне оттиска не восстановить»."
+        },
+        {
+          "who": "nima",
+          "text": "Это значит: умерших не вернут. Место можно отыскать и снова заселить. Людей подменить нельзя."
+        },
+        {
+          "who": "sota",
+          "text": "Сохранённая дорога и указатель дадут точное место. Остальные найдём по рассказам — без обещания каждого камня."
+        },
+        {
+          "who": "narrator",
+          "text": "Архивариус: «А кто тогда сохранит меня?»"
+        },
+        {
+          "who": "sota",
+          "text": "Запись останется. Но ходить вместо тебя ей не придётся."
+        },
+        {
+          "who": "narrator",
+          "text": "Последняя защёлка отпускает дорогу в Предел. Там ещё слышен молот."
+        }
+      ],
+      "setsFlags": [
+        "boss_archivist"
+      ]
+    },
+    "boss_before:smith": {
+      "title": "Тот, кто держит молот",
+      "art": "smith_before",
+      "trigger": {
+        "event": "first_guardian_battle",
+        "boss": "smith"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Кузнец стоит у наковальни. Одной рукой держит молот, другой сжимает край мира. Пальцы почти стёрты."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «{name}. Ты вовремя. Ещё один шов, и я уроню восточную дорогу»."
+        },
+        {
+          "who": "sota",
+          "text": "Ложкино. Чьё это было решение?"
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Моё. Иначе погиб бы человек с Клеймом. Крепление деревни было ближе всего»."
+        },
+        {
+          "who": "nima",
+          "text": "Его ты видел. Жителей деревни — нет. Удобная мера расстояния."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Я был первым Странником. Выковал Предел, чтобы пустота не проходила дальше. Потом решил, что только я знаю как»."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Тир стерёг проход. Ожена кормила огонь. Архивариус держал формы. Никто не выдержал молота»."
+        },
+        {
+          "who": "sota",
+          "text": "Поэтому ты искал следующего. Давал Клеймо тем, кому есть что возвращать. Их горе держало их на дороге."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Да. И возвращал. Пока мог. С каждым разом я сам помнил меньше — поэтому брал чужую память»."
+        },
+        {
+          "who": "veya",
+          "text": "Мы сохранили дорогу к твоему дому. Это не даёт ему права на тебя.",
+          "if": "bridge_home"
+        },
+        {
+          "who": "veya",
+          "text": "Твой дом теперь живёт в рассказах людей с моста. Молот не владеет и ими.",
+          "if": "bridge_people"
+        },
+        {
+          "who": "sota",
+          "text": "Восемь свидетельств дают другой порядок работы. У Кузницы может быть несколько держателей.",
+          "if": "shared_method"
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Можно сменить меня. Можно заглушить горн. Можно разбить наковальню. Но к рычагам я тебя не пущу»."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Клеймо велит мне защищать Кузницу. Я уже не умею остановить эту руку»."
+        },
+        {
+          "who": "nima",
+          "text": "Сломай связь руки с молотом. После боя решишь саму судьбу горна. Не во время его замаха."
+        },
+        {
+          "who": "narrator",
+          "text": "Клеймо на твоём запястье тянется к его ладони. Ты держишь оружие своим движением."
+        }
+      ],
+      "large": true
+    },
+    "boss_after:smith": {
+      "title": "Рука разжата",
+      "art": "smith_after",
+      "trigger": {
+        "event": "first_guardian_victory",
+        "boss": "smith"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Молот падает поперёк наковальни. Кузнец садится на пол. За его спиной три задвижки и пустое гнездо второго молота."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Рука больше не тянется сама. Спасибо. Обещать за это что-нибудь будет нечестно»."
+        },
+        {
+          "who": "sota",
+          "text": "Шов зажат молотом. Время есть. Можно вернуться к логовам, если свидетельства ещё не собраны."
+        },
+        {
+          "who": "nima",
+          "text": "Решение не вернёт погибших. И не отменит того, что мы выбирали по дороге."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Теперь я могу только объяснить устройство. Право решать больше не моё»."
+        }
+      ],
+      "setsFlags": [
+        "boss_smith"
+      ],
+      "next": "final:choice",
+      "allowReturnToCamp": true
+    },
+    "lair:lair_she_wolf": {
+      "title": "Матёрая Волчица: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "wolf_den",
+        "master": "lair_she_wolf",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В логове три дорожных мешка. Вещи в них вросли в шерсть Волчицы и вышли наружу после боя."
+        },
+        {
+          "who": "veya",
+          "text": "Она была матерью Тира. Взяла Клеймо вслед за ним, чтобы стая не теряла детёнышей. Речь отдала первой."
+        },
+        {
+          "who": "sota",
+          "text": "«Шкура Вожака» — остаток Тира. «Лагерь ловчего» принадлежал Рему. «Песнь волчьей луны» — певице Асе."
+        },
+        {
+          "who": "narrator",
+          "text": "На дощечке Аси: «Если имя хранится у двоих, дорога домой не зависит от одного голоса»."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство первое: опор у возвращения может быть несколько. Кузнец скрывал это."
+        }
+      ],
+      "relicSets": [
+        "alpha_hide",
+        "hunter_camp",
+        "wolf_song"
+      ],
+      "setsFlags": [
+        "witness_1"
+      ],
+      "journalEntry": {
+        "order": 1,
+        "title": "Свидетельство первое: опор у возвращения может быть несколько. Кузнец скрывал это.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_viper_mother": {
+      "title": "Мать Гадюк: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "viper_hollow",
+        "master": "lair_viper_mother",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В сброшенной коже Матери Гадюк видны повторённые человеческие ладони. Каждый раз чуть другие."
+        },
+        {
+          "who": "sota",
+          "text": "Травница Шала меняла кожу, чтобы не платить памятью. Потом начала копить яд всех своих возвращений."
+        },
+        {
+          "who": "sota",
+          "text": "«Шёпот болотного ковена» — её вещи. «Гнездо гадюки» осталось от Оля, который искал здесь противоядие."
+        },
+        {
+          "who": "narrator",
+          "text": "На внутреннем кольце: «Форма тела и память — разные слои. Старое тело можно оставить пустым»."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство второе: для нового тела не обязательно выжигать личность. Нужна отдельная точная форма."
+        }
+      ],
+      "relicSets": [
+        "viper_nest",
+        "hedge_coven"
+      ],
+      "setsFlags": [
+        "witness_2"
+      ],
+      "journalEntry": {
+        "order": 2,
+        "title": "Свидетельство второе: для нового тела не обязательно выжигать личность. Нужна отдельная точная форма.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_ash_seneschal": {
+      "title": "Пепельный Сенешаль: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "ash_court",
+        "master": "lair_ash_seneschal",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Сенешаль рассыпается вместе со скипетром. Под троном — ранняя опись печей, ещё без податей."
+        },
+        {
+          "who": "sota",
+          "text": "Он тоже был Странником. Пришёл отменить дань, но стал управляющим, чтобы никто не платил лишнего. Потом забыл слово «лишнее»."
+        },
+        {
+          "who": "sota",
+          "text": "«Пепел Королевы» — вещи Ожены до короны. Сенешаль собирал осыпавшиеся части вместо неё."
+        },
+        {
+          "who": "narrator",
+          "text": "В первой описи: «Работа от угля. Память допускается лишь при аварии». Позже слово «авария» вырезано."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство третье: память — запасное топливо. Её сделали постоянной данью, потому что так проще."
+        }
+      ],
+      "relicSets": [
+        "ash_queen"
+      ],
+      "setsFlags": [
+        "witness_3"
+      ],
+      "journalEntry": {
+        "order": 3,
+        "title": "Свидетельство третье: память — запасное топливо. Её сделали постоянной данью, потому что так проще.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_executioner": {
+      "title": "Палач Багровой версты: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "red_mile",
+        "master": "lair_executioner",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В рукояти топора спрятан договор. Под первым оттиском ладони ещё можно снять медную застёжку. Под остальными — нет."
+        },
+        {
+          "who": "sota",
+          "text": "Берег пришёл Странником освобождать работников. Согласился охранять версту одну ночь. Срок из договора исчез."
+        },
+        {
+          "who": "sota",
+          "text": "«Багровый след» — его вещи. Каждая новая пряжка держала ещё одного узника. Палач стал частью замка."
+        },
+        {
+          "who": "narrator",
+          "text": "Сохранилась старая оговорка: «Согласие отзывается. Без неё живое имя становится цепью»."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство четвёртое: общая работа возможна только с правом уйти. Одного первого согласия мало."
+        }
+      ],
+      "relicSets": [
+        "crimson_trail"
+      ],
+      "setsFlags": [
+        "witness_4"
+      ],
+      "journalEntry": {
+        "order": 4,
+        "title": "Свидетельство четвёртое: общая работа возможна только с правом уйти. Одного первого согласия мало.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_first_scribe": {
+      "title": "Первый Переписчик: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "sealed_stacks",
+        "master": "lair_first_scribe",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Переписчик пытается закрыть книгу даже без рук. Последний лист возвращается в переплёт сам."
+        },
+        {
+          "who": "sota",
+          "text": "Странник Скит хотел спасти записи от ошибок. Начал вычёркивать всё, что нельзя повторить точно. Заодно людей."
+        },
+        {
+          "who": "sota",
+          "text": "«Страницы Архива» — его след. «Маска хора» принадлежала Ясе и её спутникам: они хранили одну дорогу разными голосами."
+        },
+        {
+          "who": "narrator",
+          "text": "На обороте маски порядок: «Свидетель — форма — жар — согласие — имя — опоры — доля работы — свободное гнездо»."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство пятое: Кузница допускает разделение операций. Есть порядок, который не требует одного хозяина."
+        }
+      ],
+      "relicSets": [
+        "archive_pages",
+        "choir_mask"
+      ],
+      "setsFlags": [
+        "witness_5"
+      ],
+      "journalEntry": {
+        "order": 5,
+        "title": "Свидетельство пятое: Кузница допускает разделение операций. Есть порядок, который не требует одного хозяина.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_widow": {
+      "title": "Вдова без лица: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "veil_crypt",
+        "master": "lair_widow",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Под вуалью нет лица. На полу отпечатываются два силуэта: уходящий человек и оставшаяся пустая оболочка."
+        },
+        {
+          "who": "sota",
+          "text": "Вижа стала Странницей ради пропавшего супруга. Кузнец обещал встречу. Каждое возвращение стирало того, кого она ждала."
+        },
+        {
+          "who": "sota",
+          "text": "«Вуаль Фантома» — её остаток. В конце она научилась снимать с себя чужую метку. Своё лицо спасти уже не успела."
+        },
+        {
+          "who": "narrator",
+          "text": "На застёжке: «Сначала отпусти имена из клейма владельца. Не переноси на нового. Живых не копируй»."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство шестое: смена хозяина не освобождает людей. Право собственности на их шаг надо убрать вовсе."
+        }
+      ],
+      "relicSets": [
+        "phantom_veil"
+      ],
+      "setsFlags": [
+        "witness_6"
+      ],
+      "journalEntry": {
+        "order": 6,
+        "title": "Свидетельство шестое: смена хозяина не освобождает людей. Право собственности на их шаг надо убрать вовсе.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_rift_heart": {
+      "title": "Сердце Разлома: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "overheat_rift",
+        "master": "lair_rift_heart",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "В расколотом ядре бьётся маленький медный насос. На нём след ладони, застывшей снаружи."
+        },
+        {
+          "who": "sota",
+          "text": "Маг Дымир стал Странником, чтобы остановить трещину. Заменил сердце насосом. Потом качал жар уже без памяти о своём теле."
+        },
+        {
+          "who": "sota",
+          "text": "«Раскалённый посох» — его комплект. Посох здесь служил рукоятью отвода, а не знаком власти."
+        },
+        {
+          "who": "narrator",
+          "text": "Рядом проверка: пустая оболочка собирается от угля и движения мехов. Ни одна живая память не подключена."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство седьмое: обычный жар работает. Платить придётся временем и трудом, а не чужой жизнью."
+        }
+      ],
+      "relicSets": [
+        "overheated"
+      ],
+      "setsFlags": [
+        "witness_7"
+      ],
+      "journalEntry": {
+        "order": 7,
+        "title": "Свидетельство седьмое: обычный жар работает. Платить придётся временем и трудом, а не чужой жизнью.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "lair:lair_forge_titan": {
+      "title": "Подмастерье Кузнеца: свидетельство",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_lair_victory",
+        "lair": "first_forge",
+        "master": "lair_forge_titan",
+        "outcome": "complete"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Подмастерье перестаёт бить по собственной груди. Внутри вместо сердца лежит второй молот."
+        },
+        {
+          "who": "sota",
+          "text": "Струг был первым преемником. Кузнец оставил его недоделанным, когда понял: ученик хочет работать рядом, а не вместо него."
+        },
+        {
+          "who": "sota",
+          "text": "«Ковка Кузнеца» — вещи Струга. Последняя заклёпка соединяет их с пустым гнездом под наковальней."
+        },
+        {
+          "who": "narrator",
+          "text": "На гнезде восемь упоров. Ни один не держит весь вес. Старую метку владельца можно снять только при опоре на все восемь."
+        },
+        {
+          "who": "sota",
+          "text": "Свидетельство восьмое: место для многих было с самого начала. Мы знаем, как передать работу и никого не отдать в залог."
+        }
+      ],
+      "relicSets": [
+        "smith_hammer"
+      ],
+      "setsFlags": [
+        "witness_8"
+      ],
+      "journalEntry": {
+        "order": 8,
+        "title": "Свидетельство восьмое: место для многих было с самого начала. Мы знаем, как передать работу и никого не отдать в залог.",
+        "requiredFor": "shared_method"
+      }
+    },
+    "witness:complete": {
+      "title": "Работа без владельца",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "all_flags",
+        "flags": [
+          "witness_1",
+          "witness_2",
+          "witness_3",
+          "witness_4",
+          "witness_5",
+          "witness_6",
+          "witness_7",
+          "witness_8"
+        ]
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "sota",
+          "text": "Восемь записей сходятся. Возвращение можно разделить на операции. Память не обязана гореть."
+        },
+        {
+          "who": "sota",
+          "text": "Обычный жар, пустые формы, несколько опор. Живые имена вне Клейма. У каждого есть право прекратить работу."
+        },
+        {
+          "who": "nima",
+          "text": "Но потерянных людей это не вернёт. И всем придётся работать руками. Чудо стало похоже на расписание."
+        },
+        {
+          "who": "sota",
+          "text": "Лучше расписание, чем список деревень на сожжение. У Кузнеца теперь есть четвёртое решение.",
+          "ifNot": "ending_resolved"
+        },
+        {
+          "who": "sota",
+          "text": "Решение у горна уже принято. Проверенный порядок пригодится для малых мастерских. Наше вчера это не перепишет.",
+          "if": "ending_resolved"
+        }
+      ],
+      "setsFlags": [
+        "shared_method"
+      ]
+    },
+    "death:first": {
+      "title": "Возвращается не всё",
+      "art": "death_return",
+      "trigger": {
+        "event": "camp_return_after_combat_death",
+        "deathCount": 1,
+        "unlessFlag": "ending_resolved"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Ты открываешь глаза под синим навесом. На запястье остывает Клеймо. Во рту вкус железа."
+        },
+        {
+          "who": "nima",
+          "text": "Ты в лагере. Клеймо собрало тело по последнему оттиску. То, что на тебе, тоже вернулось."
+        },
+        {
+          "who": "nima",
+          "text": "Возвращение берёт ощущение из памяти о доме. Сейчас попробуй вспомнить запах хлеба на кухне."
+        },
+        {
+          "who": "narrator",
+          "text": "Ты знаешь, что хлеб был. Запах не приходит. На странице Соты остаётся маленькая пустая рамка."
+        },
+        {
+          "who": "sota",
+          "text": "Слово «хлеб» сохраню. Но вдыхать за тебя книга не умеет."
+        },
+        {
+          "who": "nima",
+          "text": "Сумку Клеймо не собирает. Потери находок, золота и материалов смотри в отчёте. Память в отчёте не оценивают."
+        },
+        {
+          "who": "veya",
+          "text": "Можно отступить раньше. Дорога не требует доводить каждый поход до смерти."
+        }
+      ],
+      "setsFlags": [
+        "death_first",
+        "price_known"
+      ],
+      "memoryCost": {
+        "id": "bread_smell",
+        "label": "Запах хлеба в Ложкине",
+        "state": "feeling_lost_fact_kept"
+      }
+    },
+    "death:third": {
+      "title": "Чужая чашка",
+      "art": "death_return",
+      "trigger": {
+        "event": "camp_return_after_combat_death",
+        "deathCount": 3,
+        "unlessFlag": "ending_resolved"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "На третьем возвращении пропадает звук, которым дома звали тебя к столу. Имя ты знаешь. Голос — уже нет."
+        },
+        {
+          "who": "nima",
+          "text": "У моей матери была такая чашка. Однажды она вернулась и спросила, чья я девочка."
+        },
+        {
+          "who": "nima",
+          "text": "Я ответила: твоя. Она поверила. Но вспомнить меня не смогла."
+        },
+        {
+          "who": "sota",
+          "text": "Твоя страница остаётся у котла. Люди могут рассказать, что помнят. Это будет их память, не возврат твоей.",
+          "if": "journal_open"
+        },
+        {
+          "who": "sota",
+          "text": "Печать на твоей странице цела. Я могу читать вслух только по твоему знаку. Закрытое тоже имеет право остаться закрытым.",
+          "if": "journal_sealed"
+        },
+        {
+          "who": "nima",
+          "text": "Поэтому я теперь спрашиваю, что тебе нужно. А не говорю, что всё снова хорошо."
+        }
+      ],
+      "setsFlags": [
+        "death_third",
+        "nima_truth_known"
+      ],
+      "memoryCost": {
+        "id": "home_call",
+        "label": "Голос, зовущий к столу",
+        "state": "feeling_lost_fact_kept"
+      }
+    },
+    "death:later": {
+      "title": "Ещё одна пустая рамка",
+      "art": "death_return",
+      "trigger": {
+        "event": "camp_return_after_combat_death",
+        "minDeathCount": 4,
+        "unlessFlag": "ending_resolved"
+      },
+      "once": false,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Тело цело. В журнале появляется пустая рамка рядом с тем, что сегодня исчезло из живой памяти."
+        },
+        {
+          "who": "sota",
+          "text": "Факт остаётся. Чувство придётся строить заново, в другой день. Я не стану выдавать запись за возвращение."
+        },
+        {
+          "who": "nima",
+          "text": "Прежде чем снова выйти, посиди у котла. Сейчас это тоже часть дороги."
+        }
+      ],
+      "memoryCosts": [
+        {
+          "death": 2,
+          "id": "door_texture",
+          "label": "Шероховатость родной двери"
+        },
+        {
+          "death": 4,
+          "id": "rain_sound",
+          "label": "Дождь по крыше Ложкина"
+        },
+        {
+          "death": 5,
+          "id": "kitchen_warmth",
+          "label": "Тепло кухни зимним утром"
+        },
+        {
+          "death": 6,
+          "id": "friend_laugh",
+          "label": "Смех за соседним забором"
+        },
+        {
+          "death": 7,
+          "id": "well_water",
+          "label": "Вкус воды из деревенского колодца"
+        },
+        {
+          "death": 8,
+          "id": "home_air",
+          "label": "Ощущение воздуха на пороге дома"
+        },
+        {
+          "fromDeath": 9,
+          "id": "recent_camp_feeling",
+          "label": "Тепло последнего мирного привала",
+          "repeat": "Каждый раз теряется свежесть последнего мирного привала; журнал сохраняет дату, людей и содержание встречи. Имена, решения и отношения не стираются."
+        }
+      ]
+    },
+    "retreat:first": {
+      "title": "Вернуться своим шагом",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "first_expedition_retreat",
+        "outcome": "retreat",
+        "unlessFlag": "ending_resolved"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Ты приходишь в лагерь по дороге. Клеймо холодное. Память на месте, находки остаются с тобой."
+        },
+        {
+          "who": "veya",
+          "text": "Отступление — тоже законченный шаг. Только тропа пока не закреплена."
+        },
+        {
+          "who": "nima",
+          "text": "Можно потратить этот вечер на записи. Можно научить лагерь искать тех, кто не успевает отойти."
+        },
+        {
+          "who": "nima",
+          "text": "И то и другое нужно. На оба дела сейчас не хватит ни тебя, ни меня."
+        }
+      ],
+      "choice": {
+        "kind": "minor",
+        "prompt": "На что потратить тихий вечер?",
+        "options": [
+          {
+            "label": "Записать ощущения: Нима начнёт службу свидетелей; меньше времени на снабжение.",
+            "flag": "nima_witness",
+            "effect": {
+              "bonus": {
+                "id": "quiet_notes",
+                "name": "Тихие записи",
+                "description": "Опыт +3% при разборе походов; золото -2% на бумагу и помощников.",
+                "mods": {
+                  "xp": 0.03,
+                  "gold": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "nima",
+                "text": "Начнём с простого. Что сегодня было вкусным? Нет, отвар не считается. Я знаю, что он отвратительный."
+              }
+            ]
+          },
+          {
+            "label": "Развесить сигналы спасения: Нима начнёт школу отхода; вечер без спокойного отдыха.",
+            "flag": "nima_rescue",
+            "effect": {
+              "bonus": {
+                "id": "rescue_signals",
+                "name": "Обратный сигнал",
+                "description": "Скорость +3% на отмеченных путях; лечение -2% без вечернего отдыха.",
+                "mods": {
+                  "speed": 0.03,
+                  "heal": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "nima",
+                "text": "Два рывка шнура — нужна помощь. Три — не геройствовать. Обычно хватает сразу трёх."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "path:subclass": {
+      "title": "Способ держаться",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "branch_confirmed",
+        "branchType": "subclass",
+        "minLevel": 30
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "sota",
+          "text": "Тридцать ступеней — не звание. Клеймо уже узнаёт твой ритм. Теперь ритм выбираешь ты."
+        },
+        {
+          "who": "veya",
+          "text": "Ярость или оплот — это разные способы оставить проход живым. Ни один не даёт права забыть зачем.",
+          "class": "warrior"
+        },
+        {
+          "who": "sota",
+          "text": "Стихии, призыв, свет и тьма. Источник силы не решает за тебя, кому она достанется.",
+          "class": "mage"
+        },
+        {
+          "who": "veya",
+          "text": "Точный выстрел или дикая тропа. Найди свой способ видеть дорогу, когда карта врёт.",
+          "class": "archer"
+        },
+        {
+          "who": "nima",
+          "text": "Лира меняет ритм, гимн держит его. Обеим дорогам нужен тот, кто слушает, а не только поёт.",
+          "class": "bard"
+        },
+        {
+          "who": "mot",
+          "text": "Тень или яд. Есть разница между ремеслом и чужим приказом. Сейчас выбирается ремесло.",
+          "class": "assassin"
+        },
+        {
+          "who": "sota",
+          "text": "В журнале рядом с ветвью я оставлю цель: дойти до того, кто распорядился твоим домом.",
+          "ifNot": "ending_resolved"
+        },
+        {
+          "who": "sota",
+          "text": "Теперь рядом с новой ветвью запишу другое дело: держать дороги для новых домов.",
+          "if": "ending_resolved"
+        }
+      ],
+      "setsFlags": [
+        "subclass_chosen"
+      ]
+    },
+    "path:profession": {
+      "title": "У дела появляется имя",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "branch_confirmed",
+        "branchType": "profession",
+        "minLevel": 60
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "sota",
+          "text": "Шестьдесят ступеней. Ветвь стала профессией. Теперь по твоим приёмам смогут учиться другие."
+        },
+        {
+          "who": "nima",
+          "text": "Берсерк, сокрушитель, страж или дуэлянт — за каждым именем всё ещё есть человек со своей мерой риска.",
+          "class": "warrior"
+        },
+        {
+          "who": "sota",
+          "text": "Огонь, вода, земля, воздух, духи, нежить, свет или тьма — это инструменты. Цену за работу назначаешь ты.",
+          "class": "mage"
+        },
+        {
+          "who": "veya",
+          "text": "Снайпер, стрелок бури, следопыт или зверолов — каждый может проложить обратный путь. Запиши и его.",
+          "class": "archer"
+        },
+        {
+          "who": "sota",
+          "text": "Скальд, шут, кантор или регент. Важно, чтобы после твоей песни у других оставался собственный голос.",
+          "class": "bard"
+        },
+        {
+          "who": "mot",
+          "text": "Клинок ночи, фантом, отравитель или чумной. Название грозное. Подпись под договором всё равно твоя.",
+          "class": "assassin"
+        },
+        {
+          "who": "nima",
+          "text": "Ни одна профессия не требует занять место Кузнеца. Если он скажет обратное, теперь у тебя есть ответ.",
+          "ifNot": "ending_resolved"
+        },
+        {
+          "who": "nima",
+          "text": "Теперь твоя профессия нужна живым людям. В списке заказов есть место и твоим собственным делам.",
+          "if": "ending_resolved"
+        }
+      ],
+      "setsFlags": [
+        "profession_chosen"
+      ]
+    },
+    "set:full": {
+      "title": "Чужой шаг рядом",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_equipped_full_set",
+        "distinctSlotTypes": 8
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Восемь разных частей комплекта отзываются разом. Дорога под ногами на миг держит ещё одну пару следов."
+        },
+        {
+          "who": "sota",
+          "text": "Реликвии — спёкшиеся остатки прошлых Странников: их вещей, движений, утраченного тела. Не просто удачное железо."
+        },
+        {
+          "who": "narrator",
+          "text": "Из старого металла приходит чужой жест. Ты можешь повторить его. Чужое желание не становится твоим приказом."
+        },
+        {
+          "who": "nima",
+          "text": "Хозяева логов слышат этот шаг тоже. Чем больше при тебе реликвий, тем сильнее они пытаются их вернуть."
+        },
+        {
+          "who": "sota",
+          "text": "Комплект даёт умение, а свидетельство — знание. Для правды хватит первой победы в каждом логове. Восемь комплектов не нужны."
+        }
+      ],
+      "setsFlags": [
+        "first_set_complete"
+      ]
+    },
+    "lair:repeat": {
+      "title": "Глубже первого оттиска",
+      "art": "relic_witness",
+      "trigger": {
+        "event": "first_repeat_lair_entry"
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Хозяин собирается из старого оттиска. Первый бой снял верхний слой; глубже форма держит сильнее."
+        },
+        {
+          "who": "sota",
+          "text": "Это уже не новая жизнь того же человека. В логове повторяется его последнее движение. Реликвии помнят остальные."
+        },
+        {
+          "who": "mot",
+          "text": "Победа даёт часть комплекта и жетон. Три жетона — нужная часть без гадания. Я предпочитаю такую арифметику."
+        }
+      ],
+      "setsFlags": [
+        "lair_repeat_explained"
+      ]
+    },
+    "final:choice": {
+      "title": "Чей теперь молот",
+      "art": "smith_after",
+      "trigger": {
+        "event": "after_scene_or_reopen",
+        "scene": "boss_after:smith",
+        "requires": [
+          "boss_smith"
+        ],
+        "unlessFlag": "ending_resolved"
+      },
+      "once": false,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Ты стоишь перед Кузнецом. На наковальне — твой ключ. Теперь здесь решается, какой будет дорога от него."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Возьмёшь молот — удержишь мир. Но горн начнёт забирать твою память. Чужую можно больше не отдавать»."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Прикроешь горн — мир продержится на запасе примерно поколение. Кузница останется. Срок тоже»."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец: «Разобьёшь наковальню — существующие швы застынут. Новую землю больше не выковать. Возвращений живых не станет»."
+        },
+        {
+          "who": "sota",
+          "text": "Восемь свидетельств позволяют раздать работу мастерским. Без хозяина живых имён. Но дорогу придётся содержать каждому.",
+          "if": "shared_method"
+        },
+        {
+          "who": "sota",
+          "text": "Для четвёртого способа пока не хватает свидетельств логов. Можно оставить молот поперёк шва и вернуться позже.",
+          "ifNot": "shared_method"
+        },
+        {
+          "who": "nima",
+          "text": "О пропавших — прямо. Никакой рычаг не вернёт погибших жителей. Можно построить дом. Нельзя выдать его за вчерашний."
+        },
+        {
+          "who": "veya",
+          "text": "Решение твоё. Наша дорога не становится ошибкой оттого, что в конце нет обещанного чуда."
+        },
+        {
+          "who": "narrator",
+          "text": "Кузнец ждёт, не протягивая руки. Впервые молот лежит между людьми, а не над ними."
+        }
+      ],
+      "large": true,
+      "choice": {
+        "kind": "final",
+        "prompt": "Как будет держаться мир?",
+        "options": [
+          {
+            "label": "Взять молот. Удерживать мир ценой собственной памяти и свободы уйти.",
+            "flag": "choose_hearth",
+            "effect": {
+              "bonus": {
+                "id": "hearth_oath",
+                "name": "Собственный огонь",
+                "description": "Урон оттиска +4%; получаемый им урон +2% из-за связи с большим горном.",
+                "mods": {
+                  "dmg": 0.04,
+                  "taken": 0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Твоя ладонь ложится на рукоять. Клеймо перестаёт звать и начинает слушаться."
+              }
+            ],
+            "needs": [
+              "boss_smith"
+            ],
+            "ending": "hearth"
+          },
+          {
+            "label": "Прикрыть горн. Сохранить себя и Кузницу; оставить следующему поколению срок.",
+            "flag": "choose_bank",
+            "effect": {
+              "bonus": {
+                "id": "banked_ember",
+                "name": "Укрытый уголь",
+                "description": "Лечение оттиска +4%; добыча -2% ради сохранения запаса.",
+                "mods": {
+                  "heal": 0.04,
+                  "drop": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Ты опускаешь заслонку. Огонь остаётся под золой. Он больше не может сам выбрать, чем питаться."
+              }
+            ],
+            "needs": [
+              "boss_smith"
+            ],
+            "ending": "bank"
+          },
+          {
+            "label": "Разбить наковальню. Свободная конечная жизнь; расширять мир и возвращать живых больше нельзя.",
+            "flag": "choose_break",
+            "effect": {
+              "bonus": {
+                "id": "finite_road",
+                "name": "Конечная дорога",
+                "description": "Скорость оттиска +4%; получаемый им урон +2% без подпитки большой Кузницы.",
+                "mods": {
+                  "speed": 0.04,
+                  "taken": 0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Удар приходится по пустому гнезду. Наковальня трескается вдоль всех дорог и наконец остывает."
+              }
+            ],
+            "needs": [
+              "boss_smith"
+            ],
+            "ending": "break"
+          },
+          {
+            "label": "Разделить ковку. Освободить имена; отказаться от чудес ради общей работы с правом уйти.",
+            "flag": "choose_shared",
+            "effect": {
+              "bonus": {
+                "id": "shared_work",
+                "name": "Доля работы",
+                "description": "Опыт оттиска +4%; золото -2% на общие мастерские.",
+                "mods": {
+                  "xp": 0.04,
+                  "gold": -0.02
+                }
+              }
+            },
+            "lines": [
+              {
+                "who": "narrator",
+                "text": "Ты снимаешь метку владельца. Восемь упоров принимают вес. Молот больше не требует единственной ладони."
+              }
+            ],
+            "needs": [
+              "boss_smith",
+              "shared_method"
+            ],
+            "needsLairs": 8,
+            "ending": "shared",
+            "hiddenUntilNeeds": true
+          }
+        ]
+      }
+    },
+    "ending:hearth": {
+      "title": "Молот в твоей ладони",
+      "art": "ending_hearth",
+      "trigger": {
+        "event": "all_flags",
+        "flags": [
+          "boss_smith",
+          "choose_hearth"
+        ],
+        "needsLairs": 0
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Горизонт перестаёт расползаться. Ты держишь молот. Теперь чужую жизнь нельзя списать в расход без твоей воли."
+        },
+        {
+          "who": "narrator",
+          "text": "Тело остаётся у горна. Память о доме будет таять дальше. В лагерь и оттиски дорог ходит твоя рабочая оболочка."
+        },
+        {
+          "who": "narrator",
+          "text": "Старый Кузнец живёт последние годы без молота. Он учится просить, когда нужна помощь."
+        },
+        {
+          "who": "narrator",
+          "text": "Вея водит людей по новым опорам. Раз в неделю оставляет у Кузницы новости, даже когда ты уже не помнишь дорогу к её дому.",
+          "if": "bridge_people"
+        },
+        {
+          "who": "narrator",
+          "text": "Вея живёт у моста. Её голос в карте связывает лагерь с Кузницей. Уйти от устоя ей по-прежнему нельзя.",
+          "if": "bridge_home"
+        },
+        {
+          "who": "narrator",
+          "text": "Мот держит лавку для свободных работников. На выручку ставит Руту камень и пишет имя без долгового номера.",
+          "if": "mot_freed"
+        },
+        {
+          "who": "narrator",
+          "text": "Мот прекращает отчёты. Рут живёт. Мот отдаёт заработок бывшим должникам; ключ от лагерного входа ему не возвращают.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота стареет своим временем. В журнале она хранит твои рассказы, пока горн стирает у тебя сами ощущения.",
+          "if": "sota_names"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота остаётся в книге и помогает вести Кузницу. Когда память подводит тебя, она сначала называет твоё имя.",
+          "if": "sota_index"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн чинит малые опоры и навещает тебя без заказов. Иногда просто сидит. Он теперь считает это полезным делом.",
+          "if": "kern_release"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн не возвращается. Его запас в наковальне даёт лагерю время, а чертежи учат новых ремонтников.",
+          "if": "kern_anchor"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима ведёт службу свидетелей. Записи помогают помнить факты, но ни одна лечебная карточка не обещает вернуть утраченное чувство.",
+          "if": "nima_witness"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает школу отхода. Её первый урок: сигнал о помощи не требует сначала заслужить спасение.",
+          "if": "nima_rescue"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает обычную лечебницу. Перед лечением она объясняет цену. Бессмертие больше не значится в списке услуг.",
+          "if": "nima_default"
+        },
+        {
+          "who": "narrator",
+          "text": "Дорога и указатель совпадают. На точном месте Ложкина закладывают новые дома. Старых жителей не подменяют копиями.",
+          "if": "home_exact"
+        },
+        {
+          "who": "narrator",
+          "text": "Точного места больше не найти. Рядом с лагерем строят новое Ложкино. На площади оставляют место для имён прежних жителей.",
+          "ifNot": "home_exact"
+        }
+      ],
+      "large": true,
+      "setsFlags": [
+        "ending_resolved",
+        "ending_hearth"
+      ],
+      "next": "postgame"
+    },
+    "ending:bank": {
+      "title": "Огонь под золой",
+      "art": "ending_bank",
+      "trigger": {
+        "event": "all_flags",
+        "flags": [
+          "boss_smith",
+          "choose_bank"
+        ],
+        "needsLairs": 0
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Мир держится на запасе. Примерно одно поколение без новой дани. На лагерном календаре срок отмечен открыто."
+        },
+        {
+          "who": "narrator",
+          "text": "Ты живёшь в лагере. Клеймо закрыто для возвращений живого тела; для походов остаётся пустая рабочая форма."
+        },
+        {
+          "who": "narrator",
+          "text": "Старый Кузнец сторожит заслонку без права открывать её единолично. Спать он теперь может по-настоящему."
+        },
+        {
+          "who": "narrator",
+          "text": "Вея учит проводников обходить незакреплённый край. Она считает годы до нового решения и никому не даёт забыть срок.",
+          "if": "bridge_people"
+        },
+        {
+          "who": "narrator",
+          "text": "Вея остаётся у моста. У её устоя растёт посёлок; жители обещают искать способ снять привязку, не выдавая обещание за успех.",
+          "if": "bridge_home"
+        },
+        {
+          "who": "narrator",
+          "text": "Мот хранит лавку и имена освобождённых. У могилы Рута он больше ничего не обещает купить.",
+          "if": "mot_freed"
+        },
+        {
+          "who": "narrator",
+          "text": "Рут выздоравливает. Мот больше не доносит, но живёт под надзором. Он платит за помощь должникам без торга.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота живёт среди людей. Каждый год добавляет в журнал строку: сколько времени осталось на запасе горна.",
+          "if": "sota_names"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота остаётся книгой и хранит точные карты. Она следит, чтобы запас горна не расходовали тайком.",
+          "if": "sota_index"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн живёт в лагере и чинит обычные печи. Дважды в месяц проверяет заслонку — теперь уже по собственному расписанию.",
+          "if": "kern_release"
+        },
+        {
+          "who": "narrator",
+          "text": "Керна нет. Его инструменты работают в ученических руках. Его смерть не превращают в довод снова открыть пожирающий горн.",
+          "if": "kern_anchor"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима ведёт службу свидетелей. Записи помогают помнить факты, но ни одна лечебная карточка не обещает вернуть утраченное чувство.",
+          "if": "nima_witness"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает школу отхода. Её первый урок: сигнал о помощи не требует сначала заслужить спасение.",
+          "if": "nima_rescue"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает обычную лечебницу. Перед лечением она объясняет цену. Бессмертие больше не значится в списке услуг.",
+          "if": "nima_default"
+        },
+        {
+          "who": "narrator",
+          "text": "Дорога и указатель совпадают. На точном месте Ложкина закладывают новые дома. Старых жителей не подменяют копиями.",
+          "if": "home_exact"
+        },
+        {
+          "who": "narrator",
+          "text": "Точного места больше не найти. Рядом с лагерем строят новое Ложкино. На площади оставляют место для имён прежних жителей.",
+          "ifNot": "home_exact"
+        }
+      ],
+      "large": true,
+      "setsFlags": [
+        "ending_resolved",
+        "ending_bank"
+      ],
+      "next": "postgame"
+    },
+    "ending:break": {
+      "title": "Земля под ногами",
+      "art": "ending_break",
+      "trigger": {
+        "event": "all_flags",
+        "flags": [
+          "boss_smith",
+          "choose_break"
+        ],
+        "needsLairs": 0
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Земля перестаёт исчезать. Её больше не станет само собой. Каждый новый дом теперь строят внутри конечного мира."
+        },
+        {
+          "who": "narrator",
+          "text": "Ты живёшь в лагере без обещания воскреснуть. В походы по оттискам уходит неживая форма, а твоё тело ждёт у котла."
+        },
+        {
+          "who": "narrator",
+          "text": "Старый Кузнец отдаёт молот в переплавку и живёт смертную жизнь. Последнюю задвижку снимают без него."
+        },
+        {
+          "who": "narrator",
+          "text": "Вея остаётся проводницей. На новых картах впервые появляется пометка: за краем нельзя ничего обещать.",
+          "if": "bridge_people"
+        },
+        {
+          "who": "narrator",
+          "text": "Вея живёт у устоя. Привязка вплавлена в мост и не исчезает с большой Кузницей. К ней ходят в гости, а не на поклон.",
+          "if": "bridge_home"
+        },
+        {
+          "who": "narrator",
+          "text": "Мот меняет дорогие диковины на инструменты для новых домов. У могилы Рута ставит обычную деревянную скамью.",
+          "if": "mot_freed"
+        },
+        {
+          "who": "narrator",
+          "text": "Рут живёт своей жизнью. Мот больше не обязан доносить. Прощения он не получает автоматически — только шанс работать рядом.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота живёт конечную жизнь. Она учится писать о сегодняшнем дне, не сверяясь с тем, что якобы должно произойти.",
+          "if": "sota_names"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота остаётся в книге: её узел независим от большой Кузницы. Тело не возвращается. Ей делают стол на колёсах.",
+          "if": "sota_index"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн живёт и ремонтирует вещи, которые больше не пытаются чинить людей. По вечерам учит детей ставить косую заклёпку.",
+          "if": "kern_release"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн остаётся мёртвым. Его наковальня хранит конечный запас, инструменты — ремесло. Новую руку за него никто не выдаёт.",
+          "if": "kern_anchor"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима ведёт службу свидетелей. Записи помогают помнить факты, но ни одна лечебная карточка не обещает вернуть утраченное чувство.",
+          "if": "nima_witness"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает школу отхода. Её первый урок: сигнал о помощи не требует сначала заслужить спасение.",
+          "if": "nima_rescue"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает обычную лечебницу. Перед лечением она объясняет цену. Бессмертие больше не значится в списке услуг.",
+          "if": "nima_default"
+        },
+        {
+          "who": "narrator",
+          "text": "Дорога и указатель совпадают. На точном месте Ложкина закладывают новые дома. Старых жителей не подменяют копиями.",
+          "if": "home_exact"
+        },
+        {
+          "who": "narrator",
+          "text": "Точного места больше не найти. Рядом с лагерем строят новое Ложкино. На площади оставляют место для имён прежних жителей.",
+          "ifNot": "home_exact"
+        }
+      ],
+      "large": true,
+      "setsFlags": [
+        "ending_resolved",
+        "ending_break"
+      ],
+      "next": "postgame"
+    },
+    "ending:shared": {
+      "title": "Право выпустить молот",
+      "art": "ending_shared",
+      "trigger": {
+        "event": "all_flags",
+        "flags": [
+          "boss_smith",
+          "choose_shared",
+          "shared_method"
+        ],
+        "needsLairs": 8
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "narrator",
+          "text": "Мир больше не принадлежит одной руке. Новый край держится на общей работе. Если работников нет, его не расширяют."
+        },
+        {
+          "who": "narrator",
+          "text": "Ты живёшь в лагере. Часть дня — твоя доля у мехов. По оттискам ходит пустая форма; живых людей больше не перековывают."
+        },
+        {
+          "who": "narrator",
+          "text": "Старый Кузнец передаёт чертежи мастерским. Он имеет один голос и может уйти с работы, как остальные."
+        },
+        {
+          "who": "narrator",
+          "text": "Вея учит людей быть опорами друг другу. Урок начинается с права отказаться. На нём она особенно не любит спешки.",
+          "if": "bridge_people"
+        },
+        {
+          "who": "narrator",
+          "text": "Вея остаётся у моста: её старый выбор не отменяется. Люди строят рядом сменные опоры, но разъединить старый шов пока не умеют.",
+          "if": "bridge_home"
+        },
+        {
+          "who": "narrator",
+          "text": "Мот ведёт общий склад с открытыми счетами. Имя Рута стоит на первой странице. Долга под ним нет.",
+          "if": "mot_freed"
+        },
+        {
+          "who": "narrator",
+          "text": "Рут живёт. Мот больше не доносит и помогает освободить должников. Доступ к общим счетам есть у всех, к тайным входам — не у него.",
+          "if": "mot_bound"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота живёт и учит писарей отличать человека от удобной записи. Иногда опаздывает на работу. В расписании появилось место и для этого.",
+          "if": "sota_names"
+        },
+        {
+          "who": "narrator",
+          "text": "Сота остаётся книгой и получает собственное право прервать работу. По выходным её читают только с её согласия.",
+          "if": "sota_index"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн работает в малой кузне. Первым делом делает такую рукоять, которую можно выпустить без ожога.",
+          "if": "kern_release"
+        },
+        {
+          "who": "narrator",
+          "text": "Керн не воскресает. На его наковальне учатся держать общий жар. Его последнее согласие не считают согласием за будущих учеников.",
+          "if": "kern_anchor"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима ведёт службу свидетелей. Записи помогают помнить факты, но ни одна лечебная карточка не обещает вернуть утраченное чувство.",
+          "if": "nima_witness"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает школу отхода. Её первый урок: сигнал о помощи не требует сначала заслужить спасение.",
+          "if": "nima_rescue"
+        },
+        {
+          "who": "narrator",
+          "text": "Нима открывает обычную лечебницу. Перед лечением она объясняет цену. Бессмертие больше не значится в списке услуг.",
+          "if": "nima_default"
+        },
+        {
+          "who": "narrator",
+          "text": "Дорога и указатель совпадают. На точном месте Ложкина закладывают новые дома. Старых жителей не подменяют копиями.",
+          "if": "home_exact"
+        },
+        {
+          "who": "narrator",
+          "text": "Точного места больше не найти. Рядом с лагерем строят новое Ложкино. На площади оставляют место для имён прежних жителей.",
+          "ifNot": "home_exact"
+        }
+      ],
+      "large": true,
+      "setsFlags": [
+        "ending_resolved",
+        "ending_shared"
+      ],
+      "next": "postgame"
+    },
+    "postgame": {
+      "title": "Дороги, которые можно чинить",
+      "art": "bg_camp",
+      "trigger": {
+        "event": "after_ending_return_to_camp",
+        "requires": [
+          "ending_resolved"
+        ]
+      },
+      "once": true,
+      "lines": [
+        {
+          "who": "sota",
+          "text": "Живое тело остаётся в безопасном месте. В старые дороги входит твой рабочий оттиск: без отдельной личности и без права жить за тебя."
+        },
+        {
+          "who": "narrator",
+          "text": "Горн держит твоё тело у наковальни. Рабочая форма возвращает в лагерь то, что ещё можно извлечь из старых швов."
+        },
+        {
+          "who": "narrator",
+          "text": "Заслонка закрыта. Малой лагерной печи хватает для пустых форм. Запас большого горна на походы не тратят."
+        },
+        {
+          "who": "narrator",
+          "text": "Большая Кузница разбита. Старые оттиски всё ещё лежат в земле, как формы в песке. Для пустой оболочки хватает обычного жара."
+        },
+        {
+          "who": "narrator",
+          "text": "Мастерские держат пустые формы по очереди. Поход — часть общей работы: из старых слоёв возвращаются материалы для новых опор."
+        },
+        {
+          "who": "sota",
+          "text": "В логовах повторяются последние движения хозяев. Более высокая ступень вскрывает более глубокий оттиск — до восьмидесятой."
+        },
+        {
+          "who": "mot",
+          "text": "Реликвии настоящие. Жетоны тоже. А смерть оболочки — поломка. Хорошая новость: хоронить её не надо."
+        },
+        {
+          "who": "nima",
+          "text": "Потеря походных находок остаётся. Живую память теперь не берут. Клеймо чинит форму, которая никогда не была человеком."
+        },
+        {
+          "who": "narrator",
+          "text": "Сюжетные решения остаются в журнале. Вернуть павших спутников новым походом нельзя. Дороги чинят для тех, кто живёт дальше."
+        }
+      ],
+      "setsFlags": [
+        "postgame_open"
+      ]
+    }
+  },
+  "endings": [
+    {
+      "id": "hearth",
+      "title": "Молот в твоей ладони",
+      "needs": [
+        "boss_smith",
+        "choose_hearth"
+      ],
+      "needsLairs": 0,
+      "summary": "Ты принимаешь молот Кузницы. Мир пока растёт и сохраняется; ты запрещаешь брать чужую память и платишь своей. Это отсрочка на срок твоей личности, а не вечное решение. Живое тело привязано к горну; в лагере действует твой рабочий оттиск."
+    },
+    {
+      "id": "bank",
+      "title": "Огонь под золой",
+      "needs": [
+        "boss_smith",
+        "choose_bank"
+      ],
+      "needsLairs": 0,
+      "summary": "Большой горн закрыт, запас стабилизирует мир примерно на поколение. Люди больше не платят памятью, но проблему предстоит решить до исчерпания запаса. Кузнец становится смертным хранителем устройства; ты живёшь обычную жизнь и ходишь в оттиски из лагеря."
+    },
+    {
+      "id": "break",
+      "title": "Земля под ногами",
+      "needs": [
+        "boss_smith",
+        "choose_break"
+      ],
+      "needsLairs": 0,
+      "summary": "Наковальня разбита. Существующая земля сохраняется в конечных границах, новые области и воскрешение живого тела больше невозможны. Твоя жизнь продолжается среди людей и имеет конец; безопасные походы по неживым оттискам не возвращают миру бессмертие."
+    },
+    {
+      "id": "shared",
+      "title": "Право выпустить молот",
+      "needs": [
+        "boss_smith",
+        "choose_shared",
+        "shared_method"
+      ],
+      "needsLairs": 8,
+      "secret": true,
+      "summary": "По восьми свидетельствам Кузница разделена на малые мастерские. Имена освобождены от владения, труд доброволен и может быть прекращён. Старые утраты необратимы; мир расширяется лишь настолько, насколько люди согласны его поддерживать. Живые тела больше не воскресают. Ты живёшь в лагере и участвуешь в общем труде."
+    }
+  ],
+  "notes": "Самое сильное: в первые минуты у тебя есть ключ, название деревни и понятная цель. За каждым следующим проходом стоит конкретное действие: след дома → расходная запись → приказ → человек у молота. Поздняя правда не обесценивает прошлую жизнь героя. Кузнец сделал заготовку из живого человека, а не придумал ему деревню.\n\nСамое спорное: погибших жителей нельзя буквально воскресить. Это осознанная граница, озвученная до финального выбора, а не внезапный отказ в награде. Возвращается право построить дом и выбирать жизнь. Общее решение тоже оставляет труд, конечную жизнь, гибель Рута или Керна, тело Соты в книге и привязку Веи, если такие решения приняты. Ни авторского наказания за неправильную мораль, ни концовки, отменяющей все потери.\n\nЭто план данных для будущего сюжетного слоя; код игры только прочитан и не изменён. Прочитаны data.world.js, data.lairs.js, data.lairbosses.js, data.run.js, data.branches.js; соответствия наборов сверены с data.classes.js, условия и потери — с expedition.js. Поле trigger описывает события адаптера, а не уже существующий в игре API.\n\nПорядок показа: intro → одна class-вставка → первое region-событие → сцены по событиям. region:<id> означает первый вход в регион. trail — только первое успешное завершение обычного похода complete; бой в логове, отступление и смерть не засчитывают обычную тропу. До передачи следующего экрана обязательно разрешить отложенную сюжетную сцену и её choice. В сцене рассказчик who=narrator, цитаты боссов тоже narrator: отдельные реплики героя не добавляются. Действия героя находятся в повествовании и подписях вариантов.\n\nВсе сцены once=true, кроме death:later и окна final:choice. Они могут открываться снова без повторной выдачи награды. Условия if/ifNot проверяют булев флаг, class — выбранный класс; когда указанное условие ложно, строка пропускается. Условия не соединяются неописанными строковыми выражениями. Сначала вычислить производные флаги, затем отфильтровать строки. Лимит реплик соблюдается даже до фильтрации. Разметка large разрешает до 16, обычная сцена — до 10. Текст имени проверять с отображаемым именем: визуальный бюджет имени 24 знака, исходное имя хранить полностью.\n\nДля choice все варианты взаимоисключающие. После выбора атомарно выставить option.flag, применить ровно один effect и choice.setsFlags, затем показать option.lines; setsFlags самой сцены ставятся после её разрешения. Эффекты постоянны, привязаны к bonus.id, не складываются повторно при перезагрузке. mods — аддитивные доли: dmg весь урон, taken входящий урон (минус уменьшает), heal лечение, gold золото, drop вероятность добычи в рамках имеющейся системы, xp опыт, speed скорость. Отрицательные значения — открытая механическая цена. Эти небольшие бонусы предлагается подключить к производным значениям отдельным сюжетным слоем, не путать с временными BOONS из data.run.js. Бонусы drop не обещают лишнюю гарантированную реликвию логова.\n\nПроизводные флаги: bridge_decided, mot_decided, sota_decided, kern_decided выдаёт завершение соответствующего большого выбора. home_exact = bridge_home AND sota_index. nima_default = NOT nima_witness AND NOT nima_rescue. shared_method выдаёт witness:complete при всех witness_1..witness_8 независимо от порядка их получения. ending_resolved выдаёт завершение любой ending-сцены. boss_<id> — флаг первой победы соответствующего босса; его можно восстановить из hero.defeatedGuardians. subclass_chosen/profession_chosen — подтверждение реального выбора ветви в существующем интерфейсе; открытие окна без подтверждения их не выдаёт.\n\nСоответствия существующим условиям: done.trail читает hero.trailClears[region] и цвет; done.boss — hero.defeatedGuardians; done.level — hero.level; done.flag — новые сюжетные флаги. Для done.lair пользовательские id хозяев переводятся так: lair_she_wolf→wolf_den, lair_viper_mother→viper_hollow, lair_ash_seneschal→ash_court, lair_executioner→red_mile, lair_first_scribe→sealed_stacks, lair_widow→veil_crypt, lair_rift_heart→overheat_rift, lair_forge_titan→first_forge. Проверка hero.lairClears[ключ]>0. needsLairs считает восемь разных ключей, не число побед. Глава c5 параллельная и необязательная; её незавершённость не блокирует c6.\n\nДоступность сохранена: цвета white→green→orange→purple→red. Красная тропа не требуется ни для босса, ни для тайной концовки. Боссы доступны после purple и при уровнях 13/28/48/69 (уровень босса минус один); рекомендуются примерно 16/32/52/72. Регионы открываются победами, а не отдельным требованием minLevel в описании региона. Логова открываются после green или purple соответственно LAIR_CATALOG и требуют уровень выбранной ступени минус три. Подкласс с 30, профессия с 60. Первый полный комплект — 8 разных надетых slotType, не просто восемь одинаковых вещей и не 8 из 8 в рюкзаке.\n\nВосемь логов дают восемь самостоятельных свидетельств, всегда при первой победе, даже если найденный комплект не подходит классу. Не надо носить чужой комплект или собирать все 11. relicSets сохраняют настоящие id наборов; три набора Волчицы и два набора Матери Гадюк не сливаются в один выдуманный комплект. Повторное логово — оттиск, первая победа снимает прежнюю волю хозяина; более высокие ступени и возвышение реликвий объяснены слоями формы. Реликвии усиливают ответ хозяев согласно имеющемуся RELIC_HUNGER.\n\nЦена Клейма — только за настоящую боевую гибель до финала, включая бой с региональным боссом. Адаптер должен слушать единое событие гибели: в текущем expedition.js records.deaths растёт в finishExpedition(death), так что гибель вне похода отдельно нормализуется без двойного счёта. После первой и третьей гибели показать соответствующие сцены. На второй обновить запись door_texture без отдельной катсцены; на четвёртой и далее death:later и список memoryCosts. Ощущение и словесное знание различаются: имена, факты, навыки, цели, отношения, уже выбранные флаги и доступ к концовкам не пропадают. С девятой гибели исчезает свежесть последнего тихого привала, а не бесконечный запас новых биографических сведений. В журнале у каждой утраты дата и пустая рамка; доступный текст остаётся. Гибель не необходима для сюжета и не открывает наград. Если смертей нет, цену объясняет белая тропа, историю Нимы — boss_before:archivist. Если первая гибель раньше белой, death:first объясняет всё самостоятельно. Отступление не стирает память.\n\nМатериальные потери описываются только по актуальному отчёту: смерть в экспедиции сохраняет опыт и надетое, теряет новые не надетые вещи, половину походного золота и материалов/осколков по текущему округлению. Смерть в отдельном бою босса не выдумывает походную сумку. retreat сохраняет добычу, но не отмечает тропу пройденной. Сюжетная цена не вводит скрытую потерю статов сверх явно показанных бонусов выбора.\n\nРазговор перед smith имеет 16 строк, показывает происхождение системы и причину боя. Финальное необратимое решение final:choice следует после победы, пока герой стоит перед Кузнецом: так бой не превращается в наказание за моральный выбор и можно добрать свидетельства. Закрыть это окно и вернуться в лагерь можно без варианта-пустышки, флага и эффекта. После победы hero.won уже истинно, однако сюжетный эпилог ждёт ending_resolved; это требует отдельного сюжетного экрана. При повторном открытии окна пересчитать shared_method. Четвёртый вариант скрыт до всех свидетельств. В обычных вариантах не проверять смерть, красные тропы, комплект или скрытый показатель доброты. После выбора доступны ровно один эпилог и postgame, финал не переигрывается внутри того же сохранения.\n\nПосле финала основной мир продолжает выбранное будущее, а повторяемая игровая петля идёт через неживую рабочую форму в старых оттисках дорог и логов. Обычного жара достаточно лишь для пустой оболочки внутри готового оттиска; он не воскрешает человека, не создаёт личность и не отменяет смертность финалов. Сохраняются классы, уровни, предметы, рост до 80 ступени логов и материальные потери: имущество принадлежит живому герою, оболочка только его носит. Поражение оболочки больше не отнимает личную память. Причина продолжать — извлекать реальные материалы из старых слоёв для опор и новых домов, осваивать ремесло; сюжетные сцены не сбрасываются. Запас в финале bank не расходуется этой малой печью. В hearth управление оболочкой идёт от живого тела у горна; в остальных — от живого тела в лагере.\n\nСостояния NPC обязательны в интерфейсе: Вея при bridge_home говорит через красный шнур и карту; Мот всегда жив, при mot_bound после Руин лавка под надзором, Рут излечен к boss_after:pyre_queen, но долг и доносительство держатся до финала; Сота при sota_index говорит из книги. После kern_anchor показывать его портрет только с подписью «Керн · запись», кузницу ведут ученики по его чертежам. Поздно полученные красные биты Чащи, Пустошей, Руин и ранние логова — исследование старых следов, реплики Керна из его технических записей; не изображать погибшего живым свидетелем нового события. Имена не исчезают из UI при сюжетной утрате ощущения.\n\nТон: личная вещь раньше устройства мира. Ключ, ложка, чашка, шнур и счёт вместо общих речей о судьбе. Кузнец несёт ответственность, но его физическая слабость не прощает его решений. Нима признаёт ложь и меняет практику. У каждого выбора есть известная до нажатия цена и последующая реакция. Схема мира и персонажи созданы для этой игры; имена и сюжеты иных произведений не используются как источники. Art — задания художнику, изображения не генерировались."
+}

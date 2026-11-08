@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Просмотр моделей</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0b0a; color: #eee; font: 14px sans-serif; overflow: hidden; }
+  #bar { position: fixed; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; z-index: 2; }
+  button { background: #2a221d; color: #eee; border: 1px solid #554; padding: 4px 8px; cursor: pointer; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<script src="../vendor/three.bundle.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const name = params.get("m") || "assassin";
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color("#3a3230");
+  const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 100);
+  const dist = Number(params.get("d") || 5);
+  const yaw = Number(params.get("yaw") || 25) * Math.PI / 180;
+  camera.position.set(Math.sin(yaw) * dist, 1.3, Math.cos(yaw) * dist);
+  camera.lookAt(0, 0.95, 0);
+  const key = new THREE.DirectionalLight("#ffe2c0", 3.2);
+  key.position.set(3, 5, 4); key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight("#7fb0ff", 2.4);
+  rim.position.set(-4, 3, -4); scene.add(rim);
+  scene.add(new THREE.HemisphereLight("#c8d0e8", "#6a5040", 2.0));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(6, 48), new THREE.MeshStandardMaterial({ color: "#5a4c40", roughness: 0.95 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  let mixer, clips = {}, current;
+  new THREE.GLTFLoader().load(`../assets/models/${name}.glb`, (gltf) => {
+    scene.add(gltf.scene);
+    gltf.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    mixer = new THREE.AnimationMixer(gltf.scene);
+    gltf.animations.forEach((clip) => {
+      clips[clip.name] = clip;
+      const b = document.createElement("button");
+      b.textContent = clip.name;
+      b.onclick = () => play(clip.name);
+      document.getElementById("bar").appendChild(b);
+    });
+    window.modelInfo = { clips: Object.keys(clips), root: gltf.scene };
+    play(params.get("c") || "idle");
+  });
+  function play(id, time) {
+    if (current) current.stop();
+    current = mixer.clipAction(clips[id]);
+    current.reset().play();
+    if (time !== undefined) { current.paused = true; current.time = time; mixer.update(0); }
+  }
+  window.showFrame = (id, frame) => { play(id, frame / 30); renderer.render(scene, camera); return renderer.domElement.toDataURL("image/jpeg", 0.85).length; };
+  const clock = new THREE.Clock();
+  (function loop() { requestAnimationFrame(loop); if (mixer) mixer.update(clock.getDelta()); renderer.render(scene, camera); })();
+</script>
+</body>
+</html>

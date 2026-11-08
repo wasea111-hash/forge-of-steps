@@ -1,0 +1,208 @@
+[
+ {
+  "id": "portrait_veya",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a lean middle-aged woman with windburned brown skin, short iron-gray hair, a chipped front tooth, patched moss-green travel coat, red measuring cord around one wrist, folded map and wooden walking staff. Alert tired eyes, practical warmth, painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_mot",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a stocky man in his forties with deep-set hazel eyes, cropped black curls, a narrow burn along the jaw, faded plum merchant coat with mismatched buttons, brass weighing pan and two plain copper tokens. Guarded smile, painterly dark fantasy, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_kern",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of an elderly broad-shouldered metalworker with dark umber skin, close white beard, soot-black linen apron, two missing fingertips, faint amber light visible through cracked skin at his collarbone, holding small repair tongs rather than a weapon. Painterly dark fantasy, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_sota",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a young adult woman with olive skin, tightly braided black hair, large attentive dark eyes, ink stains on fingers, plain ochre shawl, a tiny silver staple through one eyebrow, holding a thick book with blank weathered pages. Painterly dark fantasy, no visible writing. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_nima",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a stout older woman with tawny skin, white hair in a short braid, steady gray eyes, dark blue wool dress and clean rolled sleeves, a mended ceramic cup in one hand and a bundle of fresh bandages in the other. Kind unsmiling expression, painterly dark fantasy, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "intro_home",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A person of indeterminate gender seen only from behind holding a plain house key at an empty crossroads. A village has been erased leaving a rectangular patch of bare earth, one suspended kitchen spoon and a path ending in pale nothingness. Modest grief, no heroic pose.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "bridge_choice",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A stone bridge splitting at a failing iron support, refugees waiting on one side and a fragile cast of an erased village road on the other. A gray-haired female guide holds a red cord between both routes, difficult practical decision.",
+  "ref": null,
+  "refNpc": "portrait_veya"
+ },
+ {
+  "id": "ash_ledger",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A stocky merchant beside a dying young adult man on a litter, a heated debt plate with abstract blank grooves chained to a furnace. A healer holds a pair of cutters, ash falling quietly.",
+  "ref": null,
+  "refNpc": "portrait_mot"
+ },
+ {
+  "id": "sota_choice",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An olive-skinned woman with braided black hair stands between a blank open book and a wall of sealed archive drawers. Threads of pale light connect her hands to the book; tiny scattered light reflects released memories without any writing.",
+  "ref": null,
+  "refNpc": "portrait_sota"
+ },
+ {
+  "id": "kern_choice",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An elderly dark-skinned repair smith opens his apron at the chest, exposing a small furnace bypass glowing under cracked skin. Repair tongs, a waiting empty anvil socket, companions keeping a respectful distance.",
+  "ref": null,
+  "refNpc": "portrait_kern"
+ },
+ {
+  "id": "greyfang_before",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A huge gray wolf with remnants of a red wrist cord embedded in its fur guards an iron road bolt in an old stone gate. An anonymous traveler carries a folded map connected to a red guide cord disappearing toward a distant bridge. Restrained grief, no visible companions.",
+  "ref": "sprites/greyfang.png",
+  "refNpc": null
+ },
+ {
+  "id": "greyfang_after",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An empty forest gate with its iron bolt released, gray wolf fur and an ordinary wooden whistle on damp stone. A gender-indeterminate gloved hand reaches for the whistle beside a folded map with a red guide cord, a clear passage toward orange distant hills.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "pyre_queen_before",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A woman almost entirely consumed into a crown-shaped living flame stands between two feeding braziers in a burned palace. Her posture suggests someone shielding absent children; slag has fused around her feet.",
+  "ref": "sprites/pyre_queen.png",
+  "refNpc": null
+ },
+ {
+  "id": "pyre_queen_after",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A fire crown extinguished into a black cooking ring, a single protected cooling coal in a shallow bowl, two broken braziers and an archive doorway becoming visible through the ash.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "archivist_before",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A massive faceless stone-and-paper archive keeper with human hands replaced by metal clasps. Countless narrow blank sheets spiral around its head like precise measuring tapes. An anonymous traveler stands before a sealed record of an ordinary house.",
+  "ref": "sprites/archivist.png",
+  "refNpc": null
+ },
+ {
+  "id": "archivist_after",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A stone registrar kneels with its chest doors open, blank folded paper roads spilling gently onto a ruined workshop floor. An ink-stained open journal rests on a low reading stand beside a house key in a small empty drawer. No visible human companion.",
+  "ref": "sprites/archivist.png",
+  "refNpc": null
+ },
+ {
+  "id": "smith_before",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An exhausted ancient smith at a huge anvil, one hand merged into the world boundary, molten cracks in his arms, an unfinished anonymous human-shaped mold nearby. His hammer raised defensively, companions small in the doorway.",
+  "ref": "sprites/smith.png",
+  "refNpc": null
+ },
+ {
+  "id": "smith_after",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. An ancient smith sits beside a stopped hammer, a cracked ring enclosing a miniature network of roads opened on the anvil. An anonymous traveler faces three physical tools: a hammer, a coal scoop and cold cutting tongs. A second empty hammer socket is visible.",
+  "ref": "sprites/smith.png",
+  "refNpc": null
+ },
+ {
+  "id": "relic_witness",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. Eight mismatched worn relic fragments laid around a blank journal on a camp repair table. Subtle impressions of ordinary past travelers in the metal reflection, each distinct, no heroic apparition. A repaired spoon anchors the foreground.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "death_return",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A gender-indeterminate figure sitting upright beneath a blue healer awning, a wrist mark cooling from white to red. In an open blank journal an image of a kitchen fades at its edges while a mended cup remains sharply real. Intimate, non-gory.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "ending_hearth",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A person of indeterminate gender seated at the great forge with one hand resting on the boundary anvil, a tiny walking silhouette cast from the other hand. Outside, villagers repair a road beneath a stabilized finite horizon. Tender confinement, steady orange light.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "ending_bank",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A carefully banked immense furnace under a heavy ash cover, an elderly smith sleeping on a cot beside it. An anonymous traveler carries a sealed ember toward a modest busy camp, the distant horizon stable but ending sharply.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "ending_break",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A shattered empty world-forging anvil cooling in daylight, a finite landscape whose edge has become ordinary stone cliffs. An anonymous traveler joins neighbors laying a new village foundation with hand tools, no miraculous restored people.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "ending_shared",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A disassembled great forge redistributed into several small roadside workshops, ordinary people taking turns at paired hammers, an anonymous traveler handing over a house key as a foundation marker. A finite stable horizon, fatigue, cooperation, no coronation.",
+  "ref": null,
+  "refNpc": null
+ },
+ {
+  "id": "witness_she_wolf",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A huge silver she-wolf lies dead and at peace in a forest den among three old travel sacks; a thin wooden tablet and rusted gear grown into her fur, soft dawn light.",
+  "ref": "sprites/lair_she_wolf.png"
+ },
+ {
+  "id": "witness_viper_mother",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A swamp hollow at dusk, the serpent matriarch gone, her giant shed skin hanging from dead trees showing the prints of many human palms, herbalist tools and a carved ring in the mud.",
+  "ref": "sprites/lair_viper_mother.png"
+ },
+ {
+  "id": "witness_ash_seneschal",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A burned throne room, the giant seneschal collapsing into ash around his sceptre; beneath the throne an old open ledger of furnaces lies untouched, embers floating.",
+  "ref": "sprites/lair_ash_seneschal.png"
+ },
+ {
+  "id": "witness_executioner",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A red clay road of execution posts at sunset, the colossal axe split open at the handle revealing a rolled contract with a copper clasp, broken chains and empty buckles around it.",
+  "ref": "sprites/lair_executioner.png"
+ },
+ {
+  "id": "witness_first_scribe",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A sealed archive vault, a huge bandaged scribe slumped against shelves, its chained grimoire closing by itself, a chorus mask with writing on its reverse side resting on loose pages.",
+  "ref": "sprites/lair_first_scribe.png"
+ },
+ {
+  "id": "witness_widow",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A cold crypt lit by pale blue light, a black lace veil settling on the stone floor with nothing under it; on the floor two silhouettes printed in frost, one walking away, one empty.",
+  "ref": "sprites/lair_widow.png"
+ },
+ {
+  "id": "witness_rift_heart",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. A molten rift cooling, a cracked colossal core of lava and cyan crystal with a small copper pump still beating inside it, a human palm print frozen in the stone beside it.",
+  "ref": "sprites/lair_rift_heart.png"
+ },
+ {
+  "id": "witness_forge_titan",
+  "size": "1536x1024",
+  "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, rich dramatic light, believable worn materials, no text, no lettering, no logos, no UI. The first forge, a fallen titan of black iron with its chest plates open, a second smaller hammer lying inside where the heart should be, an empty hammer socket with eight supports under a giant anvil.",
+  "ref": "sprites/lair_forge_titan.png"
+ }
+]

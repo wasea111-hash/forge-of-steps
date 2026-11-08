@@ -1,0 +1,9 @@
+# Raw art from Codex: the game uses the converted copies in assets/
+art/
+# Voice experiments and local build helpers
+tools/piper/
+tools/vendor-build/
+voice-sample/
+node_modules/
+*.log
+.claude/
