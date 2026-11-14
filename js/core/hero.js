@@ -121,6 +121,11 @@ function clearBattleState(hero) {
   hero.summonedUnits = [];
   hero.cooldowns = {};
   hero.speedMult = 1;
+  // A maximum raised only for this fight is given back with it.
+  if (hero.fightMaxHp) {
+    hero.fightMaxHp = 0;
+    applyDerivedStats(hero);
+  }
 }
 
 function restoreHero(hero) {

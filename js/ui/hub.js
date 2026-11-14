@@ -7,17 +7,18 @@ const HUB_TABS = [
   { id: "talents", name: "Таланты", icon: "talents" },
   { id: "forge", name: "Кузница", icon: "anvil" },
   { id: "shop", name: "Лавка", icon: "shop" },
-  { id: "journal", name: "Журнал", icon: "book" }
+  { id: "journal", name: "Журнал", icon: "book" },
+  { id: "news", name: "Новости", icon: "star" }
 ];
 
 Screens.hub = () => {
   const hero = App.hero;
   const onTrail = Boolean(hero.expedition);
   if (App.tab === "gear") App.tab = "hero";
-  const tabs = HUB_TABS.filter((tab) => !onTrail || ["hero", "skills", "talents", "journal"].includes(tab.id));
+  const tabs = HUB_TABS.filter((tab) => !onTrail || ["hero", "skills", "talents", "journal", "news"].includes(tab.id));
   if (onTrail && !tabs.some((tab) => tab.id === App.tab)) App.tab = "hero";
   const need = getExperienceForNextLevel(hero.level);
-  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal };
+  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews };
   return `
   <div class="hub" style="--lost:${getLostMemories(hero).length}">
     <div class="hub-backdrop"><img src="assets/ui/bg_hub.webp" alt=""><span class="camp-flicker" aria-hidden="true"></span><canvas class="fx-canvas" data-fx="campfire"></canvas></div>
@@ -60,7 +61,23 @@ Screens.hub = () => {
   </div>`;
 };
 
-Actions.hubTab = (el) => { App.tab = el.dataset.tab; render(); };
+Actions.hubTab = (el) => {
+  App.tab = el.dataset.tab;
+  // Opening the news marks this version as read.
+  if (App.tab === "news" && App.save.settings.newsSeen !== GAME_VERSION) { App.save.settings.newsSeen = GAME_VERSION; persist(); }
+  render();
+};
+
+// --- News: what changed in each update ---
+const NEWS_TONES = { new: "Новое", fix: "Исправлено", tune: "Баланс" };
+function viewNews() {
+  return `<h2 class="section-title">${icon("star")}Новости</h2>
+    <div class="news-list">${NEWS.map((entry, index) => `<article class="news-card${index === 0 ? " latest" : ""}">
+      <header><span class="news-version">${esc(entry.version)}</span><div><h3>${esc(entry.title)}</h3><time datetime="${esc(entry.date)}">${new Date(entry.date + "T12:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</time></div>${index === 0 ? '<span class="news-badge">Сейчас</span>' : ""}</header>
+      <p class="news-lead">${esc(entry.lead)}</p>
+      ${["new", "tune", "fix"].map((tone) => { const items = entry.items.filter((item) => item.tone === tone); return items.length ? `<section class="news-group tone-${tone}"><h4>${NEWS_TONES[tone]}</h4><ul>${items.map((item) => `<li>${esc(item.text)}</li>`).join("")}</ul></section>` : ""; }).join("")}
+    </article>`).join("")}</div>`;
+}
 Actions.backToTrail = () => setScreen("trail");
 
 function refreshKeepScroll() {

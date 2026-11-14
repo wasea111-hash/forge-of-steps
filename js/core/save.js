@@ -50,7 +50,8 @@ function normalizeExpedition(raw) {
   };
   exp.pending = raw.pending && typeof raw.pending === "object" ? raw.pending : null;
   exp.weather = ["rain", "ash", "mist", "shards"].includes(raw.weather) || raw.weather === null ? raw.weather : undefined;
-  if (exp.step >= exp.steps) exp.step = exp.steps - 1;
+  // step === steps means the last fight was won and only the closing summary is left.
+  if (exp.step > exp.steps) exp.step = exp.steps;
   exp.choices = safeList(raw.choices).filter((choice) => choice?.type);
   if (!exp.choices.length) generateChoices(exp);
   return exp;

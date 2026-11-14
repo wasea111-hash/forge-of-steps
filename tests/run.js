@@ -1658,6 +1658,67 @@ const report = run(`(function () {
     assert(!getTreeOptionState(hero, stage, stage.tiers[2], stage.tiers[2].options[0]).ok, "not on the road");
   });
 
+  test("audit 2: a won final fight survives a reload and a choice can not be made twice", () => {
+    const hero = newHero("mage", true);
+    const exp = createExpedition(hero, REGIONS[0].id, "white");
+    exp.step = exp.steps;
+    hero.expedition = exp;
+    eq(normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero)))).expedition.step, exp.steps, "the finished trail stays finished");
+    const scene = Object.keys(STORY_SCENES).find((id) => STORY_SCENES[id].choice?.options?.length > 1);
+    const [first, second] = STORY_SCENES[scene].choice.options;
+    chooseStoryOption(hero, scene, first);
+    eq(chooseStoryOption(hero, scene, second), false, "the second answer is refused");
+    eq(hero.story.choices[scene], first.label, "the first answer stays");
+    if (second.flag && second.flag !== first.flag) assert(!hero.story.flags.includes(second.flag), "no flag of the other answer");
+  });
+
+  test("audit 2: a relic pushes out a plain thing found on the trail", () => {
+    const hero = newHero("warrior", true);
+    for (let i = 0; i < INVENTORY_SIZE; i += 1) hero.inventory[i] = { ...generateItem({ level: 10, rarity: "white", classKey: "warrior" }), fromTrail: true };
+    const relic = generateItem({ level: 10, rarity: "red", classKey: "warrior" });
+    relic.setId = Object.keys(SET_CATALOG)[0];
+    const result = stowOrSell(hero, relic);
+    assert(result.stored && hero.inventory.includes(relic), "the relic is kept");
+  });
+
+  test("audit 2: a silenced foe only strikes and a summon keeps the hero clean", () => {
+    const hero = newHero("mage");
+    const foe = makeEnemy("wolf", 10);
+    foe.moves = ["strike", "spit", "frostbite"];
+    const battle = createBattle(hero, foe);
+    applyEffect(battle, battle.enemy, { id: "silence", duration: 3, value: 1 }, hero);
+    for (let i = 0; i < 40; i += 1) { battle.intent = null; pickEnemyIntent(battle); eq(ENEMY_MOVES[battle.intent.id].kind, "physical", "silenced intent"); }
+    hero.summonedUnits = [{ id: "w", type: "beast", role: "wolf", name: "Волк", hp: 99999, maxHp: 99999, power: 1, duration: 9, persistent: true }];
+    const before = hero.currentHp;
+    for (let i = 0; i < 20; i += 1) performEnemyMove(battle, { name: "Укус", kind: "physical", power: 1, apply: { id: "poison", duration: 3, ratio: 0.2, chance: 1 } });
+    if (hero.currentHp === before) assert(!unitHasEffect(hero, "poison"), "poison only through a blow that reached the hero");
+  });
+
+  test("audit 2: a fight-only maximum is given back after the fight", () => {
+    const hero = newHero("bard");
+    const base = hero.maxHp;
+    hero.maxHp += 50;
+    hero.fightMaxHp = 50;
+    clearBattleState(hero);
+    eq(hero.maxHp, base, "maximum is back");
+  });
+
+  test("audit 2: a lane final falls when its earlier skills are changed away", () => {
+    const hero = newHero("warrior", true);
+    hero.level = 80;
+    hero.freeRespec = true;
+    hero.gold = 1e6;
+    const stage = getTreeStages(hero).find((entry) => entry.tiers.some((tier) => tier.needsLane));
+    if (!stage) return;
+    const final = stage.tiers.find((tier) => tier.needsLane);
+    const lane = 0;
+    stage.tiers.filter((tier) => tier.level < final.level).forEach((tier) => { if (tier.options[lane]) chooseTreeSkill(hero, stage, tier, tier.options[lane]); hero.freeRespec = true; });
+    const took = chooseTreeSkill(hero, stage, final, final.options[lane]);
+    if (!took.ok) return;
+    stage.tiers.filter((tier) => tier.level < final.level && tier.options.length > 1).forEach((tier) => { hero.freeRespec = true; chooseTreeSkill(hero, stage, tier, tier.options[1]); });
+    if (getLanePicks(hero, stage, lane, final.level) < final.needsLane) eq(getTreePick(hero, stage, final), null, "the final is dropped");
+  });
+
   test("camp: people answer the last return and the save keeps it", () => {
     const hero = newHero("mage", true);
     hero.story.seen = ["intro"];

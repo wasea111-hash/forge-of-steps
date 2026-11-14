@@ -110,6 +110,8 @@ function applyStoryEffect(hero, effect) {
 
 function chooseStoryOption(hero, sceneId, option) {
   const story = hero.story;
+  // One scene, one choice: a reload in the middle of the answer can not add a second one.
+  if (story.choices[sceneId] !== undefined && STORY_SCENES[sceneId]?.choice) return false;
   story.choices[sceneId] = option.label;
   if (option.flag && !story.flags.includes(option.flag)) story.flags.push(option.flag);
   applyStoryEffect(hero, option.effect);

@@ -126,6 +126,7 @@ Actions.eventOption = (el) => {
   App.eventState.result = result;
   // A closed page must not offer the same reward twice.
   hero.expedition.eventResolved = !result.battle;
+  hero.expedition.ambush = Boolean(result.battle);
   SFX.play(result.tone === "good" ? "loot" : result.tone === "bad" ? "debuff" : "click");
   persist();
   render();
@@ -842,6 +843,7 @@ function onBattleOver() {
   const battle = App.battle;
   const fight = App.fight;
   const hero = battle.hero;
+  if (hero.expedition) hero.expedition.ambush = false;
   const enemy = battle.foes[0];
   const won = battle.over === "hero";
   hero.records.maxHit = Math.max(Number(hero.records.maxHit || 0), battle.stats.maxHit);

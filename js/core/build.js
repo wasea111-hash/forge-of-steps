@@ -133,8 +133,18 @@ function chooseTreeSkill(hero, stage, tier, skillId) {
   if (!check.ok) return check;
   hero.gold -= check.cost;
   hero.skillPicks = { ...(hero.skillPicks || {}), [treeTierKey(stage, tier)]: skillId };
+  dropUnsupportedFinals(hero, stage);
   applyDerivedStats(hero);
   return check;
+}
+
+// A final skill of a lane stands on its earlier skills: when they are changed away, the final goes too.
+function dropUnsupportedFinals(hero, stage) {
+  stage.tiers.forEach((tier) => {
+    const picked = getTreePick(hero, stage, tier);
+    if (!picked || !tier.needsLane) return;
+    if (getLanePicks(hero, stage, tier.options.indexOf(picked), tier.level) < tier.needsLane) delete hero.skillPicks[treeTierKey(stage, tier)];
+  });
 }
 
 function getPendingTreePick(hero) {
@@ -399,9 +409,9 @@ function resetBuild(hero) {
   const cost = hero.freeRespec ? 0 : respecCost(hero);
   if (hero.gold < cost) return { ok: false, reason: `Сброс стоит ${cost} золота.` };
   hero.gold -= cost;
+  // The tree stays as chosen: the reset promises talents and forms only.
   hero.talents = [];
   hero.skillForms = {};
-  hero.skillPicks = {};
   hero.freeRespec = false;
   applyDerivedStats(hero);
   return { ok: true, cost };

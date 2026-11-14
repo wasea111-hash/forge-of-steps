@@ -53,7 +53,7 @@
     can: b => b.hero.currentHp > Math.ceil(b.hero.maxHp * 0.08)
       ? { ok: true } : { ok: false, reason: "Нужно больше 8% здоровья для жертвы." },
     run(b, skill) {
-      b.hero.currentHp -= Math.ceil(b.hero.maxHp * 0.08);
+      b.hero.currentHp = Math.max(1, b.hero.currentHp - Math.ceil(b.hero.maxHp * 0.08));
       performSkillDamage(b, skill);
     }
   };

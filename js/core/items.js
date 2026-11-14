@@ -215,7 +215,7 @@ function stowOrSell(hero, item) {
   const worth = (entry) => (isProtectedItem(entry) ? Infinity : getSellPrice(entry));
   let cheapest = -1;
   hero.inventory.forEach((entry, index) => {
-    if (entry && !entry.fromTrail && (cheapest < 0 || worth(entry) < worth(hero.inventory[cheapest]))) cheapest = index;
+    if (entry && (!entry.fromTrail || isProtectedItem(item)) && (cheapest < 0 || worth(entry) < worth(hero.inventory[cheapest]))) cheapest = index;
   });
   if (cheapest >= 0 && worth(hero.inventory[cheapest]) < worth(item)) {
     const soldItem = hero.inventory[cheapest];

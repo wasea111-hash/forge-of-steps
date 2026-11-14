@@ -27,7 +27,7 @@ Screens.title = () => {
         ${heroes.length ? `<button class="btn big" data-action="openRoster">Мои герои <small>${heroes.length}</small></button>` : ""}
         <button class="btn big" data-action="openSettings">Настройки</button>
       </div>
-      <div class="title-foot">Alpha 2.0 · Пошаговое PvE в браузере · Сохранения хранятся на этом устройстве</div>
+      <div class="title-foot">Версия ${GAME_VERSION} · Пошаговое PvE в браузере · Сохранения хранятся на этом устройстве</div>
     </div>
   </div>`;
 };
@@ -38,8 +38,16 @@ Actions.continueHero = (el) => {
 };
 
 function enterCamp() {
-  if (App.hero.expedition) {
-    App.hero.expedition.pending = null;
+  const exp = App.hero.expedition;
+  if (exp && exp.step >= exp.steps) {
+    // The page was closed between the last victory and the summary: the trail is done.
+    setScreen("hub");
+    showExpeditionSummary(finishExpedition(App.hero, exp, "complete"));
+    persist();
+  } else if (exp) {
+    exp.pending = null;
+    // A closed page during an ambush gives up the gift that came with it: no gift without the fight.
+    if (exp.ambush) { exp.pendingBoons = null; exp.ambush = false; }
     setScreen("trail");
   } else {
     setScreen("hub");

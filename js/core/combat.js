@@ -530,7 +530,12 @@ function advanceBattle(battle) {
       const regen = getManaRegen(hero);
       hero.currentMana = clamp(hero.currentMana + regen, 0, hero.maxMana);
       emit(battle, "turn", { who: "hero" });
-      const stun = getEffect(hero, "stun") || getEffect(hero, "freeze");
+      let stun = getEffect(hero, "stun") || getEffect(hero, "freeze");
+      // Something may shake the stun off before it costs the turn.
+      if (stun?.id === "stun" && fireMech(battle, "beforeStun", { cancel: false }).cancel) {
+        hero.effects = hero.effects.filter((effect) => effect !== stun);
+        stun = getEffect(hero, "freeze");
+      }
       if (stun) {
         stun.duration -= 1;
         hero.stunnedLast = true;
@@ -883,10 +888,11 @@ function heroAction(battle, action) {
       else applySkillEffects(battle, skill, hero, enemy);
     } else {
       performSkillDamage(battle, skill);
-      if (mutation?.id === "chain" && enemy.currentHp > 0 && roll(0.3)) {
-        logEvent(battle, "Цепная реакция повторяет навык!", "Мутация");
-        performSkillDamage(battle, skill, 0.5);
-      }
+    }
+    // The chain mutation works for every damaging skill, also the ones with their own handler.
+    if (mutation?.id === "chain" && skill.attackType && battle.enemy?.currentHp > 0 && battle.hero.currentHp > 0 && roll(0.3)) {
+      logEvent(battle, "Цепная реакция повторяет навык!", "Мутация");
+      performSkillDamage(battle, skill, 0.5);
     }
 
     const progress = grantSkillExperience(hero, skill.id);
@@ -920,6 +926,7 @@ function pickEnemyIntent(battle) {
     .filter((id) => {
       const move = ENEMY_MOVES[id];
       if (!move || Number(enemy.cooldowns[id] || 0) > 0) return false;
+      if (move.kind !== "physical" && unitHasEffect(enemy, "silence")) return false;
       if (move.when === "hurt" && enemy.currentHp / enemy.maxHp > 0.6) return false;
       if (move.kind === "ally_heal" && !allies.some((foe) => foe.currentHp / foe.maxHp < 0.8)) return false;
       if (move.kind === "ally_shield" && !allies.some((foe) => !unitHasEffect(foe, "shield"))) return false;
@@ -991,10 +998,14 @@ function actorTurn(battle) {
     stun.duration -= 1;
     enemy.stunnedLast = true;
     enemy.effects = enemy.effects.filter((effect) => effect.duration > 0);
+    // Thawing out is an expiry like any other: what waits for it must hear it.
+    if (stun.duration <= 0) fireMech(battle, "expired", { id: stun.id, unit: enemy, value: stun.value, ticks: 0 });
     logEvent(battle, `${enemy.name} оглушён и пропускает ход.`, "Контроль");
     emit(battle, "stunned", { target: "enemy" });
   } else {
     enemy.stunnedLast = false;
+    // Silence breaks a spell that was being prepared: only a plain blow is left.
+    if (battle.intent && unitHasEffect(enemy, "silence") && !["physical", "release"].includes(battle.intent.kind)) battle.intent = null;
     if (!battle.intent) pickEnemyIntent(battle);
     // A counter-hit during this move can break a charge and clear the intent, so keep the move locally.
     const move = battle.intent;
@@ -1122,9 +1133,8 @@ function performEnemyMove(battle, move) {
       fireMech(battle, "dodged");
       continue;
     }
-    landed = true;
     const incoming = fireMech(battle, "incoming", { amount: hit.amount, kind, heavy: Boolean(move.heavy), parried: false });
-    if (incoming.parried) { landed = false; fireMech(battle, "parried"); continue; }
+    if (incoming.parried) { fireMech(battle, "parried"); continue; }
     if (battle.enemy.currentHp <= 0) return;
     let amount = Math.round(incoming.amount);
     const guarded = battle.guard && !move.pierceGuard;
@@ -1143,6 +1153,8 @@ function performEnemyMove(battle, move) {
       }
       continue;
     }
+    // Only a blow that reached the hero carries its poison or stun; a summon that took it keeps the hero clean.
+    landed = true;
     const { hpDamage, absorbed } = dealDamage(battle, hero, amount);
     if (hero.level >= ULTIMATE_LEVEL && hpDamage > 0) battle.ult = Math.min(100, battle.ult + ULT_ON_HURT);
     fireMech(battle, "hurt", { hpDamage, absorbed, blocked: preGuard - amount, kind });

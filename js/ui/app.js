@@ -336,6 +336,7 @@ function resourceChips(resources, showZero = false) {
 
 function pendingBadgeCount(tab) {
   const hero = App.hero;
+  if (tab === "news") return App.save?.settings?.newsSeen === GAME_VERSION ? 0 : 1;
   if (tab === "hero") return hero.statPoints;
   if (tab === "talents") return Math.max(0, getDevPointsFree(hero));
   if (tab === "skills") {

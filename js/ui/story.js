@@ -76,6 +76,8 @@ function playStoryScene(sceneId, { replay = false, onDone = null } = {}) {
     }, 24);
   };
   const close = () => {
+    if (state.closing) return;
+    state.closing = true;
     clearInterval(StoryPlayer.timer);
     document.removeEventListener("keydown", onKey, true);
     layer.classList.add("leaving");
@@ -112,6 +114,7 @@ function playStoryScene(sceneId, { replay = false, onDone = null } = {}) {
   };
   const pick = (option) => {
     chooseStoryOption(hero, sceneId, option);
+    if (!replay) markStorySeen(hero, sceneId);
     persist();
     SFX.play("anvil");
     state.waitingChoice = false;

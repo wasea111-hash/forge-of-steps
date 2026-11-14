@@ -128,7 +128,7 @@ S("regen", 1, "Тёплый отвар", "Под регенерацией ты �
 S("regen", 2, "Щедрая рука", "Лечение от 10% здоровья даёт ещё и короткое ускорение.", { on: { heal(b, s, c) { if (c.amount >= b.hero.maxHp * 0.1) applyEffect(b, b.hero, { id: "haste", duration: 1, value: 0.15 }, b.hero); } } });
 S("regen", 2, "Кровь и трава", "Каждое лечение снимает яд с тебя.", { on: { heal(b, s, c) { if (c.amount > 0) removeFx(b.hero, "poison"); } } });
 S("regen", 3, "Отзвук жизни", "Тик регенерации ещё и бьёт врага на 1% твоего здоровья.", { on: { regenTick(b) { procDamage(b, b.hero.maxHp * 0.01, "Глубокий вдох", "holy"); } } });
-S("regen", 3, "Запас прочности", "Лечение сверх полного здоровья повышает его запас до конца боя.", { on: { heal(b, s, c) { if (c.overflow > 0) { b.hero.maxHp += Math.round(c.overflow * 0.1); } } } });
+S("regen", 3, "Запас прочности", "Лечение сверх полного здоровья повышает его запас до конца боя.", { on: { heal(b, s, c) { if (c.overflow > 0) { const add = Math.round(c.overflow * 0.1); b.hero.maxHp += add; b.hero.fightMaxHp = Number(b.hero.fightMaxHp || 0) + add; } } } });
 S("regen", 4, "Феникс", "Падая ниже 15% здоровья раз за бой, сразу лечишься на 25%.", { on: { hurt(b, s) { if (!s.used && b.hero.currentHp > 0 && hpRatio(b.hero) < 0.15) { s.used = true; procHeal(b, 0.25, "феникс"); } } } });
 
 // ----- CRIT -----
@@ -199,7 +199,7 @@ S("body", 1, "Кольчуга под рубахой", "Первые два уд
 S("body", 1, "Адреналин", "Рана от 20% здоровья ускоряет тебя.", { on: { hurt(b, s, c) { if (c.hpDamage >= b.hero.maxHp * 0.2) fx(b, "haste", 2, 0.25, { self: true }); } } });
 S("body", 2, "Против железа", "Физические удары по тебе слабее на 8%.", { on: { incoming(b, s, c) { if (c.kind === "physical") c.amount *= 0.92; } } });
 S("body", 2, "Против чар", "Магические удары по тебе слабее на 8%.", { on: { incoming(b, s, c) { if (c.kind === "magic") c.amount *= 0.92; } } });
-S("body", 3, "Стальные нервы", "Первое оглушение в бою на тебя не действует.", { on: { turnStart(b, s) { const stun = getEffect(b.hero, "stun"); if (stun && !s.used) { s.used = true; removeFx(b.hero, "stun"); } } } });
+S("body", 3, "Стальные нервы", "Первое оглушение в бою на тебя не действует.", { on: { beforeStun(b, s, c) { if (!s.used) { s.used = true; c.cancel = true; mechNote(b, "Стальные нервы"); } } } });
 S("body", 3, "Выдержка", "Смертельный удар раз за бой оставляет 10% здоровья, если до него было больше 40%.", { on: { hurt(b, s) { if (b.hero.currentHp <= 0 && !s.used && s.hp > 0.4) { s.used = true; b.hero.currentHp = Math.round(b.hero.maxHp * 0.1); } s.hp = hpRatio(b.hero); } } });
 S("body", 4, "Воля к жизни", "Каждая беда на тебе в начале хода лечит на 1,5%.", { on: { turnStart(b) { const bad = (b.hero.effects || []).filter((e) => STATUS_EFFECT_DEFINITIONS[e.id]?.tone === "bad").length; if (bad) procHeal(b, 0.015 * bad, "воля"); } } });
 
