@@ -418,6 +418,7 @@ function renderAllyCard(snap) {
     </div>
     <div class="ally-acts">
       <button class="cmd-btn small" data-action="battleAct" data-type="swap" data-tip="text|Поменяться местами|Тратит твоё действие. Ближние удары врагов достаются тому, кто впереди." ${ready && !ally.down ? "" : "disabled"}>${icon("guard")}<span>${ally.front ? "Встать вперёд" : "Пустить вперёд"}</span></button>
+      ${iskraUnlocked(battle.hero, allyCompanion(battle)) ? (() => { const iskra = canUseIskra(battle); const def = JOINT_ISKRA[battle.hero.classKey]; return `<button class="cmd-btn small joint iskra${iskra.ok ? " ready" : ""}" data-action="battleAct" data-type="iskra" data-tip="text|Искра: ${esc(def.name)}|${esc(def.text)} Условие: ${esc(def.need)}. Одна связка за бой. ${iskra.ok ? "" : esc(iskra.reason || "")}" ${ready && iskra.ok ? "" : "disabled"}>${icon("lightning")}<span>Искра</span></button>`; })() : ""}
       ${jointDef ? `<button class="cmd-btn small joint${joint.ok ? " ready" : ""}" data-action="battleAct" data-type="joint" data-tip="text|${esc(jointDef.name)}|${esc(jointDef.text)} Условие: ${esc(jointDef.need)}. Раз за бой. ${joint.ok ? "" : esc(joint.reason || "")}" ${ready && joint.ok ? "" : "disabled"}>${icon("star")}<span>Связка</span></button>` : ""}
     </div>`;
   const plan = document.getElementById("allyPlan");

@@ -37,6 +37,7 @@ function viewCompanions() {
     ${market.length ? `<h2 class="section-title">${icon("gold")}Торг</h2>
       <p class="muted small">Здесь продают людей. ${market[0].closed ? "Закрытые торги: те, кто держит договоры, показывают лучших." : "Открытые прилавки."} Купленный по договору идёт в бой, но не даёт клятв и не верит тебе больше чем на 39. Выкупить и отпустить — дороже для совести рынка, но человек свободен.</p>
       <div class="market">${market.map((offer) => marketCard(hero, offer)).join("")}</div>` : isMarketOpen(hero) ? "" : `<p class="muted small">${ensureTown(hero).decided.caravan === "market_permitted" ? "Невольничий рынок ещё строится." : ensureTown(hero).decided.caravan ? "В этом лагере людьми не торгуют." : "Людьми здесь не торгуют. Пока."}</p>`}
+    ${hero.companions.some((c) => c.legal === "contract") ? `<p class="small warn-text comp-ahead">Пока кто-то в лагере держится договором, финал «Право выпустить молот» закрыт.</p>` : ""}
     ${byRegion.length ? `<p class="muted small comp-ahead">Ещё встретятся: ${byRegion.map(([name, n]) => `${name} — ${n}`).join(", ")}.</p>` : ""}
     ${hero.companionLog.forgottenCount ? `<p class="muted small comp-ahead">Есть пустота, которую ты не можешь назвать${hero.companionLog.forgottenCount > 1 ? ` — ${hero.companionLog.forgottenCount}` : ""}.</p>` : ""}`;
 }
@@ -71,6 +72,7 @@ function companionCard(hero, c) {
     ${c.habits.length ? `<div class="comp-chips">${c.habits.map((id) => `<span class="chip" data-tip="text|${esc(COMPANION_HABITS[id].name)}|Выучено, потому что ${esc(COMPANION_HABITS[id].learn)}. ${esc(COMPANION_HABITS[id].effect)}">${esc(COMPANION_HABITS[id].name)}</span>`).join("")}</div>` : ""}
     ${joint ? `<p class="small ${jointOpen ? "good-text" : "muted"}">Связка «${esc(joint.name)}»: ${jointOpen ? esc(joint.text) : `откроется на ${JOINT_UNLOCK.level} уровне, при доверии ${JOINT_UNLOCK.trust} и ранге ${RANK_ROMAN[JOINT_UNLOCK.rank]}`}</p>` : ""}
     ${c.memories.length ? `<div class="comp-memories">${c.memories.map((index) => `<button class="chip-btn" data-action="compMemory" data-id="${esc(c.id)}" data-index="${index}">${esc(def.memories[index].title)}</button>`).join("")}</div>` : ""}
+    ${companionStoryBlock(hero, c)}
     <div class="comp-actions">
       ${active ? '<span class="chip on">Идёт с тобой</span>' : `<button class="btn small" data-action="compActive" data-id="${esc(c.id)}" ${hero.expedition ? "disabled" : ""}>Взять в поход</button>`}
       ${next ? `<button class="btn small${oath.ok ? " primary" : ""}" data-action="compOath" data-id="${esc(c.id)}" ${oath.ok && !hero.expedition ? "" : "disabled"} data-tip="text|Клятва у костра|${esc(oath.ok ? `Ранг ${RANK_ROMAN[c.rank + 1]}: ${COMPANION_RANKS[c.rank + 1].gives}` : oath.reason)}">Клятва</button>` : ""}
@@ -128,6 +130,43 @@ Actions.compLearn = (el) => {
   if (!result.ok) { toast(result.reason, "warn"); return; }
   SFX.play("level");
   toast(`Освоено: «${result.skill.name}».`, "good");
+  commit();
+};
+
+function companionStoryBlock(hero, c) {
+  const quest = companionQuestState(c);
+  const gift = companionGiftName(c);
+  const iskra = JOINT_ISKRA[hero.classKey];
+  return `<div class="comp-story">
+    ${quest.done ? `<p class="small"><b>Личное дело «${esc(quest.quest.title)}» закрыто.</b> ${esc(quest.result)}</p>` : quest.available ? `<button class="btn small primary glow" data-action="compQuest" data-id="${esc(c.id)}">Личное дело: «${esc(quest.quest.title)}»</button>` : quest.quest ? `<p class="small muted">Личное дело: ${esc(quest.reason)}</p>` : ""}
+    ${gift ? (c.gifted ? `<p class="small muted">Подарено: ${esc(gift)}.</p>` : `<button class="btn small" data-action="compGift" data-id="${esc(c.id)}" ${hero.expedition ? "disabled" : ""}>Подарить: ${esc(gift)} · ${companionGiftPrice(hero)} золота</button>`) : ""}
+    ${iskra ? `<p class="small ${iskraUnlocked(hero, c) ? "good-text" : "muted"}">«Искра» — ${esc(iskra.name)}: ${iskraUnlocked(hero, c) ? esc(iskra.text) : `уровень ${ISKRA_UNLOCK.level}, доверие ${ISKRA_UNLOCK.trust}, ранг V и закрытое личное дело`}</p>` : ""}
+  </div>`;
+}
+
+Actions.compQuest = (el) => {
+  const c = App.hero.companions.find((entry) => entry.id === el.dataset.id);
+  const state = companionQuestState(c);
+  if (!state.available) { toast(state.reason || "Недоступно.", "warn"); return; }
+  const def = getCompanionDef(c);
+  openModal(`<div class="comp-scene">${companionPortrait(def.id, "big")}<div><h2>${esc(state.quest.title)}</h2><p>${esc(state.quest.text)}</p>
+    <div class="event-options">${state.quest.options.map((option, i) => `<button class="choice-card" data-action="compQuestPick" data-id="${esc(c.id)}" data-choice="${i}"><strong>${esc(option.label)}</strong></button>`).join("")}</div></div></div>`);
+};
+Actions.compQuestPick = (el) => {
+  const result = settleCompanionQuest(App.hero, el.dataset.id, Number(el.dataset.choice));
+  if (!result.ok) { toast(result.reason, "warn"); return; }
+  persist();
+  SFX.play("level");
+  const c = App.hero.companions.find((entry) => entry.id === el.dataset.id);
+  openModal(`<div class="comp-scene">${companionPortrait(c.defId, "big")}<div><h2>Дело закрыто</h2><p>${esc(result.result)}</p><p class="muted small">Доверие +5. Теперь «Искра» ждёт только уровня, доверия и ранга.</p><div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>Дальше</button></div></div></div>`);
+  refreshKeepScroll();
+};
+Actions.compGift = (el) => {
+  const result = giveCompanionGift(App.hero, el.dataset.id);
+  if (!result.ok) { toast(result.reason, "warn"); return; }
+  const c = App.hero.companions.find((entry) => entry.id === el.dataset.id);
+  SFX.play("loot");
+  toast(`${getCompanionDef(c).name} принимает «${result.name}» и долго молчит. Потом прячет подарок туда, где он не потеряется.`, "good");
   commit();
 };
 
@@ -191,7 +230,7 @@ function maybeMeetCompanion() {
 Actions.meetCompanion = (el) => {
   const hero = App.hero;
   const def = COMPANIONS[el.dataset.id];
-  recruitCompanion(hero, def.id, { rarity: roll(0.3) ? def.rarities[def.rarities.length - 1] : def.rarities[0] });
+  recruitCompanion(hero, def.id, { rarity: roll(0.3) ? def.rarities[def.rarities.length - 1] : def.rarities[0], source: def.id === "tessa" ? "road" : "camp" });
   persist();
   closeModal();
   SFX.play("level");

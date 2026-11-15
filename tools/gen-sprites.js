@@ -70,6 +70,12 @@ const SHEETS = {
   lissa: hero("a patient wiry woman in her forties with curly auburn hair, a long coat embroidered with counted step marks, an hourglass at her belt and a slim rapier."),
   ort: hero("a proud broad-shouldered master caster with a burnt leather apron, braided grey-black beard, molten-glowing forearm guards, a heavy mould and a ladle of glowing metal."),
   dei: hero("a polite slender keeper of names with pale skin, silver-white long hair, a dark violet robe sewn with hundreds of tiny name tags, a ribbon of glowing letters around the hands."),
+  ulya: hero("a sharp-tongued young woman gardener of ash fields with soot on her cheeks, short braided dark-green-dyed hair, a patched apron with seed pouches, a small sickle and a sprouting bulb glowing faint green in her hand."),
+  bran: hero("a kind heavy-set middle-aged bell ringer with a grey beard and gentle eyes, a thick brown woollen coat, a large bronze hand bell with a carved handle and a coil of bell rope."),
+  asya: hero("a quick young woman knot walker with freckles and wild copper hair, a travel coat covered in tied cords and knots of many colours, a long knotted rope with brass rings."),
+  til: hero("a lean nameless wanderer of uncertain age with a shaved scarred head, a hood of grey patchwork, ink number tattoos crossed out on the neck, two short hooked knives."),
+  mara: hero("a severe middle-aged registry clerk woman with grey streaked hair in a tight bun, a black clerk coat with red ledger ribbons, a heavy account book chained to her belt and a steel ruler."),
+  skar: hero("a tall hard-faced overseer with a cropped black beard, heavy black leather armour with iron studs and a red armband, a big riveted kite shield and a short whip on the belt."),
   // Lair masters: one huge opponent each, far larger and more detailed than ordinary foes.
   lair_she_wolf: foe("a colossal ancient she-wolf the size of a house, silver-black matted fur, a mane of bone spurs, dozens of old broken spears stuck in her flanks, blood-red eyes, jaws dripping, monstrous and regal.", "beast"),
   lair_viper_mother: foe("a gigantic serpent matriarch, the upper body of a scaled venomous woman with a cobra hood and four clawed arms, the lower body a thick coiled olive-and-black python tail, green venom dripping from long fangs, a crown of living vipers."),

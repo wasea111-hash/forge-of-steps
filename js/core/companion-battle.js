@@ -145,7 +145,7 @@ function enemyHitsAlly(battle, move) {
     if (move.heavy && (st.front || covered) && hpDamage + absorbed > 0) st.deedsNow.add("interceptHeavy");
   }
   // Tessa's resolve and Gron's boundaries grow from every enemy action that reached them.
-  if (landed && (ally.defId === "tessa" || ally.defId === "gron")) gainAllyResource(battle, 1);
+  if (landed && ["tessa", "gron", "skar"].includes(ally.defId)) gainAllyResource(battle, 1);
   if (landed && covered) st.deedsNow.add("coverHit");
   if (landed) rootsAnswer(battle);
   if (landed && move.apply && ally.currentHp > 0 && move.apply.id !== "stun" && roll(move.apply.chance ?? 1)) {
@@ -201,7 +201,7 @@ function allyStrike(battle, foe, power, label, element = "steel", kind = null) {
     emit(battle, "hit", { target: "enemy", amount: result.hpDamage, absorbed: result.absorbed, crit: hit.crit, kind, element, label, by: "ally" });
     logEvent(battle, `${label}: ${result.hpDamage} урона${hit.crit ? ", крит" : ""}.`, ally.name);
     gainCoal(battle);
-    if (ally.defId === "ella") gainAllyResource(battle, 1);
+    if (ally.defId === "ella" || ally.defId === "til") gainAllyResource(battle, 1);
     if (hadCharge && !foe.charge) st.deedsNow.add("breakCharge");
     if (foe.currentHp <= 0 && ally.defId === "fena") {
       gainAllyResource(battle, 1);
@@ -400,6 +400,62 @@ Object.assign(ALLY_SKILL_RUN, {
   dei_own(b, foe) { allyStrike(b, foe, 1.6, "Собственное имя", "arcane"); allyShield(b, b.hero, 0.08); }
 });
 
+// Ulya's seeds: each counts down on her turns and then sprouts.
+function growSeeds(battle) {
+  const st = battle.allyState;
+  if (!st?.seeds?.length) return;
+  st.seeds.forEach((seed) => { seed.left -= 1; });
+  st.seeds.filter((seed) => seed.left <= 0).forEach((seed) => sproutSeed(battle, seed));
+  st.seeds = st.seeds.filter((seed) => seed.left > 0);
+}
+
+function sproutSeed(battle, seed) {
+  if (seed.kind === "heal") allyHeal(battle, battle.hero, 0.12, "Семя под золой");
+  else {
+    const foe = livingFoes(battle).find((f) => f.slot === seed.slot);
+    if (foe && allyAlive(battle) && allyStrike(battle, foe, 1.4, "Горький росток", "poison") > 0) allyStatus(battle, foe, "weaken", 2, 0.15);
+  }
+}
+
+Object.assign(ALLY_SKILL_RUN, {
+  ulya_ash(b) { (b.allyState.seeds = b.allyState.seeds || []).push({ kind: "heal", left: 1 }); emit(b, "mech", { text: "Посажено" }); },
+  ulya_bitter(b, foe) { (b.allyState.seeds = b.allyState.seeds || []).push({ kind: "thorn", left: 1, slot: foe.slot }); emit(b, "mech", { text: `Росток у ${foe.name}` }); },
+  ulya_bed(b) { [b.hero, b.ally].forEach((unit) => applyEffect(b, unit, { id: "regeneration", duration: 3, value: Math.round(unit.maxHp * 0.05) }, b.ally)); emit(b, "effect", { target: "hero", id: "regeneration" }); },
+  ulya_leaf(b, foe) { allyStrike(b, foe, 0.7, "Первый лист", "earth"); (b.allyState.seeds || []).forEach((seed) => { seed.left = Math.max(1, seed.left - 1); }); },
+  ulya_cut(b) { (b.allyState.seeds || []).forEach((seed) => sproutSeed(b, seed)); b.allyState.seeds = []; },
+  ulya_fire(b) { allyHeal(b, b.hero, 0.15, "После пожара"); healUnit(b, b.ally, b.ally.maxHp * 0.15, "После пожара"); removeOneBad(b, b.hero); },
+  bran_one(b, foe) { allyStrike(b, foe, 0.8, "Один удар", "air"); delayFoe(b, foe, 0.1); },
+  bran_alarm(b) { allyFortify(b, b.hero, 0.2, 1); allyShield(b, b.hero, 0.06); },
+  bran_gate(b) { livingFoes(b).forEach((foe) => { delayFoe(b, foe, 0.3); allyStatus(b, foe, "weaken", 2, 0.1); }); },
+  bran_muffle(b, foe) { allyStrike(b, foe, 0.5, "Глухой язык", "air"); if (foe.currentHp > 0) allyStatus(b, foe, "silence", 1, 1); },
+  bran_back(b, foe) { const heavy = foe.intent?.heavy || foe.charge; if (allyStrike(b, foe, 1.2, "Обратный звон", "air") > 0 && heavy && foe.currentHp > 0) allyStatus(b, foe, "stun", 1, 0.5); },
+  bran_silence(b) { removeOneBad(b, b.hero); [b.hero, b.ally].forEach((unit) => applyEffect(b, unit, { id: "regeneration", duration: 2, value: Math.round(unit.maxHp * 0.04) }, b.ally)); },
+  asya_loop(b, foe) { if (allyStrike(b, foe, 0.7, "Свободная петля") > 0) allyStatus(b, foe, "mark", 2, 0.1); },
+  asya_knot(b) { allyFortify(b, b.hero, 0.25, 2); allyShield(b, b.ally, 0.1); },
+  asya_pull(b) { applyEffect(b, b.hero, { id: "rage", duration: 2, value: 0.15 }, b.ally); applyEffect(b, b.hero, { id: "haste", duration: 2, value: 0.1 }, b.ally); emit(b, "effect", { target: "hero", id: "rage" }); },
+  asya_end(b, foe) { foe.effects = (foe.effects || []).filter((effect) => effect.id !== "shield"); allyStrike(b, foe, 0.8, "Потянуть конец"); },
+  asya_give(b) { removeOneBad(b, b.hero); allyHeal(b, b.hero, 0.08, "Отдать натяжение"); },
+  asya_right(b, foe) { allyStrike(b, foe, 1.8, "Право уйти"); b.ct.hero = Math.max(0, b.ct.hero - (100 / getSpeed(b.hero)) * 0.3); },
+  til_print(b, foe) { allyStrike(b, foe, 1, "Пустой отпечаток", "dark"); applyEffect(b, b.ally, { id: "evasion", duration: 1, value: 15 }, b.ally); },
+  til_count(b, foe) { if (allyStrike(b, foe, 0.9, "Сбить счёт", "dark") > 0) allyStatus(b, foe, "blind", 2, 20); },
+  til_behind(b) { const weakest = livingFoes(b).sort((x, y) => x.currentHp / x.maxHp - y.currentHp / y.maxHp)[0]; if (weakest) { allyStrike(b, weakest, 1.6, "След за спиной", "dark"); if (weakest.currentHp <= 0) b.allyState.deedsNow.add("preyKill"); } },
+  til_number(b, foe) { if (allyStrike(b, foe, 0.7, "Чужой номер", "dark") > 0) allyStatus(b, foe, "mark", 2, 0.15); },
+  til_brand(b) { removeOneBad(b, b.hero); applyEffect(b, b.hero, { id: "evasion", duration: 2, value: 15 }, b.ally); emit(b, "effect", { target: "hero", id: "evasion" }); },
+  til_self(b, foe) { allyStrike(b, foe, foe.currentHp / foe.maxHp < 0.4 ? 3 : 2.4, "Остаться собой", "dark"); if (foe.currentHp <= 0) b.allyState.deedsNow.add("preyKill"); },
+  mara_open(b, foe) { if (allyStrike(b, foe, 0.8, "Открыть счёт", "arcane") > 0) allyStatus(b, foe, "mark", 2, 0.1); },
+  mara_short(b, foe) { allyStatus(b, foe, "armor_break", 2, 0.25); allyStatus(b, foe, "weaken", 2, 0.1); },
+  mara_red(b, foe) { const woes = (foe.effects || []).filter((effect) => STATUS_EFFECT_DEFINITIONS[effect.id]?.tone === "bad").length; allyStrike(b, foe, 1.4 + woes * 0.2, "Красная строка", "arcane"); },
+  mara_collect(b, foe) { const n = Math.round(b.allyState.res); b.allyState.res = 0; allyStrike(b, foe, 0.6 + n * 0.3, "Взыскать", "arcane"); },
+  mara_write(b) { removeOneBad(b, b.hero); allyHeal(b, b.hero, 0.1, "Списать долг"); },
+  mara_zero(b, foe) { allyStrike(b, foe, 2.6, "Нулевая ведомость", "arcane"); },
+  skar_line(b) { allyFortify(b, b.ally, 0.25, 2, true); b.allyState.cover = 1; },
+  skar_post(b) { swapFormation(b); allyShield(b, b.ally, 0.15); },
+  skar_order(b) { allyFortify(b, b.hero, 0.3, 2); allyFortify(b, b.ally, 0.3, 2); },
+  skar_shout(b, foe) { if (allyStrike(b, foe, 0.8, "Окрик") > 0) allyStatus(b, foe, "weaken", 1, 0.15); },
+  skar_fine(b, foe) { if (allyStrike(b, foe, 1.2, "Взыскание") > 0 && foe.currentHp > 0) allyStatus(b, foe, "stun", 1, 0.4); },
+  skar_all(b) { livingFoes(b).forEach((foe) => allyStrike(b, foe, 1.2, "Ответственный за всех")); b.allyState.cover = 2; }
+});
+
 // Fena's prey: a blow at the prey after you struck someone else is 35% stronger, once.
 function preyBonus(battle, foe) {
   const st = battle.allyState;
@@ -438,7 +494,8 @@ function beginAllyTurn(battle) {
   st.thrillGiven = false;
   Object.keys(st.cd).forEach((id) => { st.cd[id] = Math.max(0, st.cd[id] - 1); });
   emit(battle, "turn", { who: "ally" });
-  if (ally.defId === "savel" || ally.defId === "lissa") gainAllyResource(battle, 1);
+  if (["savel", "lissa", "bran", "ulya"].includes(ally.defId)) gainAllyResource(battle, 1);
+  growSeeds(battle);
   // Yara's stitch that found no wound becomes a shield.
   if (st.stitch > 0) { allyShield(battle, battle.hero, 0.08); st.stitch = 0; }
   // What lasts "until the companion's own turn" ends now.
@@ -572,7 +629,7 @@ function chooseCompanionAction(battle) {
 function planAlly(battle) {
   if (!allyAlive(battle)) { battle.allyState.plan = null; return null; }
   const st = battle.allyState;
-  if (jointReady(battle)) { st.plan = { id: "joint", text: `Готов к связке «${JOINT_OPORA[battle.hero.classKey].name}»` }; return st.plan; }
+  if (jointReady(battle) || canUseIskra(battle).ok) { st.plan = { id: "joint", text: canUseIskra(battle).ok ? `Готов к «Искре»: ${JOINT_ISKRA[battle.hero.classKey].name}` : `Готов к связке «${JOINT_OPORA[battle.hero.classKey].name}»` }; return st.plan; }
   if (st.control === "manual" && !battle.autoParty) { st.plan = { id: "manual", text: battle.awaitingActor === "ally" ? "Ждёт твоего решения" : "Ходит по твоему слову" }; return st.plan; }
   const choice = chooseCompanionAction(battle);
   const skill = COMPANION_SKILL_BY_ID[choice.skillId];
@@ -607,6 +664,7 @@ const ALLY_MECHANIC = {
     if (!st) return;
     st.actionIndex += 1;
     if (c.type === "guard") st.heroGuards += 1;
+    if (allyAlive(b) && b.ally.defId === "asya" && (c.type === "guard" || c.type === "skill")) gainAllyResource(b, 1);
     // Dei gathers a syllable each time you change the kind of action.
     if (allyAlive(b) && b.ally.defId === "dei" && st.heroLastType && st.heroLastType !== c.type) { gainAllyResource(b, 1); if (st.res >= 3) st.deedsNow.add("alternated"); }
     st.heroLastType = c.type;
@@ -658,6 +716,72 @@ function setAllyControl(battle, mode) {
 
 function jointUnlocked(hero, companion) {
   return Boolean(companion) && hero.level >= JOINT_UNLOCK.level && companion.trust >= JOINT_UNLOCK.trust && Number(companion.rank || 0) >= JOINT_UNLOCK.rank && companion.legal !== "contract";
+}
+
+function iskraUnlocked(hero, companion) {
+  return Boolean(companion) && hero.level >= ISKRA_UNLOCK.level && companion.trust >= ISKRA_UNLOCK.trust && Number(companion.rank || 0) >= ISKRA_UNLOCK.rank && companion.legal !== "contract" && Boolean(companion.quest?.done);
+}
+
+function iskraCondition(battle) {
+  const hero = battle.hero;
+  const core = coreState(battle);
+  if (hero.classKey === "warrior") return hero.currentMana >= 70 ? null : "Нужно 70 напора.";
+  if (hero.classKey === "mage") return core?.vented && (core.value || 0) <= 30 ? null : "Нужна медитация: перегрев не выше 30 сразу после неё.";
+  if (hero.classKey === "archer") return (core?.value || 0) >= 3 ? null : "Нужна дистанция «далеко».";
+  if (hero.classKey === "bard") return core?.sung ? null : "Мотив должен только что прозвучать.";
+  if (hero.classKey === "assassin") return battle.enemy.currentHp / battle.enemy.maxHp <= 0.35 ? null : "Цель должна быть ниже 35% здоровья.";
+  return null;
+}
+
+function canUseIskra(battle) {
+  const st = battle.allyState;
+  if (!st || !iskraUnlocked(battle.hero, allyCompanion(battle))) return { ok: false, reason: "«Искра» ещё не открыта." };
+  if (st.jointUsed) return { ok: false, reason: "Связка в этом бою уже была." };
+  if (!allyAlive(battle)) return { ok: false, reason: "Спутник выбыл из боя." };
+  if (st.turns < 1) return { ok: false, reason: "Спутник ещё не успел сходить." };
+  const why = iskraCondition(battle);
+  return why ? { ok: false, reason: why } : { ok: true, joint: JOINT_ISKRA[battle.hero.classKey] };
+}
+
+// The great joint attack: one per fight, shared limit with the first family.
+function performIskra(battle) {
+  const hero = battle.hero;
+  const ally = battle.ally;
+  const st = battle.allyState;
+  const joint = JOINT_ISKRA[hero.classKey];
+  const core = coreState(battle);
+  const foe = battle.enemy;
+  st.jointUsed = true;
+  emit(battle, "action", { who: "ally", anim: "attack", name: joint.name, element: "fire", joint: true });
+  emit(battle, "action", { who: "hero", anim: "attack", name: joint.name, element: "fire", joint: true, heavy: true });
+  logEvent(battle, `Искра: ${joint.name}!`, "Связка");
+  if (hero.classKey === "assassin") {
+    allyStrike(battle, foe, 1.8, joint.name, "fire");
+    if (foe.currentHp > 0) {
+      performHeroHit(battle, { kind: "physical", power: 1.8, label: joint.name, element: "dark", noEcho: true, sure: true, forceCrit: true });
+      if (foe.currentHp <= 0 && core) { core.hidden = true; mechNote(battle, "Снова в тени"); }
+    }
+  } else {
+    if (hero.classKey === "warrior") {
+      hero.currentMana -= 70;
+      performHeroHit(battle, { kind: "physical", power: 1.8, label: joint.name, element: "fire", noEcho: true, sure: true });
+      if (foe.currentHp > 0) applyEffect(battle, foe, { id: "armor_break", duration: 2, value: 0.3 }, hero);
+    } else if (hero.classKey === "mage") {
+      performHeroHit(battle, { kind: "magic", power: 1.8, label: joint.name, element: "fire", noEcho: true, sure: true });
+      eachFoe(battle, () => performHeroHit(battle, { kind: "magic", power: 0.9, label: joint.name, element: "fire", noEcho: true, proc: true, sure: true }), false);
+      core.value = Math.min(100, core.value + 40);
+    } else if (hero.classKey === "archer") {
+      const second = livingFoes(battle).find((f) => f !== foe);
+      performHeroHit(battle, { kind: "physical", power: second ? 1.26 : 1.8, label: joint.name, element: "air", noEcho: true, sure: true });
+      if (second) { const keep = battle.enemy; battle.enemy = second; performHeroHit(battle, { kind: "physical", power: 0.54, label: joint.name, element: "air", noEcho: true, proc: true, sure: true }); battle.enemy = keep.currentHp > 0 ? keep : second; }
+    } else if (hero.classKey === "bard") {
+      eachFoe(battle, () => performHeroHit(battle, { kind: "magic", power: 0.6 * 1.8, label: joint.name, element: "air", noEcho: true, proc: true, sure: true }));
+      procMana(battle, 0.2);
+    }
+    if (foe.currentHp > 0) allyStrike(battle, foe, 1.8, joint.name, "fire");
+  }
+  ally.ct += 100 / getSpeed(ally);
+  planAlly(battle);
 }
 
 function jointCondition(battle) {
@@ -725,7 +849,12 @@ function performJoint(battle) {
   if (ally.defId === "ella" || ally.defId === "lissa") { delayFoe(battle, foe, 0.2); if (ally.defId === "lissa") gainAllyResource(battle, 1); }
   if (ally.defId === "savel") applyEffect(battle, hero, { id: "regeneration", duration: 2, value: Math.round(hero.maxHp * 0.04) }, ally);
   if (ally.defId === "ner") { st.preyId = foe.currentHp > 0 ? foe.slot : st.preyId; gainAllyResource(battle, 1); }
-  if (ally.defId === "gron") st.cover = 1;
+  if (ally.defId === "gron" || ally.defId === "skar") st.cover = 1;
+  if (ally.defId === "ulya") (st.seeds = st.seeds || []).push({ kind: "heal", left: 1 });
+  if (ally.defId === "bran") delayFoe(battle, foe, 0.15);
+  if (ally.defId === "asya") applyEffect(battle, hero, { id: "haste", duration: 1, value: 0.1 }, ally);
+  if (ally.defId === "til") applyEffect(battle, ally, { id: "evasion", duration: 1, value: 15 }, ally);
+  if (ally.defId === "mara") gainAllyResource(battle, 1);
   if (ally.defId === "ort" || ally.defId === "dei") gainAllyResource(battle, 1);
   // The companion spent its next action on the joint attack.
   ally.ct += 100 / getSpeed(ally);

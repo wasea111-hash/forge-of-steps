@@ -161,7 +161,13 @@ const ALLY_STAGING = {
   boundary: { attack: { clip: "bash", melee: true, fx: "impact" }, cast: { clip: "guard", self: true, fx: "guard" } },
   stepcounter: { attack: { clip: "stab", melee: true, fx: "thrust" }, cast: { clip: "cast_up", self: true } },
   caster: { attack: { clip: "overhead", melee: true, fx: "impact" }, cast: { clip: "warcry", self: true } },
-  namebearer: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } }
+  namebearer: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } },
+  ashplanter: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "mend", self: true } },
+  bellringer: { attack: { clip: "bash", melee: true, fx: "impact" }, cast: { clip: "warcry", self: true } },
+  knotwalker: { attack: { clip: "lunge", melee: true, fx: "thrust" }, cast: { clip: "cast_up", self: true } },
+  nameless: { attack: { clip: "twin_slash", melee: true, fx: "cross" }, cast: { clip: "smoke", self: true } },
+  registrar: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } },
+  overseer: { attack: { clip: "bash", melee: true, fx: "impact" }, cast: { clip: "guard", self: true, fx: "guard" } }
 };
 
 async function stageAction(stage, ev) {

@@ -87,6 +87,7 @@ Object.assign(MECHANICS, {
       if (c.type === "attack") s.value = Math.max(0, s.value - 12);
       if (c.type !== "skill") return;
       s.value += heatOfSkill(c.skill, b.hero) * (1 + tm(b.hero, "heatGain"));
+      s.vented = false;
       if (s.value > 100 + tm(b.hero, "heatCap")) {
         s.value = 30;
         b.hero.currentHp = Math.max(1, Math.round(b.hero.currentHp - b.hero.maxHp * 0.15 * (1 + tm(b.hero, "backfire"))));
@@ -96,7 +97,7 @@ Object.assign(MECHANICS, {
       }
     },
     bot(b, s) { return s.value >= 72 ? { type: "wait" } : null; },
-    wait: { name: "Медитация", tempo: 0.6, run(b, s) { s.value = Math.max(0, s.value - 50); b.hero.currentMana = Math.min(b.hero.maxMana, Math.round(b.hero.currentMana + b.hero.maxMana * 0.14)); return "Жар спадает, мана возвращается."; }, tip: "−50 перегрева и 14% маны, следующий ход раньше." }
+    wait: { name: "Медитация", tempo: 0.6, run(b, s) { s.value = Math.max(0, s.value - 50); s.vented = true; b.hero.currentMana = Math.min(b.hero.maxMana, Math.round(b.hero.currentMana + b.hero.maxMana * 0.14)); return "Жар спадает, мана возвращается."; }, tip: "−50 перегрева и 14% маны, следующий ход раньше." }
   },
   core_archer: {
     name: "Дистанция", core: true, description: "Бой начинается с небольшого расстояния. Пока враг не подошёл, его обычные физические удары уходят на сближение и не ранят. За каждую ступень дистанции выстрел сильнее на 10%, вплотную слабее на 20%. «Отойти» возвращает ступень раз в 4 хода. Тяжёлые удары и магия достают всегда.",
@@ -123,10 +124,12 @@ Object.assign(MECHANICS, {
     afterAction(b, s, c) {
       const note = bardNoteOf(c);
       if (!note) return;
+      s.sung = false;
       s.notes = [...(s.notes || []), note];
       if (s.notes.length < 3) return;
       const notes = s.notes;
       s.notes = [];
+      s.sung = true;
       const same = new Set(notes).size;
       if (same === 3) {
         mechNote(b, "Аккорд!");

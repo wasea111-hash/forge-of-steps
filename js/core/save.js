@@ -73,6 +73,8 @@ function normalizeCompanions(list) {
     learned: safeList(c.learned).filter((id) => COMPANION_SKILL_BY_ID[id]?.who === c.defId),
     deedKinds: Object.fromEntries(Object.entries(safeObject(c.deedKinds)).filter(([kind]) => COMPANION_DEEDS[kind]).map(([kind, n]) => [kind, Math.max(0, Math.round(safeNumber(n)))])),
     control: c.control === "auto" ? "auto" : "manual",
+    quest: c.quest && typeof c.quest === "object" && c.quest.done ? { done: true, choice: clamp(Math.round(safeNumber(c.quest.choice)), 0, 1) } : null,
+    gifted: Boolean(c.gifted),
     ...(Number.isInteger(c.prepared) ? { prepared: c.prepared } : {})
   })).map(ensureCompanionSkills);
 }

@@ -850,6 +850,10 @@ function heroAction(battle, action) {
     const check = canUseJoint(battle);
     if (!check.ok) return check;
     performJoint(battle);
+  } else if (action.type === "iskra") {
+    const check = canUseIskra(battle);
+    if (!check.ok) return check;
+    performIskra(battle);
   } else if (action.type === "swap") {
     const check = swapFormation(battle);
     if (!check.ok) return check;
@@ -1145,6 +1149,7 @@ function performEnemyMove(battle, move) {
     return;
   }
 
+  if (allyAlive(battle) && battle.ally.defId === "mara" && hitKinds(move)) gainAllyResource(battle, 1);
   if ((move.target === "ally" || battle.allyState?.cover > 0) && allyAlive(battle)) {
     enemyHitsAlly(battle, move);
     return;

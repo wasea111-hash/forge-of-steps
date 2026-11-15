@@ -63,7 +63,8 @@ function townLayer(hero) {
     const art = done && hasCampArt(`town_${id}`) ? `town_${id}` : "town_scaffold";
     const h = done ? building.spot.h : building.spot.h * (0.55 + state.stage * 0.2);
     const tip = `${building.name}|${done ? building.effect : `Строится: ${TOWN_BUILD_STAGES[state.stage].toLowerCase()}. Ещё ${TOWN_BUILD_STAGES.length - 1 - state.stage} возвращения.`}`;
-    return `<img class="camp-building${done ? "" : " rising"}${building.dark ? " dark" : ""}" src="assets/camp/${art}.webp" alt="" style="left:${building.spot.x}%;top:${building.spot.y}%;--h:${h}" data-tip="text|${esc(tip)}" draggable="false">`;
+    const glow = done ? `<i class="camp-light lamp town-window" style="left:${building.spot.x}%;top:${building.spot.y - building.spot.h * 0.45}%;--r:${(building.spot.h * 0.5).toFixed(1)};--d:${(building.spot.x / 10).toFixed(1)}s" aria-hidden="true"></i>` : "";
+    return glow + `<img class="camp-building${done ? "" : " rising"}${building.dark ? " dark" : ""}" src="assets/camp/${art}.webp" alt="" style="left:${building.spot.x}%;top:${building.spot.y}%;--h:${h}" data-tip="text|${esc(tip)}" draggable="false">`;
   }).join("");
 }
 
@@ -131,10 +132,30 @@ Actions.fireTalk = () => {
 };
 Actions.fireHide = () => { App.fireOpen = false; render(); };
 
+// On a wide screen the picture is cropped at the sides: places at the edge shrink to what is visible, so their labels stay readable.
+function fitCampPlaces(stage) {
+  if (getComputedStyle(stage).overflowX !== "hidden" && stage.scrollWidth > stage.clientWidth) return;
+  const box = stage.getBoundingClientRect();
+  stage.querySelectorAll(".camp-place").forEach((place) => {
+    place.style.marginLeft = "";
+    place.style.width = place.style.width.endsWith("px") ? place.dataset.w : place.style.width;
+    place.dataset.w = place.style.width;
+    const r = place.getBoundingClientRect();
+    const right = Math.max(0, r.right - box.right + 6);
+    const left = Math.max(0, box.left + 6 - r.left);
+    if (!right && !left) return;
+    const width = Math.max(40, r.width - right - left);
+    place.style.width = width + "px";
+    place.style.marginLeft = (left - right) / 2 + "px";
+  });
+}
+
 // On a phone the scene scrolls sideways; it opens at the fire.
 function placeCampView() {
   const stage = document.getElementById("campStage");
-  if (!stage || stage.dataset.placed) return;
+  if (!stage) return;
+  fitCampPlaces(stage);
+  if (stage.dataset.placed) return;
   stage.dataset.placed = "1";
   const world = stage.querySelector(".camp-world");
   if (world && world.offsetWidth > stage.clientWidth) stage.scrollLeft = world.offsetWidth * 0.44 - stage.clientWidth / 2;

@@ -63,6 +63,8 @@ window.addEventListener("resize", () => {
   window.__rz = setTimeout(() => {
     document.querySelectorAll("canvas[data-scene]").forEach((canvas) => paintScene(canvas, canvas.dataset.scene, canvas.dataset.zone || null, Number(canvas.dataset.seed || 7)));
     FX.resize();
+    const camp = document.getElementById("campStage");
+    if (camp && typeof fitCampPlaces === "function") fitCampPlaces(camp);
   }, 150);
 });
 
@@ -341,7 +343,7 @@ function resourceChips(resources, showZero = false) {
 
 function pendingBadgeCount(tab) {
   const hero = App.hero;
-  if (tab === "companions") return (hero.companions || []).filter((c) => canTakeOath(c).ok || companionSkills(c.defId).some((skill) => companionSkillState(c, skill).ready)).length;
+  if (tab === "companions") return (hero.companions || []).filter((c) => canTakeOath(c).ok || companionQuestState(c).available || companionSkills(c.defId).some((skill) => companionSkillState(c, skill).ready)).length;
   if (tab === "news") return App.save?.settings?.newsSeen === GAME_VERSION ? 0 : 1;
   if (tab === "hero") return hero.statPoints;
   if (tab === "talents") return Math.max(0, getDevPointsFree(hero));

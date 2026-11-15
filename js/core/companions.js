@@ -151,7 +151,7 @@ function getMarketOffers(hero) {
   const reached = REGIONS.filter((region, index) => index <= Number(hero.unlockedRegion || 0)).map((region) => region.id);
   const closed = Number(hero.karma || 0) <= -25;
   return Object.values(COMPANIONS)
-    .filter((def) => def.ready && reached.includes(def.region) && !companionTaken(hero, def.id) && def.region !== "thicket")
+    .filter((def) => def.ready && !def.noMarket && !COMPANION_ARRIVALS[def.id] && (reached.includes(def.region) || def.marketOnly) && !companionTaken(hero, def.id) && def.region !== "thicket")
     .map((def) => {
       // Open stalls sell the plainest contract; the closed auction offers the best this person can be.
       const rarity = closed ? def.rarities[def.rarities.length - 1] : def.rarities[0];
@@ -184,15 +184,24 @@ function getRescueFor(hero, regionId) {
   ensureCompanionState(hero);
   // Under the overseers' charter nobody comes to you of their own will.
   if (townBuilt(hero, "overseers")) return null;
-  const def = Object.values(COMPANIONS).find((entry) => entry.ready && entry.region === regionId && COMPANION_RESCUES[entry.id] && !companionTaken(hero, entry.id));
+  const def = Object.values(COMPANIONS).find((entry) => entry.ready && !entry.marketOnly && entry.region === regionId && COMPANION_RESCUES[entry.id] && !companionTaken(hero, entry.id));
   return def ? { def, rescue: COMPANION_RESCUES[def.id] } : null;
 }
 
-// The first companion: guaranteed after the Thicket's guardian, old saves included.
+// People who come to the camp themselves: Tessa after the Thicket's guardian, the others when the town is ready for them.
+const COMPANION_ARRIVALS = {
+  tessa: (hero) => hero.defeatedGuardians?.includes("greyfang"),
+  ulya: (hero) => townBuilt(hero, "infirmary"),
+  bran: (hero) => townBuilt(hero, "crossing"),
+  asya: (hero) => townBuilt(hero, "shelter") && Number(hero.karma || 0) >= 25 && Number(hero.unlockedRegion || 0) >= 2,
+  til: (hero) => townBuilt(hero, "shelter") && Number(hero.karma || 0) >= 60 && Number(hero.unlockedRegion || 0) >= 3,
+  skar: (hero) => townBuilt(hero, "overseers")
+};
+
 function getPendingMeeting(hero) {
   ensureCompanionState(hero);
-  if (!hero.defeatedGuardians?.includes("greyfang") || companionTaken(hero, "tessa")) return null;
-  return COMPANIONS.tessa;
+  const id = Object.keys(COMPANION_ARRIVALS).find((defId) => !companionTaken(hero, defId) && COMPANIONS[defId]?.ready && COMPANION_ARRIVALS[defId](hero));
+  return id ? COMPANIONS[id] : null;
 }
 
 // ---------- the companion as a fighter ----------
@@ -272,4 +281,45 @@ function buildRescueEvent(hero, exp) {
       { label: rescue.pass, hint: "Без последствий в пути", resolve: () => ({ text: "Ты идёшь дальше. За спиной ещё долго слышно, как кто-то зовёт.", tone: "neutral" }) }
     ]
   };
+}
+
+// ---------- personal matters and gifts ----------
+function companionQuestState(companion) {
+  const quest = COMPANION_QUESTS[companion.defId];
+  if (!quest) return { available: false };
+  if (companion.quest?.done) return { available: false, done: true, quest, result: quest.options[companion.quest.choice]?.result || "" };
+  if (companion.legal === "contract") return { available: false, quest, reason: "Тот, кто держится договором, не делится своим." };
+  if (companion.trust < 60) return { available: false, quest, reason: "Откроется при доверии 60." };
+  return { available: true, quest };
+}
+
+function settleCompanionQuest(hero, id, choice) {
+  const companion = hero.companions.find((c) => c.id === id);
+  if (!companion) return { ok: false, reason: "Такого спутника нет." };
+  const state = companionQuestState(companion);
+  if (!state.available) return { ok: false, reason: state.reason || "Это дело уже закрыто." };
+  if (!state.quest.options[choice]) return { ok: false, reason: "Такого решения нет." };
+  companion.quest = { done: true, choice };
+  addCompanionTrust(companion, 5);
+  return { ok: true, result: state.quest.options[choice].result };
+}
+
+function companionGiftName(companion) {
+  return COMPANIONS[companion.defId]?.gift || COMPANION_GIFTS[companion.defId] || null;
+}
+
+function companionGiftPrice(hero) {
+  return 200 + Number(hero.level || 1) * 12;
+}
+
+function giveCompanionGift(hero, id) {
+  const companion = hero.companions.find((c) => c.id === id);
+  if (!companion || !companionGiftName(companion)) return { ok: false, reason: "Подарить нечего." };
+  if (companion.gifted) return { ok: false, reason: "Подарок уже вручён." };
+  const price = companionGiftPrice(hero);
+  if (hero.gold < price) return { ok: false, reason: `Нужно ${price} золота.` };
+  hero.gold -= price;
+  companion.gifted = true;
+  addCompanionTrust(companion, 5);
+  return { ok: true, name: companionGiftName(companion) };
 }

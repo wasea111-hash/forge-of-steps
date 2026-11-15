@@ -1935,6 +1935,46 @@ const report = run(`(function () {
     eq(last[0].isBoss, false, "and not a boss");
   });
 
+  test("stage 3.0: town arrivals, personal matters, gifts, Iskra and the shared ending", () => {
+    const hero = newHero("assassin", true);
+    hero.defeatedGuardians.push("greyfang");
+    recruitCompanion(hero, "tessa");
+    eq(getPendingMeeting(hero), null, "no one else yet");
+    ensureTown(hero).built.infirmary = { stage: 2, since: 0 };
+    eq(getPendingMeeting(hero)?.id, "ulya", "Ulya comes after the infirmary");
+    ensureTown(hero).built.overseers = { stage: 2, since: 0 };
+    recruitCompanion(hero, "ulya");
+    eq(getPendingMeeting(hero)?.id, "skar", "Skar comes with the overseers");
+    hero.unlockedRegion = 3; ensureTown(hero).built.slave_market = { stage: 2, since: 0 };
+    const offers = getMarketOffers(hero).map((offer) => offer.defId);
+    assert(offers.includes("mara"), "Mara is only on the market");
+    assert(!["asya", "til", "skar", "ulya", "bran"].some((id) => offers.includes(id)), "freedom and town people are never sold");
+    const tessa = hero.companions.find((c) => c.defId === "tessa");
+    eq(companionQuestState(tessa).available, false, "the matter waits for trust");
+    tessa.trust = 60;
+    assert(settleCompanionQuest(hero, tessa.id, 1).ok, "the matter is settled");
+    eq(settleCompanionQuest(hero, tessa.id, 0).ok, false, "and only once");
+    hero.gold = 10000;
+    assert(giveCompanionGift(hero, tessa.id).ok && !giveCompanionGift(hero, tessa.id).ok, "one gift");
+    hero.level = 60; tessa.trust = 100; tessa.rank = 5;
+    assert(iskraUnlocked(hero, tessa), "Iskra opens with level, trust, rank and the matter");
+    tessa.control = "auto";
+    hero.party.activeId = tessa.id;
+    const battle = createBattle(hero, [makeEnemy("wolf", 60)], { ally: { unit: makeAllyUnit(hero, tessa), companion: tessa, front: true } });
+    battle.allyState.turns = 1;
+    battle.foes[0].currentHp = Math.round(battle.foes[0].maxHp * 0.3);
+    battle.awaiting = true; battle.awaitingActor = "hero";
+    assert(canUseIskra(battle).ok, "the assassin's Iskra on a wounded target");
+    assert(heroAction(battle, { type: "iskra" }).ok, "Iskra runs");
+    eq(canUseIskra(battle).ok, false, "one joint attack per fight");
+    const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    const t2 = back.companions.find((c) => c.defId === "tessa");
+    assert(t2.quest?.done && t2.gifted, "matter and gift survive a reload");
+    const bought = buyContract(hero, "mara", true);
+    assert(bought.ok, "a contract for Mara");
+    eq(getEndingState(hero, "shared").ok, false, "no shared ending while someone is held");
+  });
+
   test("camp: people answer the last return and the save keeps it", () => {
     const hero = newHero("mage", true);
     hero.story.seen = ["intro"];

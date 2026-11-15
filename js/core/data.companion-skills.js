@@ -174,3 +174,54 @@ Object.assign(JOINT_PERSONAL, {
   yara: "На тебе остаётся шов: лечит после следующего удара.", ella: "Ход цели откладывается на 20%.", savel: "Тебе регенерация 4% на 2 хода.", ner: "Нэр слушает поражённую цель, +1 отголосок.",
   gron: "Следующий удар по тебе Грон примет сам.", lissa: "+1 долг времени.", ort: "+1 форма.", dei: "+1 слог."
 });
+
+// ---------- Stage 3.0: six who come through the town ----------
+Object.assign(COMPANION_RESOURCES, {
+  ulya: { id: "seeds", name: "Семена", max: 3, start: 1, hint: "Посаженное прорастает через ход-два. +1 семя за каждый ход Ули." },
+  bran: { id: "chimes", name: "Звоны", max: 3, start: 0, hint: "+1 в начале каждого хода Брана." },
+  asya: { id: "knots", name: "Узлы", max: 3, start: 1, hint: "+1, когда ты встаёшь в стойку или применяешь навык." },
+  til: { id: "tracks", name: "Следы", max: 3, start: 0, hint: "+1 за каждый удар Тиля, попавший в цель." },
+  mara: { id: "debts", name: "Строки долга", max: 4, start: 0, hint: "+1 за каждое действие врага против вас." },
+  skar: { id: "discipline", name: "Дисциплина", max: 3, start: 1, hint: "+1, когда удар врага попадает по Скару." }
+});
+COMPANION_SKILLS.push(
+  { id: "ulya_ash", who: "ulya", branch: "Посеять", name: "Семя под золой", base: true, cost: 0, cd: 1, target: "hero", text: "Сажает семя: через ход лечит тебя на 12%.", ai: ["heal", "build"] },
+  { id: "ulya_bitter", who: "ulya", branch: "Посеять", name: "Горький росток", cost: 1, cd: 3, target: "foe", text: "Сажает росток у врага: через ход он бьёт на 1,4А и ослабляет на 15%.", unlock: { trust: 25, deed: { kind: "lowHeal", count: 2 } }, ai: ["attack", "debuff"] },
+  { id: "ulya_bed", who: "ulya", branch: "Посеять", name: "Тёплая грядка", cost: 2, cd: 4, target: "self", text: "Вам обоим регенерация 5% на 3 хода.", unlock: { trust: 55, memory: 1 }, ai: ["heal"] },
+  { id: "ulya_leaf", who: "ulya", branch: "Собрать", name: "Первый лист", base: true, cost: 0, cd: 0, target: "foe", text: "0,7А; посаженное прорастает на ход раньше.", ai: ["attack"] },
+  { id: "ulya_cut", who: "ulya", branch: "Собрать", name: "Срезать вовремя", cost: 1, cd: 3, target: "self", text: "Всё посаженное прорастает сейчас.", unlock: { trust: 35, memory: 0 }, ai: ["heal", "spend"] },
+  { id: "ulya_fire", who: "ulya", branch: "Собрать", name: "После пожара", cost: 3, cd: 5, target: "ally", text: "Лечит вас обоих на 15% и снимает с тебя беду.", unlock: { trust: 80, memory: 2 }, ai: ["heal", "cleanse"] },
+  { id: "bran_one", who: "bran", branch: "Предупредить", name: "Один удар", base: true, cost: 0, cd: 0, target: "foe", text: "0,8А, ход врага откладывается на 10%.", ai: ["attack", "control"] },
+  { id: "bran_alarm", who: "bran", branch: "Предупредить", name: "Набат", cost: 1, cd: 3, target: "hero", text: "Тебе укрепление 20% до твоего хода и щит 6%.", unlock: { trust: 25, deed: { kind: "delayIntent", count: 3 } }, ai: ["protect"] },
+  { id: "bran_gate", who: "bran", branch: "Предупредить", name: "Сигнал у ворот", cost: 3, cd: 5, target: "all", text: "Ходы всех врагов откладываются на 30%, слабость 10%.", unlock: { trust: 70, memory: 2 }, ai: ["control", "aoe"] },
+  { id: "bran_muffle", who: "bran", branch: "Удержать звук", name: "Глухой язык", base: true, cost: 0, cd: 3, target: "foe", text: "0,5А и немота на 1 ход.", ai: ["control", "attack"] },
+  { id: "bran_back", who: "bran", branch: "Удержать звук", name: "Обратный звон", cost: 1, cd: 3, target: "foe", text: "1,2А; если враг готовит тяжёлый удар — 50% шанс оглушить.", unlock: { trust: 40, memory: 0 }, ai: ["attack", "control"] },
+  { id: "bran_silence", who: "bran", branch: "Удержать звук", name: "Тишина после", cost: 2, cd: 4, target: "self", text: "Снимает с тебя беду, вам обоим регенерация 4% на 2 хода.", unlock: { trust: 55, deed: { kind: "cleanse", count: 3 } }, ai: ["cleanse", "heal"] },
+  { id: "asya_loop", who: "asya", branch: "Связать", name: "Свободная петля", base: true, cost: 0, cd: 0, target: "foe", text: "0,7А и метка 10% на 2 хода.", ai: ["attack", "debuff"] },
+  { id: "asya_knot", who: "asya", branch: "Связать", name: "Встречный узел", cost: 1, cd: 3, target: "hero", text: "Тебе укрепление 25% на 2 хода, Асе щит 10%.", unlock: { trust: 25, deed: { kind: "shieldGiven", count: 3 } }, ai: ["protect"] },
+  { id: "asya_pull", who: "asya", branch: "Связать", name: "Общая тяга", cost: 2, cd: 4, target: "hero", text: "Тебе ярость 15% и ускорение 10% на 2 хода.", unlock: { trust: 55, memory: 1 }, ai: ["protect"] },
+  { id: "asya_end", who: "asya", branch: "Развязать", name: "Потянуть конец", base: true, cost: 0, cd: 2, target: "foe", text: "0,8А и снимает с врага щит.", ai: ["attack"] },
+  { id: "asya_give", who: "asya", branch: "Развязать", name: "Отдать натяжение", cost: 1, cd: 3, target: "hero", text: "Снимает с тебя беду и лечит на 8%.", unlock: { trust: 40, memory: 0 }, ai: ["cleanse", "heal"] },
+  { id: "asya_right", who: "asya", branch: "Развязать", name: "Право уйти", cost: 3, cd: 5, target: "foe", text: "1,8А, и твой следующий ход наступает раньше.", unlock: { trust: 80, memory: 2 }, ai: ["attack", "burst"] },
+  { id: "til_print", who: "til", branch: "Оставить след", name: "Пустой отпечаток", base: true, cost: 0, cd: 0, target: "foe", text: "1,0А; Тилю уклонение 15% на 1 ход.", ai: ["attack"] },
+  { id: "til_count", who: "til", branch: "Оставить след", name: "Сбить счёт", cost: 1, cd: 2, target: "foe", text: "0,9А и ослепление 20% на 2 хода.", unlock: { trust: 25, deed: { kind: "preyKill", count: 2 } }, ai: ["attack", "debuff"] },
+  { id: "til_behind", who: "til", branch: "Оставить след", name: "След за спиной", cost: 2, cd: 4, target: "foe", text: "1,6А по самому раненому врагу.", unlock: { trust: 50, memory: 1 }, ai: ["attack", "execute"] },
+  { id: "til_number", who: "til", branch: "Стереть след", name: "Чужой номер", base: true, cost: 0, cd: 2, target: "foe", text: "0,7А и метка 15% на 2 хода.", ai: ["attack", "debuff"] },
+  { id: "til_brand", who: "til", branch: "Стереть след", name: "Снять клеймо", cost: 1, cd: 3, target: "hero", text: "Снимает с тебя беду, тебе уклонение 15% на 2 хода.", unlock: { trust: 40, memory: 0 }, ai: ["cleanse", "protect"] },
+  { id: "til_self", who: "til", branch: "Стереть след", name: "Остаться собой", cost: 3, cd: 5, target: "foe", text: "2,4А; по цели ниже 40% здоровья — 3,0А.", unlock: { trust: 80, memory: 2 }, ai: ["attack", "burst", "execute"] },
+  { id: "mara_open", who: "mara", branch: "Сверить", name: "Открыть счёт", base: true, cost: 0, cd: 0, target: "foe", text: "0,8А и метка 10% на 2 хода.", ai: ["attack", "debuff"] },
+  { id: "mara_short", who: "mara", branch: "Сверить", name: "Найти недостачу", cost: 1, cd: 3, target: "foe", text: "Пробитая броня 25% и слабость 10% на 2 хода.", unlock: { trust: 25, deed: { kind: "delayIntent", count: 2 } }, ai: ["debuff"] },
+  { id: "mara_red", who: "mara", branch: "Сверить", name: "Красная строка", cost: 2, cd: 4, target: "foe", text: "1,4А и ещё 0,2А за каждую беду на враге.", unlock: { trust: 50, memory: 1 }, ai: ["attack", "burst"] },
+  { id: "mara_collect", who: "mara", branch: "Закрыть", name: "Взыскать", base: true, cost: 0, cd: 2, target: "foe", text: "0,6А и 0,3А за каждую строку долга; тратит все.", ai: ["attack", "spend"] },
+  { id: "mara_write", who: "mara", branch: "Закрыть", name: "Списать долг", cost: 1, cd: 3, target: "hero", text: "Снимает с тебя беду и лечит на 10%.", unlock: { trust: 40, memory: 0 }, ai: ["cleanse", "heal"] },
+  { id: "mara_zero", who: "mara", branch: "Закрыть", name: "Нулевая ведомость", cost: 4, cd: 5, target: "foe", text: "2,6А одной цели.", unlock: { trust: 80, memory: 2 }, ai: ["attack", "burst"] },
+  { id: "skar_line", who: "skar", branch: "Держать строй", name: "Поставить в ряд", base: true, cost: 0, cd: 2, target: "self", text: "Укрепление 25% до своего хода; следующий удар по тебе принимает Скар.", ai: ["protect", "defense"] },
+  { id: "skar_post", who: "skar", branch: "Держать строй", name: "Смена поста", cost: 1, cd: 3, target: "self", text: "Вы меняетесь местами без траты хода, Скару щит 15%.", unlock: { trust: 25, deed: { kind: "coverHit", count: 3 } }, ai: ["protect"] },
+  { id: "skar_order", who: "skar", branch: "Держать строй", name: "Железный порядок", cost: 3, cd: 5, target: "self", text: "Вам обоим укрепление 30% на 2 хода.", unlock: { trust: 70, memory: 2 }, ai: ["protect", "defense"] },
+  { id: "skar_shout", who: "skar", branch: "Потребовать", name: "Окрик", base: true, cost: 0, cd: 0, target: "foe", text: "0,8А и слабость 15% на 1 ход.", ai: ["attack", "debuff"] },
+  { id: "skar_fine", who: "skar", branch: "Потребовать", name: "Взыскание", cost: 1, cd: 3, target: "foe", text: "1,2А и 40% шанс оглушить на 1 ход.", unlock: { trust: 40, memory: 0 }, ai: ["attack", "control"] },
+  { id: "skar_all", who: "skar", branch: "Потребовать", name: "Ответственный за всех", cost: 2, cd: 4, target: "all", text: "1,2А всем врагам; следующие два удара по тебе принимает Скар.", unlock: { trust: 55, deed: { kind: "interceptHeavy", count: 4 } }, ai: ["attack", "aoe", "protect"] }
+);
+Object.assign(COMPANION_SKILL_BY_ID, Object.fromEntries(COMPANION_SKILLS.map((skill) => [skill.id, skill])));
+Object.assign(RARITY_PREP_SKILLS, { ulya: ["ulya_bitter", "ulya_cut"], bran: ["bran_alarm", "bran_back"], asya: ["asya_knot", "asya_give"], til: ["til_count", "til_brand"], mara: ["mara_short", "mara_write"], skar: ["skar_post", "skar_fine"] });
+Object.assign(JOINT_PERSONAL, { ulya: "Тебе семя: лечит через ход.", bran: "Ход цели откладывается на 15%.", asya: "Тебе ускорение 10% на ход.", til: "Тилю уклонение 15%.", mara: "+1 строка долга.", skar: "Следующий удар по тебе Скар примет сам." });

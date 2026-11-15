@@ -85,3 +85,15 @@ function normalizeTown(raw) {
   });
   return town;
 }
+
+const TOWN_STAGES = [
+  { at: 0, name: "Стоянка" },
+  { at: 2, name: "Обжитый лагерь" },
+  { at: 4, name: "Посёлок" },
+  { at: 7, name: "Город у Кузницы" }
+];
+
+function townStage(hero) {
+  const built = Object.keys(ensureTown(hero).built).filter((id) => townBuilt(hero, id) && id !== "shelter_seed").length;
+  return [...TOWN_STAGES].reverse().find((stage) => built >= stage.at) || TOWN_STAGES[0];
+}

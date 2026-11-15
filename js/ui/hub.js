@@ -26,6 +26,7 @@ Screens.hub = () => {
   return `
   <div class="hub camp-mode${drawer ? " has-drawer" : ""}" style="--lost:${getLostMemories(hero).length}">
     ${campScene(hero)}
+    <div class="town-name" data-tip="text|${esc(townStage(hero).name)}|Город растёт из твоих решений у костра. Готовых построек: ${Object.keys(ensureTown(hero).built).filter((id) => townBuilt(hero, id) && id !== "shelter_seed").length}.">${esc(townStage(hero).name)}</div>
     <header class="camp-top">
       <button class="hero-chip" data-action="hubTab" data-tab="hero" aria-label="Лист героя">
         <div class="hero-chip-art">${heroMedal(hero)}</div>

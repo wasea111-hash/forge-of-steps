@@ -89,6 +89,8 @@ function getEndingState(hero, endingId) {
   const missing = (ending.needs || []).filter((flag) => !storyHasFlag(hero, flag));
   const lairs = getStoryLairsBeaten(hero);
   if (missing.length || lairs < Number(ending.needsLairs || 0)) return { ok: false, lairs };
+  const held = (hero.companions || []).filter((c) => c.legal === "contract").length;
+  if (endingId === "shared" && held) return { ok: false, lairs, held, reason: `В лагере держатся договором: ${held}. Право выпустить молот — только у свободных.` };
   return { ok: true, lairs };
 }
 

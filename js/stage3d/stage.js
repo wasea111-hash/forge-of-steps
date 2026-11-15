@@ -5,7 +5,7 @@ const Stage3D = (() => {
   const hasWebGL = (() => { try { return Boolean(document.createElement("canvas").getContext("webgl2")); } catch (error) { return false; } })();
 
   const HERO_MODELS = { assassin: "assassin", warrior: "warrior", mage: "mage", archer: "archer", bard: "bard" };
-  const ALLY_MODELS = { rootshield: "knight", coalbearer: "knight", binder: "caster", voidcatcher: "rogue", ashseamstress: "caster", interliner: "caster", lampbearer: "caster", listener: "rogue", boundary: "knight", stepcounter: "rogue", caster: "knight", namebearer: "caster" };
+  const ALLY_MODELS = { rootshield: "knight", coalbearer: "knight", binder: "caster", voidcatcher: "rogue", ashseamstress: "caster", interliner: "caster", lampbearer: "caster", listener: "rogue", boundary: "knight", stepcounter: "rogue", caster: "knight", namebearer: "caster", ashplanter: "caster", bellringer: "knight", knotwalker: "rogue", nameless: "rogue", registrar: "caster", overseer: "knight" };
   const ART_MODELS = { beast: "beast", rogue: "rogue", caster: "caster", slime: "slime", imp: "imp", knight: "knight", golem: "golem", wraith: "wraith", shard: "shard", smith: "smith" };
   // Body proportions the stage needs to place effects, rings and plates.
   const ART_SHAPE = { beast: { height: 1.15, scale: 0.92 }, slime: { height: 1 }, imp: { height: 1.95, scale: 0.72, hover: 0.34 }, golem: { height: 2.2, scale: 1.15 }, wraith: { height: 1.95, hover: 0.42, ghost: 0.26 }, shard: { height: 1.9, hover: 0.12 }, smith: { height: 2.15, scale: 1.34, noTint: true } };
