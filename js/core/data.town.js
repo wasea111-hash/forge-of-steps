@@ -36,8 +36,8 @@ const TOWN_PROJECTS = {
   },
   witness_house: {
     name: "Дом свидетельств", place: "На холме за палатками", spot: { x: 28, y: 14, h: 15 },
-    when: (hero) => storyHasFlag(hero, "journal_open"),
-    text: "Записи Соты открыты лагерю, и люди сами начинают приносить свидетельства. Сота предлагает поставить навес для общего архива.",
+    when: (hero) => storyHasFlag(hero, "journal_open") && storyHasFlag(hero, "witness_1"),
+    text: "Первое свидетельство из логова лежит у общего котла, и люди сами начинают приносить свои. Сота предлагает поставить навес для общего архива.",
     options: [{ id: "witness_house", label: "Устроить общий архив", hint: "Опыта за походы на 10% больше", build: "witness_house" }, { id: "witness_no", label: "Пусть всё остаётся у Соты", hint: "", build: null }]
   },
   free_stalls: {

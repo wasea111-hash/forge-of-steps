@@ -68,6 +68,8 @@ const STORY_DERIVED = {
 
 function storyHasFlag(hero, flag) {
   if (hero.story?.flags.includes(flag)) return true;
+  // met_<companion>: this person has walked with you at some point.
+  if (flag.startsWith("met_")) return (hero.companionLog?.met || []).includes(flag.slice(4));
   const derived = STORY_DERIVED[flag];
   return derived ? Boolean(derived((other) => storyHasFlag(hero, other), hero)) : false;
 }
@@ -162,6 +164,7 @@ function syncStoryEvents(hero) {
   const witnesses = Array.from({ length: 8 }, (_, index) => `witness_${index + 1}`);
   if (witnesses.every((flag) => storyHasFlag(hero, flag))) storyEvent(hero, "witness:complete");
   if (Object.values(getActiveSetCounts(hero)).some((count) => count >= SET_FULL)) storyEvent(hero, "set:full");
+  if (storyHasFlag(hero, "bridge_decided")) storyEvent(hero, "town:settlers");
   if (hero.subclass) storyEvent(hero, "path:subclass");
   if (hero.profession) storyEvent(hero, "path:profession");
   if (Number(story.retreats || 0) > 0) storyEvent(hero, "retreat:first");
@@ -176,7 +179,7 @@ function syncStoryEvents(hero) {
 }
 
 // A real death in battle takes one feeling. Facts, names and skills stay.
-// Until the Thicket's guardian falls the Brand returns you on credit: it takes nothing yet, and Nima says what comes next.
+// While Greyfang's bolt holds the Thicket the Smith cannot reach the payment, so the Brand returns you on credit: it takes nothing yet, and Nima says what comes next.
 const MEMORIES_FOR_HEARTH = 4;
 function memoryGraceActive(hero) {
   return !hero.defeatedGuardians?.includes("greyfang");

@@ -11,7 +11,8 @@ function ensureTown(hero) {
 // The next project the camp wants to talk about, if any.
 function getTownOffer(hero) {
   const town = ensureTown(hero);
-  if (hero.expedition) return null;
+  // Nothing to decide before there are neighbours: the town begins with the people of the bridge.
+  if (hero.expedition || !storyHasFlag(hero, "bridge_decided")) return null;
   return Object.entries(TOWN_PROJECTS).find(([id, project]) => !town.decided[id] && project.when(hero))?.[0] || null;
 }
 

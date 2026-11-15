@@ -1900,6 +1900,8 @@ const report = run(`(function () {
     const hero = newHero("archer", true);
     eq(getTownOffer(hero), null, "nothing to discuss at the start");
     hero.unlockedRegion = 1; hero.records.expeditions = 2;
+    eq(getTownOffer(hero), null, "no town before the people of the bridge");
+    hero.story.flags.push("bridge_people");
     eq(getTownOffer(hero), "caravan", "the caravan comes to the Ashlands camp");
     assert(decideTown(hero, "caravan", "shelter_offer").ok, "the decision is taken");
     eq(decideTown(hero, "caravan", "market_permitted").ok, false, "once decided, decided");
@@ -2002,6 +2004,29 @@ const report = run(`(function () {
     eq(back.story.creditDeaths, 0, "the credit counter survives a reload");
   });
 
+  test("3.2: the town begins at the bridge, the witness house waits for a witness, companions are named in the story", () => {
+    const hero = newHero("bard", true);
+    hero.story.flags.push("journal_open");
+    hero.unlockedRegion = 1; hero.records.expeditions = 5;
+    eq(getTownOffer(hero), null, "no neighbours, nothing to decide");
+    syncStoryEvents(hero);
+    assert(!hero.story.queue.includes("town:settlers"), "no settlers before the bridge");
+    hero.story.flags.push("bridge_home");
+    syncStoryEvents(hero);
+    assert(hero.story.queue.includes("town:settlers"), "the bridge brings the first neighbours");
+    const settlers = getStoryLines(hero, STORY_SCENES["town:settlers"].lines).map((line) => line.text).join(" ");
+    assert(/успели только те/.test(settlers) && !/Идти им некуда/.test(settlers), "the settlers scene follows the bridge choice");
+    assert(!TOWN_PROJECTS.witness_house.when(hero), "an open journal alone does not raise the witness house");
+    hero.story.flags.push("witness_1");
+    assert(TOWN_PROJECTS.witness_house.when(hero), "the first witness does");
+    hero.defeatedGuardians.push("greyfang");
+    const before = () => getStoryLines(hero, STORY_SCENES["boss_after:greyfang"].lines).some((line) => /Тесса/.test(line.text));
+    assert(before(), "Veya names Tessa before the meeting");
+    recruitCompanion(hero, "tessa");
+    assert(storyHasFlag(hero, "met_tessa") && !before(), "and not after it");
+    assert(/засов/.test(STORY_SCENES["trail:thicket:white"].lines[0].text), "the white trail explains the credit by the bolt");
+  });
+
   test("camp: people answer the last return and the save keeps it", () => {
     const hero = newHero("mage", true);
     hero.story.seen = ["intro"];
@@ -2009,7 +2034,7 @@ const report = run(`(function () {
     const early = createExpedition(hero, REGIONS[0].id, "white");
     hero.expedition = early;
     finishExpedition(hero, early, "death");
-    assert(getCampTalk(hero).text.includes("в долг"), "a death on credit is named as such");
+    assert(getCampTalk(hero).text.includes("Долг кончится"), "a death on credit is named as such");
     hero.defeatedGuardians.push(REGIONS[0].guardian);
     const exp = createExpedition(hero, REGIONS[0].id, "white");
     hero.expedition = exp;

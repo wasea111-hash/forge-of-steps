@@ -904,3 +904,4 @@ button.build-summary { cursor: pointer; }
 .stake-line.edge, .stake-line.gone { border-color: rgba(230, 110, 80, .45); background: rgba(60, 22, 16, .55); }
 .build-waiting { display: grid; gap: 8px; margin: 0 0 14px; }
 .build-waiting > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(232, 180, 90, .45); background: linear-gradient(90deg, rgba(70, 44, 18, .7), rgba(40, 28, 18, .5)); color: #f2e2c4; }
+.comp-rumours { margin: 6px 0 0; padding-left: 18px; color: #c9b89c; font-size: 12.5px; font-style: italic; line-height: 1.5; }

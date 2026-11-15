@@ -16,7 +16,8 @@ function viewCompanions() {
   const karma = Number(hero.karma || 0);
   const active = getActiveCompanion(hero);
   const left = Object.values(COMPANIONS).filter((def) => def.ready && !companionTaken(hero, def.id));
-  const byRegion = REGIONS.map((region) => [region.name, left.filter((def) => def.region === region.id).length]).filter(([, n]) => n);
+  const byRegion = REGIONS.map((region) => [region.name, left.filter((def) => def.region === region.id && !def.arrive).length]).filter(([, n]) => n);
+  const rumours = left.filter((def) => def.arrive && COMPANION_RUMOURS[def.arrive]).map((def) => COMPANION_RUMOURS[def.arrive]);
   const market = getMarketOffers(hero);
   return `<h2 class="section-title">${icon("heart")}Спутники</h2>
     <section class="panel comp-top">
@@ -38,9 +39,20 @@ function viewCompanions() {
       <p class="muted small">Здесь продают людей. ${market[0].closed ? "Закрытые торги: те, кто держит договоры, показывают лучших." : "Открытые прилавки."} Купленный по договору идёт в бой, но не даёт клятв и не верит тебе больше чем на 39. Выкупить и отпустить — дороже для совести рынка, но человек свободен.</p>
       <div class="market">${market.map((offer) => marketCard(hero, offer)).join("")}</div>` : isMarketOpen(hero) ? "" : `<p class="muted small">${ensureTown(hero).decided.caravan === "market_permitted" ? "Невольничий рынок ещё строится." : ensureTown(hero).decided.caravan ? "В этом лагере людьми не торгуют." : "Людьми здесь не торгуют. Пока."}</p>`}
     ${hero.companions.some((c) => c.legal === "contract") ? `<p class="small warn-text comp-ahead">Пока кто-то в лагере держится договором, финал «Право выпустить молот» закрыт.</p>` : ""}
-    ${byRegion.length ? `<p class="muted small comp-ahead">Ещё встретятся: ${byRegion.map(([name, n]) => `${name} — ${n}`).join(", ")}.</p>` : ""}
+    ${byRegion.length ? `<p class="muted small comp-ahead">Ещё встретятся на тропах: ${byRegion.map(([name, n]) => `${name} — ${n}`).join(", ")}.</p>` : ""}
+    ${rumours.length ? `<ul class="comp-rumours">${rumours.map((text) => `<li>${esc(text)}</li>`).join("")}</ul>` : ""}
     ${hero.companionLog.forgottenCount ? `<p class="muted small comp-ahead">Есть пустота, которую ты не можешь назвать${hero.companionLog.forgottenCount > 1 ? ` — ${hero.companionLog.forgottenCount}` : ""}.</p>` : ""}`;
 }
+
+// What is said at the fire about the people who come through the town. No names: they are not met yet.
+const COMPANION_RUMOURS = {
+  infirmary: "Говорят, у хорошего лазарета обычно появляется кто-то, кто умеет растить на пепле.",
+  crossing: "Старый звонарь ищет мост, на котором его колокол будет звать домой, а не на пожар.",
+  asya: "В приюты приходят те, кто сбежал из долговых домов. Но только туда, где держатся Свободы.",
+  til: "Человек с перечёркнутыми номерами ночует там, где Свобода — не слово, а привычка. И только когда открыт Предел.",
+  market: "На невольничьих торгах продают счетовода, который знает все долги Пустошей.",
+  overseers: "Надзиратели ищут, кому служить. Им нужна хартия и свой квартал."
+};
 
 function companionCard(hero, c) {
   const def = getCompanionDef(c);
@@ -214,6 +226,8 @@ Actions.compBuy = async (el) => {
   commit();
 };
 
+const MEETING_TITLES = { infirmary: "У нового лазарета", crossing: "У общего перехода", asya: "У ворот приюта", til: "У ворот приюта", overseers: "У квартала надзирателей" };
+
 // The first companion: after the Thicket's guardian, once the story has had its say.
 function maybeMeetCompanion() {
   const hero = App.hero;
@@ -221,7 +235,7 @@ function maybeMeetCompanion() {
   const def = getPendingMeeting(hero);
   if (!def) return;
   openModal(`<div class="comp-scene">${companionPortrait(def.id, "big")}<div>
-    <h2>Встреча на дороге</h2><p>${esc(def.meet)}</p><p class="comp-quote">${esc(def.join)}</p>
+    <h2>${esc(MEETING_TITLES[def.arrive] || (def.id === "tessa" ? "У открытого засова" : "Встреча на дороге"))}</h2><p>${esc(def.meet)}</p><p class="comp-quote">${esc(def.join)}</p>
     <p class="muted small">${esc(COMPANION_CLASSES[def.classId].name)}: ${esc(COMPANION_CLASSES[def.classId].mechanic)}</p>
     <div class="modal-actions"><button class="btn primary big" data-action="meetCompanion" data-id="${esc(def.id)}" data-autofocus>Идём вместе</button></div>
   </div></div>`, { dismissable: false });
