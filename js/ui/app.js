@@ -46,10 +46,15 @@ function afterRender() {
     paintScene(canvas, canvas.dataset.scene, canvas.dataset.zone || null, Number(canvas.dataset.seed || 7));
   });
   const fxCanvas = document.querySelector("canvas[data-fx]");
-  if (fxCanvas) FX.attach(fxCanvas, fxCanvas.dataset.fx || null);
+  if (fxCanvas) {
+    FX.attach(fxCanvas, fxCanvas.dataset.fx || null);
+    // A fire that is not in the middle of the picture tells the sparks where it is.
+    FX.origin = fxCanvas.dataset.origin ? fxCanvas.dataset.origin.split(",").map(Number) : null;
+  }
   else FX.detach();
   document.querySelector("[data-autofocus]")?.focus();
   placeTreeView();
+  if (typeof placeCampView === "function") placeCampView();
   if (App.hero) { syncStoryEvents(App.hero); scheduleStory(); setTimeout(maybeMeetCompanion, 700); }
 }
 

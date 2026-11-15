@@ -45,6 +45,46 @@
   "prompt": "Waist-up portrait of a slight young woman bookbinder with ink-stained fingers, dark hair tied up with a strip of torn page, round wire spectacles, a patched teal coat stuffed with scraps of paper and thread, a needle tucked behind one ear. Thrifty careful look, quietly anxious, painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
  },
  {
+  "id": "portrait_dei",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a polite slender keeper of names with pale skin, silver-white long hair, a dark violet robe sewn with hundreds of tiny name tags, a ribbon of glowing letters around the hands. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_ort",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a proud broad-shouldered master caster with a burnt leather apron, braided grey-black beard, molten-glowing forearm guards, a heavy mould and a ladle of glowing metal. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_lissa",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a patient wiry woman in her forties with curly auburn hair, a long coat embroidered with counted step marks, an hourglass at her belt and a slim rapier. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_gron",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a big stern middle-aged boundary warden with a shaved head and grey beard, a long tower shield painted with boundary marks, a heavy iron surveyor rod. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_ner",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a quiet lanky young man listener with long ears-covering hair, a hood of grey felt, a leather mask over the mouth, a curved bone horn and a short spear. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_savel",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a soft-faced middle-aged man lamp bearer with a round beard and worried kind eyes, a hooded brown robe, a brass lantern on a staff glowing warm. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_ella",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a sharp-eyed young woman court editor with ink-black hair in a tight knot, a pale grey high-collared coat covered in pinned notes, a long red quill like a stiletto. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_yara",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a lean ash-grey woman field medic in her thirties with soot-streaked skin, short cropped dark hair, a burn-scarred apron with needles and red thread, a satchel of bandages. Painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
   "id": "intro_home",
   "size": "1536x1024",
   "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A person of indeterminate gender seen only from behind holding a plain house key at an empty crossroads. A village has been erased leaving a rectangular patch of bare earth, one suspended kitchen spoon and a path ending in pale nothingness. Modest grief, no heroic pose.",

@@ -12,20 +12,22 @@ const HUB_TABS = [
   { id: "news", name: "Новости", icon: "star" }
 ];
 
+// The camp is a painted scene; every section opens as a panel over it (js/ui/camp-scene.js).
 Screens.hub = () => {
   const hero = App.hero;
   const onTrail = Boolean(hero.expedition);
   if (App.tab === "gear") App.tab = "hero";
   const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal", "news"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)));
-  if (onTrail && !tabs.some((tab) => tab.id === App.tab)) App.tab = "hero";
+  if (App.tab && App.tab !== "camp" && !tabs.some((tab) => tab.id === App.tab)) App.tab = "camp";
   const need = getExperienceForNextLevel(hero.level);
   const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews, companions: viewCompanions };
+  const drawer = campDrawer(views);
+  const fire = !drawer && App.fireOpen !== false && hero.records.expeditions > 0 ? campFire() : "";
   return `
-  <div class="hub" style="--lost:${getLostMemories(hero).length}">
-    <div class="hub-backdrop"><img src="assets/ui/bg_hub.webp" alt=""><span class="camp-flicker" aria-hidden="true"></span><canvas class="fx-canvas" data-fx="campfire"></canvas></div>
-    <header class="hub-bar">
-      <div class="rail-logo"><img src="assets/ui/emblem.webp" alt=""><b>Кузница<br>Шагов</b></div>
-      <div class="hero-chip">
+  <div class="hub camp-mode${drawer ? " has-drawer" : ""}" style="--lost:${getLostMemories(hero).length}">
+    ${campScene(hero)}
+    <header class="camp-top">
+      <button class="hero-chip" data-action="hubTab" data-tab="hero" aria-label="Лист героя">
         <div class="hero-chip-art">${heroMedal(hero)}</div>
         <div class="hero-chip-text">
           <strong>${esc(hero.name)}</strong>
@@ -33,32 +35,29 @@ Screens.hub = () => {
           ${bar(hero.experience, need, "exp", `Опыт ${hero.experience} / ${need}`)}
         </div>
         <div class="level-badge">${hero.level}</div>
+      </button>
+      <div class="wallet">
+        <span class="chip gold" data-tip="text|Золото|Покупки, заточка и смена пути.">${icon("gold")}${hero.gold}</span>
+        <span class="chip shard" data-tip="text|Осколки мутации|Выпадают из элиты и вожаков. Идут на мутации и перековку.">${icon("shard")}${hero.mutationShards}</span>
+        <span class="chip hp" data-tip="text|Зелья лечения|${POTIONS.hp.description}">${icon("potionHp")}${hero.potions.hp}</span>
+        <span class="chip mp" data-tip="text|Зелья маны|${POTIONS.mp.description}">${icon("potionMp")}${hero.potions.mp}</span>
+        <span class="res-group">${resourceChips(hero.resources)}</span>
       </div>
-      <nav class="hub-nav" aria-label="Разделы лагеря">
-        ${tabs.map((tab) => {
-          const count = pendingBadgeCount(tab.id);
-          return `<button class="nav-btn${App.tab === tab.id ? " active" : ""}" data-action="hubTab" data-tab="${tab.id}" ${App.tab === tab.id ? 'aria-current="page"' : ""}>${icon(tab.icon)}<span>${tab.name}</span>${count ? `<i class="dot">${count}</i>` : ""}</button>`;
-        }).join("")}
-      </nav>
       <div class="hub-tools">
-        ${onTrail ? `<button class="btn primary small" data-action="backToTrail">В поход</button>` : `<button class="btn small" data-action="toTitle">Сменить героя</button>`}
         ${memoryKey(hero)}
+        ${onTrail ? `<button class="btn primary small" data-action="backToTrail">В поход</button>` : `<button class="btn small" data-action="toTitle">Сменить героя</button>`}
         <button class="icon-btn" data-action="openSettings" aria-label="Настройки">${icon("settings")}</button>
         ${App.dev ? `<button class="btn small" data-action="openDev">Dev</button>` : ""}
       </div>
     </header>
-    <main class="hub-main">
-      <div class="hub-top">
-        <div class="wallet">
-          <span class="chip gold" data-tip="text|Золото|Покупки, заточка и смена пути.">${icon("gold")}${hero.gold}</span>
-          <span class="chip shard" data-tip="text|Осколки мутации|Выпадают из элиты и вожаков. Идут на мутации и перековку.">${icon("shard")}${hero.mutationShards}</span>
-          <span class="chip hp" data-tip="text|Зелья лечения|${POTIONS.hp.description}">${icon("potionHp")}${hero.potions.hp}</span>
-          <span class="chip mp" data-tip="text|Зелья маны|${POTIONS.mp.description}">${icon("potionMp")}${hero.potions.mp}</span>
-          <span class="res-group">${resourceChips(hero.resources)}</span>
-        </div>
-      </div>
-      <div class="hub-view">${(views[App.tab] || viewTrailPicker)()}</div>
-    </main>
+    ${fire ? `<div class="camp-talk">${fire}<button class="icon-btn talk-close" data-action="fireHide" aria-label="Скрыть разговор">✕</button></div>` : ""}
+    <nav class="camp-dock" aria-label="Места лагеря">
+      ${tabs.map((tab) => {
+        const count = pendingBadgeCount(tab.id);
+        return `<button class="dock-btn${App.tab === tab.id ? " active" : ""}" data-action="hubTab" data-tab="${tab.id}" ${App.tab === tab.id ? 'aria-current="page"' : ""}>${icon(tab.icon)}<span>${tab.name}</span>${count ? `<i class="dot">${count}</i>` : ""}</button>`;
+      }).join("")}
+    </nav>
+    ${drawer}
   </div>`;
 };
 
@@ -102,7 +101,6 @@ function viewTrailPicker() {
   const first = hero.records.expeditions === 0;
   return `
     ${first ? `<div class="coach-card"><b>С чего начать.</b> Выбери белую тропу. Поход состоит из нескольких шагов. Найденные вещи сразу попадают в рюкзак, их можно надеть прямо в пути. Если погибнешь, пропадёт всё, что не надето, и половина золота.</div>` : ""}
-    ${first ? "" : campFire()}
     <div class="trail-spacer"></div>
     ${storyObjectiveCard()}
     <h2 class="section-title">${icon("map")}Регион</h2>

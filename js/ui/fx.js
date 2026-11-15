@@ -231,7 +231,7 @@ const FX = {
       star: { color: "#d3a6ff", vx: -4, vy: -7, y: this.h * Math.random(), size: 1.8, life: 6, glow: true },
       rain: { color: "#d4e2f0", vx: 2, vy: 760, y: -20, size: 1, life: 1.6, streak: true, xs: -80 },
       // Sparks of the camp fire: they rise from below the picture and drift with the warm air.
-      campfire: { color: Math.random() < 0.3 ? "#ffd27a" : "#ff8a3a", vx: 14, vy: -46, y: this.h + 6, size: 1.6, life: 4.5, glow: true, x: this.w * (0.5 + (Math.random() - 0.5) * 0.7), sway: 1 }
+      campfire: this.origin ? { color: Math.random() < 0.3 ? "#ffd27a" : "#ff8a3a", vx: 10, vy: -38, y: this.h * this.origin[1], size: 1.5, life: 3.2, glow: true, x: this.w * (this.origin[0] + (Math.random() - 0.5) * 0.05), sway: 1 } : { color: Math.random() < 0.3 ? "#ffd27a" : "#ff8a3a", vx: 14, vy: -46, y: this.h + 6, size: 1.6, life: 4.5, glow: true, x: this.w * (0.5 + (Math.random() - 0.5) * 0.7), sway: 1 }
     };
     const kind = kinds[this.ambient];
     if (!kind) return;

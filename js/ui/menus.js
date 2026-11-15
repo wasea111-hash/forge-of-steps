@@ -39,6 +39,7 @@ Actions.continueHero = (el) => {
 
 function enterCamp() {
   const exp = App.hero.expedition;
+  App.tab = "camp";
   if (exp && exp.step >= exp.steps) {
     // The page was closed between the last victory and the summary: the trail is done.
     setScreen("hub");
