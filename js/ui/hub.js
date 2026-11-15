@@ -140,7 +140,7 @@ function guardianCard(guardian, region) {
     return `<section class="panel guardian done"><div class="guardian-art">${foeArt(region.guardian, def)}</div><div><h3>${esc(def.name)} повержен</h3><p class="muted">${App.hero.won ? "Кузнец повержен. Тропы остаются открытыми: сила врагов растёт вместе с тобой." : "Путь в следующий регион открыт."}</p></div></section>`;
   }
   const info = describeGuardian(guardian.id, App.hero);
-  const lock = guardian.needsTrail ? "Сначала пройди фиолетовую тропу региона." : App.hero.level < guardian.requiredLevel ? `Нужен ${guardian.requiredLevel} уровень.` : "";
+  const lock = guardian.needsTrail ? "Сначала пройди оранжевую тропу региона." : App.hero.level < guardian.requiredLevel ? `Нужен ${guardian.requiredLevel} уровень.` : "";
   return `<section class="panel guardian"><div class="guardian-art">${foeArt(region.guardian, guardian.def)}</div>
     <div class="guardian-text"><span class="eyebrow">Босс региона · всегда ${info.level} уровня</span><h3>${esc(guardian.def.name)}</h3><p class="muted">${esc(guardian.def.lore || "")}</p>
       <ul class="boss-facts"><li>Здоровье: <b>${info.hp}</b></li><li>Самый сильный удар: <b>≈${info.hit}</b></li><li>Готовность: <b>${info.info.recommended} уровень, ${esc(info.info.gear)}</b></li><li>Ты выдержишь ударов: <b>${info.hitsToDie}</b>, тебе нужно своих: <b>≈${info.blowsToKill}</b></li></ul>

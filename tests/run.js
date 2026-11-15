@@ -1321,9 +1321,9 @@ const report = run(`(function () {
     assert(!isZoneOpen(hero, "ashlands", "green"), "each region has its own order");
     assert(!isZoneOpen(hero, "thicket", "orange"), "one step at a time");
     hero.level = 99;
-    assert(!getAvailableGuardian(hero, 0).ready, "the boss waits for the purple trail");
-    markTrailCleared(hero, "thicket", "purple");
-    assert(getAvailableGuardian(hero, 0).ready, "purple opens the boss");
+    assert(!getAvailableGuardian(hero, 0).ready, "the boss waits for the orange trail");
+    markTrailCleared(hero, "thicket", "orange");
+    assert(getAvailableGuardian(hero, 0).ready, "orange opens the boss");
   });
 
   test("boss stays the same for any hero level", () => {
@@ -1910,6 +1910,29 @@ const report = run(`(function () {
     const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
     eq(back.town.decided.caravan, "shelter_offer", "decisions survive a reload");
     eq(townBuilt(back, "crossing"), true, "buildings survive a reload");
+  });
+
+  test("balance 2.8: regions keep their level band, outleveled foes give little, white is gentle", () => {
+    const hero = newHero("warrior", true);
+    hero.level = 40;
+    const [low, high] = getZoneLevelRange(hero, "thicket", "red");
+    assert(high <= 16, "the Thicket never goes above 16: " + high);
+    const [lo2] = getZoneLevelRange(hero, "limit", "white");
+    assert(lo2 >= 49, "the Limit never goes below 49");
+    const weak = makeEnemy("wolf", 12);
+    const near = makeEnemy("wolf", 39);
+    assert(calculateBattleRewards(hero, weak, "green", "thicket").exp < calculateBattleRewards(hero, near, "green", "thicket").exp * 0.2, "an outleveled foe gives little experience");
+    const fresh = newHero("mage", true);
+    const exp = createExpedition(fresh, "thicket", "white");
+    for (let i = 0; i < 30; i += 1) {
+      exp.step = 0; generateChoices(exp);
+      exp.choices.filter((node) => node.pack).forEach((node) => eq(node.pack.length, 1, "white trail: only lone foes"));
+      assert(!exp.choices.some((node) => node.type === "elite"), "no elites on white");
+    }
+    exp.step = exp.steps - 1; generateChoices(exp);
+    const last = buildEncounter(fresh, exp, exp.choices[0]);
+    eq(last.length, 1, "the last step is one foe");
+    eq(last[0].isBoss, false, "and not a boss");
   });
 
   test("camp: people answer the last return and the save keeps it", () => {

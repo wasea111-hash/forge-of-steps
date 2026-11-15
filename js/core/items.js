@@ -133,7 +133,8 @@ function getItemBonuses(item) {
     if (affix.flat) flats[affix.flat] += affix.amount;
   });
   const mult = enhanceMultiplier(item);
-  STAT_KEYS.forEach((key) => { stats[key] = Math.round(stats[key] * mult); });
+  const level = Number(item?.enhanceLevel || 0);
+  STAT_KEYS.forEach((key) => { stats[key] = stats[key] > 0 ? Math.max(Math.round(stats[key] * mult), stats[key] + level) : Math.round(stats[key] * mult); });
   FLAT_BONUS_KEYS.forEach((key) => { flats[key] = isPercentStat(key) || key === "attackSpeed" ? Number((flats[key] * mult).toFixed(1)) : Math.round(flats[key] * mult); });
   return { stats, flats };
 }

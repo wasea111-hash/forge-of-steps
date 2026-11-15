@@ -16,10 +16,28 @@ function isRegionUnlocked(hero, index) {
   return index <= Number(hero.unlockedRegion || 0);
 }
 
-function getZoneLevelRange(hero, regionId, zoneKey) {
+// Enemies follow your level inside the region's band and never leave it: an old region becomes easy.
+function regionBand(regionId) {
   const region = getRegion(regionId);
+  return region?.levelBand || [region?.floorLevel || 1, 999];
+}
+
+function getZoneLevelRange(hero, regionId, zoneKey) {
   const zone = ZONES[zoneKey];
-  return zone.levelOffset.map((offset) => Math.max(1, region.floorLevel, hero.level + offset));
+  const [low, high] = regionBand(regionId);
+  const anchor = clamp(hero.level, low, high);
+  return zone.levelOffset.map((offset) => Math.max(1, clamp(anchor + offset, low, high)));
+}
+
+// Rewards fade for foes far below you: farming an old region gives little.
+function outlevelFactor(hero, enemyLevel) {
+  const gap = Math.max(0, Number(hero.level || 1) - Number(enemyLevel || 1) - 3);
+  return { exp: Math.max(0, 1 - gap / 10), gold: Math.max(0.1, 1 - gap / 15), drop: Math.max(0, 1 - gap / 10) };
+}
+
+// The level of rewards from road events: never above what the region's foes would give.
+function eventLevel(hero, exp) {
+  return Math.min(hero.level, regionBand(exp.regionId)[1]);
 }
 
 function rollEnemyLevel(hero, regionId, zoneKey) {
@@ -50,7 +68,7 @@ function generateChoices(exp) {
   }
   const roll2 = () => weightedPick([
     { type: "battle", weight: 48 },
-    { type: "elite", weight: exp.step >= 1 ? 18 : 0 },
+    { type: "elite", weight: exp.step >= 1 && exp.zoneKey !== "white" ? 18 : 0 },
     { type: "event", weight: exp.step >= 1 ? 20 : 8 },
     { type: "camp", weight: exp.step >= 1 ? 8 : 0 },
     { type: "shrine", weight: exp.step >= 1 ? 6 : 0 }
@@ -74,13 +92,17 @@ function scoutNode(exp, type) {
   const supports = groups.flat().filter((id) => (ENEMY_DEFINITIONS[id].moves || []).some((move) => String(ENEMY_MOVES[move]?.kind).startsWith("ally")));
   const tough = ZONES[exp.zoneKey].power.hp > 1.2;
   const node = { type };
-  if (type === "battle") node.pack = [...randomFrom(exp.step < 1 && !tough ? groups.filter((group) => group.length <= 2) : groups)];
+  const white = exp.zoneKey === "white";
+  if (type === "battle") node.pack = [...randomFrom(white ? groups.filter((group) => group.length === 1) : exp.step < 1 && !tough ? groups.filter((group) => group.length <= 2) : groups)];
   if (type === "elite") {
     node.pack = [randomFrom(singles)];
     node.affixId = randomFrom(ELITE_AFFIXES).id;
     if (supports.length && roll(tough ? 0.8 : 0.4)) node.pack.push(randomFrom(supports));
   }
-  if (type === "boss") {
+  if (type === "boss" && white) {
+    node.pack = [randomFrom(singles)];
+    node.softBoss = true;
+  } else if (type === "boss") {
     node.pack = [randomFrom(singles), randomFrom(singles)];
     if (tough) node.pack.push(randomFrom(supports.length ? supports : singles));
     node.bossTrait = randomFrom(BOSS_TRAITS);
@@ -145,8 +167,10 @@ function completeStep(hero, exp) {
   // A beaten elite always leaves a boon behind, unless this was the final step.
   if (type === "elite" && exp.step < exp.steps && !exp.pendingBoons) offerBoons(hero, exp);
   // A short rest between steps: wounds carry over, but the hero catches a breath.
-  hero.currentHp = Math.min(hero.maxHp, Math.round(hero.currentHp + hero.maxHp * 0.08));
-  hero.currentMana = Math.min(hero.maxMana, Math.round(hero.currentMana + hero.maxMana * 0.15));
+  // Easier trails give a longer breath.
+  const [restHp, restMana] = { white: [0.25, 0.35], green: [0.1, 0.2] }[exp.zoneKey] || [0.08, 0.15];
+  hero.currentHp = Math.min(hero.maxHp, Math.round(hero.currentHp + hero.maxHp * restHp));
+  hero.currentMana = Math.min(hero.maxMana, Math.round(hero.currentMana + hero.maxMana * restMana));
   clearBattleState(hero);
   if (exp.step < exp.steps) generateChoices(exp);
   else exp.choices = [];
@@ -175,15 +199,16 @@ function rollBossExpMultiplier(luck) {
 function calculateBattleRewards(hero, enemy, zoneKey, regionId) {
   const zone = ZONES[zoneKey] || ZONES.green;
   const region = getRegion(regionId);
-  let expGain = (36 + enemy.level * 23) * zone.rewardFactor * EXP_GAIN_FACTOR * (1 + tm(hero, "xp"));
+  const fade = outlevelFactor(hero, enemy.level);
+  let expGain = (36 + enemy.level * 23) * zone.rewardFactor * EXP_GAIN_FACTOR * (1 + tm(hero, "xp")) * fade.exp;
   let bossMult = 1;
   if (enemy.isBoss) bossMult = rollBossExpMultiplier(Number(hero.totalStats?.luck || 0));
   else if (enemy.isElite) bossMult = 1.5;
   expGain = Math.round(expGain * bossMult);
-  const gold = Math.round((10 + enemy.level * 5) * zone.rewardFactor * (enemy.isBoss ? 2.3 : enemy.isElite ? 1.6 : 1) * (1 + rand() * 0.4) * GOLD_GAIN_FACTOR * (1 + tm(hero, "gold")));
+  const gold = Math.round((10 + enemy.level * 5) * zone.rewardFactor * (enemy.isBoss ? 2.3 : enemy.isElite ? 1.6 : 1) * (1 + rand() * 0.4) * GOLD_GAIN_FACTOR * (1 + tm(hero, "gold")) * fade.gold);
 
   const dropBonus = (1 + Math.min(DROP_CHANCE_BONUS_CAP, Number(hero.dropChance || 0) / 100)) * (1 + tm(hero, "drop")) * DROP_GAIN_FACTOR;
-  const itemChance = enemy.isBoss ? 1 : enemy.isElite ? 0.75 : clamp(0.22 * dropBonus, 0, 0.6);
+  const itemChance = (enemy.isBoss ? 1 : enemy.isElite ? 0.75 : clamp(0.22 * dropBonus, 0, 0.6)) * (enemy.isGuardian ? 1 : fade.drop);
   const items = [];
   if (roll(itemChance)) items.push(generateItem({ level: enemy.level, rarity: rollItemRarity(hero, zoneKey, enemy), classKey: hero.classKey }));
   if (enemy.isGuardian) {
@@ -195,7 +220,7 @@ function calculateBattleRewards(hero, enemy, zoneKey, regionId) {
 
   const resources = {};
   const addResource = (id, amount) => { resources[id] = (resources[id] || 0) + amount; };
-  if (roll(enemy.isBoss ? 1 : enemy.isElite ? 0.85 : 0.45)) addResource(region.resource, enemy.isBoss ? randomInt(2, 3) : 1);
+  if (roll((enemy.isBoss ? 1 : enemy.isElite ? 0.85 : 0.45) * fade.drop)) addResource(region.resource, enemy.isBoss ? randomInt(2, 3) : 1);
   if (roll((enemy.isBoss ? 0.6 : enemy.isElite ? 0.3 : 0.08) * zone.rewardFactor)) addResource(region.bonusResource, 1);
   let shards = 0;
   if (enemy.isGuardian) shards = 4;
@@ -308,7 +333,7 @@ function getAvailableGuardian(hero, regionIndex) {
   const region = REGIONS[regionIndex];
   if (!region || hero.defeatedGuardians.includes(region.guardian)) return null;
   const def = ENEMY_DEFINITIONS[region.guardian];
-  return { id: region.guardian, def, region, requiredLevel: Math.max(1, def.level - 1), ready: hero.level >= def.level - 1 && getTrailClears(hero, region.id).includes("purple"), needsTrail: !getTrailClears(hero, region.id).includes("purple") };
+  return { id: region.guardian, def, region, requiredLevel: Math.max(1, def.level - 1), ready: hero.level >= def.level - 1 && getTrailClears(hero, region.id).includes("orange"), needsTrail: !getTrailClears(hero, region.id).includes("orange") };
 }
 
 function onGuardianDefeated(hero, enemy) {
@@ -322,7 +347,7 @@ function onGuardianDefeated(hero, enemy) {
 // Helper object passed to event options. Each method returns a result used by the UI.
 function createEventContext(hero, exp) {
   const region = getRegion(exp.regionId);
-  const goldBase = 20 + hero.level * 8;
+  const goldBase = 20 + eventLevel(hero, exp) * 8;
   return {
     note: (text) => ({ text, tone: "neutral" }),
     heal(ratio, text) {
@@ -355,7 +380,7 @@ function createEventContext(hero, exp) {
       const gold = Math.round(goldBase * scale * ZONES[exp.zoneKey].rewardFactor);
       exp.bag.gold += gold;
       const rarity = rollItemRarity(hero, exp.zoneKey, {});
-      const item = generateItem({ level: Math.max(1, hero.level), rarity, classKey: hero.classKey });
+      const item = generateItem({ level: Math.max(1, eventLevel(hero, exp)), rarity, classKey: hero.classKey });
       addTrailItem(hero, exp, item);
       return { text: `${text} +${gold} золота, ${getItemDisplayName(item)} (в рюкзаке).`, tone: "good", item };
     },
@@ -381,7 +406,7 @@ function createEventContext(hero, exp) {
       return roll(getStatCheckChance(hero, stat));
     },
     expGift(ratio, text) {
-      const amount = Math.round(getExperienceForNextLevel(hero.level) * ratio);
+      const amount = Math.round(getExperienceForNextLevel(eventLevel(hero, exp)) * ratio);
       const summary = awardExperience(hero, amount);
       exp.bag.exp += amount;
       return { text: `${text} +${amount} опыта.`, tone: "good", levelUp: summary.levels ? summary : null };
@@ -414,7 +439,7 @@ function createEventContext(hero, exp) {
     givePotion() {
       if (hero.potions.hp <= 0) return { text: "Зелий нет. Ты можешь только пожать плечами.", tone: "neutral" };
       hero.potions.hp -= 1;
-      const amount = Math.round(getExperienceForNextLevel(hero.level) * 0.25);
+      const amount = Math.round(getExperienceForNextLevel(eventLevel(hero, exp)) * 0.25);
       const summary = awardExperience(hero, amount);
       exp.bag.exp += amount;
       offerBoons(hero, exp);

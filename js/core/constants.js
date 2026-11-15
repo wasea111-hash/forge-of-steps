@@ -393,5 +393,5 @@ const ENEMY_LEVEL_HP = 0.027;
 const ENEMY_LEVEL_DMG = 0.012;
 const SPEED_CURVE_BASE = 50;
 const SPEED_CURVE_SLOPE = 0.4;
-const CLASS_DAMAGE_FACTOR = { warrior: 1.12, bard: 1.2, archer: 0.82, assassin: 0.88, mage: 1.12 };
-const CLASS_HP_FACTOR = { mage: 1.32, bard: 1.08, assassin: 1, archer: 1, warrior: 1.05 };
+const CLASS_DAMAGE_FACTOR = { warrior: 1.12, bard: 1.3, archer: 0.82, assassin: 0.88, mage: 1.22 };
+const CLASS_HP_FACTOR = { mage: 1.42, bard: 1.18, assassin: 1, archer: 1, warrior: 1.05 };

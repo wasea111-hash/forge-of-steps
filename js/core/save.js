@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS = { sound: true, volume: 0.6, music: 0.5, ambience: 0.3, 
 const SAVED_HERO_FIELDS = [
   "id", "name", "classKey", "className", "subclass", "profession", "level", "experience", "statPoints", "skillPoints", "gold", "mutationShards",
   "resources", "potions", "stats", "startingStats", "inventory", "equipment", "knownSkillIds", "passiveIds", "activeSkillSlots", "skillProgress", "shopPassiveIds", "shopActive", "talents", "talentVersion", "talentsExchanged",
-  "skillForms", "skillPicks", "styleId", "ultimateId", "ultimateSeen", "buildVersion", "freeRespec", "story", "unlockedRegion", "trailClears", "lairTokens", "lairClears", "lairBest", "defeatedGuardians", "won", "records", "expedition", "shop", "createdAt", "updatedAt", "currentHp", "currentMana",
+  "skillForms", "skillPicks", "styleId", "ultimateId", "ultimateSeen", "buildVersion", "freeRespec", "story", "unlockedRegion", "trailClears", "lairTokens", "lairTokenLevels", "lairClears", "lairBest", "defeatedGuardians", "won", "records", "expedition", "shop", "createdAt", "updatedAt", "currentHp", "currentMana",
   "companions", "party", "karma", "companionLog", "town"
 ];
 
@@ -130,6 +130,7 @@ function normalizeHero(raw) {
     unlockedRegion: clamp(safeNumber(raw.unlockedRegion), 0, REGIONS.length - 1),
     trailClears: migrateTrailClears(raw),
     lairTokens: raw.lairTokens && typeof raw.lairTokens === "object" ? raw.lairTokens : {},
+    lairTokenLevels: Object.fromEntries(Object.entries(safeObject(raw.lairTokenLevels)).filter(([id]) => LAIR_CATALOG[id]).map(([id, list]) => [id, safeList(list).map(Number).filter(Number.isFinite)])),
     lairClears: raw.lairClears && typeof raw.lairClears === "object" ? raw.lairClears : {},
     lairBest: raw.lairBest && typeof raw.lairBest === "object" ? raw.lairBest : {},
     story: migrateStory(raw),

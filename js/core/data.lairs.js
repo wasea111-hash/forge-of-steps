@@ -151,11 +151,37 @@ function generateRelic(hero, setId, level, slotType = null) {
   return item;
 }
 
+// Each token keeps the rank of the fight it came from; the count in hero.lairTokens follows the list.
+function lairTokenLevels(hero, lairId) {
+  hero.lairTokenLevels = hero.lairTokenLevels || {};
+  const count = Number(hero.lairTokens?.[lairId] || 0);
+  const list = hero.lairTokenLevels[lairId] || [];
+  // Tokens from before this rule are counted at the lair's own rank.
+  while (list.length < count) list.push(LAIR_CATALOG[lairId]?.level || 1);
+  list.length = Math.min(list.length, count);
+  hero.lairTokenLevels[lairId] = list;
+  return list;
+}
+
+function addLairToken(hero, lairId, level) {
+  const list = lairTokenLevels(hero, lairId);
+  list.push(level);
+  hero.lairTokens = hero.lairTokens || {};
+  hero.lairTokens[lairId] = list.length;
+}
+
+// Spends tokens: the strongest for an exchange, the weakest for raising a relic. Returns their levels.
+function spendLairTokens(hero, lairId, count, strongest) {
+  const list = lairTokenLevels(hero, lairId).sort((a, b) => a - b);
+  const spent = strongest ? list.splice(list.length - count, count) : list.splice(0, count);
+  hero.lairTokens[lairId] = list.length;
+  return spent;
+}
+
 function finishLairRun(hero, exp, summary) {
   const lair = LAIR_CATALOG[exp.lairId];
   summary.lairName = lair.name;
-  hero.lairTokens = hero.lairTokens || {};
-  hero.lairTokens[lair.id] = Number(hero.lairTokens[lair.id] || 0) + 1;
+  addLairToken(hero, lair.id, exp.lairLevel);
   hero.lairClears = hero.lairClears || {};
   hero.lairClears[lair.id] = Number(hero.lairClears[lair.id] || 0) + 1;
   hero.lairBest = hero.lairBest || {};
@@ -169,9 +195,11 @@ function exchangeLairTokens(hero, lairId, setId, slotType) {
   const lair = LAIR_CATALOG[lairId];
   if (!lair || !getLairRewardSetIds(hero, lair).includes(setId)) return { ok: false, reason: "Этот комплект здесь не добыть." };
   if (Number(hero.lairTokens?.[lairId] || 0) < LAIR_TOKENS_FOR_EXCHANGE) return { ok: false, reason: `Нужно жетонов: ${LAIR_TOKENS_FOR_EXCHANGE}.` };
-  const relic = generateRelic(hero, setId, Math.max(lair.level, Number(hero.lairBest?.[lairId] || 0)), slotType);
-  if (!addItemToInventory(hero, relic)) return { ok: false, reason: "Рюкзак полон." };
-  hero.lairTokens[lairId] -= LAIR_TOKENS_FOR_EXCHANGE;
+  if (!hero.inventory.some((item) => !item)) return { ok: false, reason: "Рюкзак полон." };
+  // The relic is as strong as the weakest of the tokens given for it.
+  const spent = spendLairTokens(hero, lairId, LAIR_TOKENS_FOR_EXCHANGE, true);
+  const relic = generateRelic(hero, setId, Math.max(lair.level, Math.min(...spent)), slotType);
+  addItemToInventory(hero, relic);
   return { ok: true, item: relic };
 }
 
@@ -197,7 +225,7 @@ function ascendRelic(hero, item) {
   if (hero.gold < plan.gold) return { ok: false, reason: "Не хватает золота." };
   if (Number(hero.lairTokens?.[plan.lair.id] || 0) < plan.tokens) return { ok: false, reason: `Нужно жетонов логова: ${plan.tokens}.` };
   hero.gold -= plan.gold;
-  hero.lairTokens[plan.lair.id] -= plan.tokens;
+  spendLairTokens(hero, plan.lair.id, plan.tokens, false);
   const ratio = itemScale(plan.target, "relic") / itemScale(item.itemLevel, "relic");
   const grow = (block) => { Object.keys(block).forEach((key) => { if (block[key]) block[key] = Math.round(block[key] * ratio); }); };
   grow(item.bonuses);
@@ -227,14 +255,28 @@ Object.entries({
   overheated: { description: "Чем сильнее перегрев, тем сильнее удар: до +50%.", on: { beforeHit(b, s, c) { const heat = Number(b.mech?.core_mage?.value || 0); if (c.skill) c.mult *= 1 + 0.5 * Math.min(1, heat / 100); } } }
 }).forEach(([id, bonus]) => { SET_CATALOG[id].bonus6 = bonus; });
 
+// Keeps a poison or a wound going: once per action, never above half again its first strength.
+function feedDot(b, s, c, id) {
+  if (!isDirectHit(c) || b.enemy?.currentHp <= 0) return;
+  const key = `${b.turn}:${b.enemy.slot}`;
+  if (s.fed === key) return;
+  const effect = getEffect(b.enemy, id);
+  if (!effect) return;
+  s.fed = key;
+  effect.meta = effect.meta || {};
+  effect.meta.firstValue = effect.meta.firstValue || effect.value;
+  effect.duration += 1;
+  effect.value = Math.min(Math.round(effect.meta.firstValue * 1.5), Math.round(effect.value * 1.1));
+}
+
 // --- The whole set: eight different parts, a change that defines the build ---
 Object.entries({
   alpha_hide: { description: "Вожак стаи: первые три хода боя ты в ярости, а в ярости каждый прямой удар вскрывает рану.", on: { start(b) { b.hero.effects.push({ ...normalizeEffectSpec({ id: "rage", duration: 3, value: 0.25 }), meta: { fresh: true } }); }, afterHit(b, s, c) { if (isDirectHit(c) && hasFx(b.hero, "rage") && b.enemy?.currentHp > 0) fx(b, "bleed", 3, dotValue(b, 0.2)); } } },
   ash_queen: { description: "Двор пылает: прямые удары по горящей цели сильнее на 35%.", on: { beforeHit(b, s, c) { if (hasFx(b.enemy, "burn")) c.mult *= 1.35; } } },
   archive_pages: { description: "Каждый четвёртый навык возвращает четверть маны: страницы пишут сами.", on: { afterAction(b, s, c) { if (!c.skill) return; s.n = (s.n || 0) + 1; if (s.n % 4 === 0) b.hero.currentMana = Math.min(b.hero.maxMana, Math.round(b.hero.currentMana + b.hero.maxMana * 0.25)); } } },
   smith_hammer: { description: "Стойка закаляет: щит на 15% здоровья, и следующий удар сильнее на 60%.", on: { afterAction(b, s, c) { if (c.type === "guard") { s.hot = true; applyEffect(b, b.hero, { id: "shield", duration: 2, value: Math.round(b.hero.maxHp * 0.15) }, b.hero); } }, beforeHit(b, s, c) { if (s.hot && !c.proc) { s.hot = false; c.mult *= 1.6; } } } },
-  viper_nest: { description: "Яд не спадает, пока ты бьёшь: прямой удар продлевает его на ход и усиливает на 10%.", on: { afterHit(b, s, c) { if (!isDirectHit(c) || b.enemy?.currentHp <= 0) return; const poison = getEffect(b.enemy, "poison"); if (poison) { poison.duration += 1; poison.value = Math.round(poison.value * 1.1); } } } },
-  crimson_trail: { description: "Открытая рана не закрывается: прямой удар продлевает кровотечение на ход и углубляет на 10%.", on: { afterHit(b, s, c) { if (!isDirectHit(c) || b.enemy?.currentHp <= 0) return; const bleed = getEffect(b.enemy, "bleed"); if (bleed) { bleed.duration += 1; bleed.value = Math.round(bleed.value * 1.1); } } } },
+  viper_nest: { description: "Яд не спадает, пока ты бьёшь: прямой удар продлевает его на ход и усиливает на 10%, раз за действие и не больше чем в полтора раза.", on: { afterHit(b, s, c) { feedDot(b, s, c, "poison"); } } },
+  crimson_trail: { description: "Открытая рана не закрывается: прямой удар продлевает кровотечение на ход и углубляет на 10%, раз за действие и не больше чем в полтора раза.", on: { afterHit(b, s, c) { feedDot(b, s, c, "bleed"); } } },
   phantom_veil: { description: "Тебя не поймать: после уклонения следующий удар сильнее на 70%.", on: { dodged(b, s) { s.ready = true; }, beforeHit(b, s, c) { if (s.ready && !c.proc) { s.ready = false; c.mult *= 1.7; } } } },
   hunter_camp: { description: "Вторая стрела: прямой удар по помеченной цели тут же повторяется с силой 35%.", on: { afterHit(b, s, c) { if (isDirectHit(c) && b.enemy?.currentHp > 0 && hasFx(b.enemy, "mark")) procHit(b, 0.35, "Вторая стрела", "steel", { kind: "physical" }); } } },
   choir_mask: { description: "Хор не умолкает: в начале каждого хода лечит на 3% и возвращает 5% маны.", on: { turnStart(b) { b.hero.currentHp = Math.min(b.hero.maxHp, Math.round(b.hero.currentHp + b.hero.maxHp * 0.03)); b.hero.currentMana = Math.min(b.hero.maxMana, Math.round(b.hero.currentMana + b.hero.maxMana * 0.05)); } } },

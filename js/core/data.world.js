@@ -1,32 +1,32 @@
 // World content: danger zones, regions, enemies, enemy moves, expedition events and item blueprints.
 const ZONES = {
-  white: { key: "white", name: "Белая тропа", short: "Белая", levelOffset: [-3, -1], steps: 3, rewardFactor: 0.85, risk: "Низкий риск", description: "Враги слабее тебя. Безопасное место для первых шагов и фарма.", rarityWeights: [72, 24, 3.5, 0.5, 0] },
+  white: { key: "white", name: "Белая тропа", short: "Белая", levelOffset: [-4, -2], steps: 3, rewardFactor: 0.6, risk: "Низкий риск", description: "Одиночные враги слабее тебя и отдых между шагами. Безопасное место для первых шагов и фарма.", rarityWeights: [72, 24, 3.5, 0.5, 0] },
   green: { key: "green", name: "Зелёная тропа", short: "Зелёная", levelOffset: [-1, 1], steps: 4, rewardFactor: 1, risk: "Умеренный риск", description: "Противники твоего уровня. Основной способ расти.", rarityWeights: [55, 34, 9, 1.8, 0.2] },
   orange: { key: "orange", name: "Оранжевая тропа", short: "Оранжевая", levelOffset: [1, 3], steps: 5, rewardFactor: 1.3, risk: "Высокий риск", description: "Враги сильнее и злее, но и добыча заметно лучше.", rarityWeights: [34, 40, 20, 5, 1] },
-  purple: { key: "purple", name: "Фиолетовая тропа", short: "Фиолетовая", levelOffset: [3, 5], steps: 6, rewardFactor: 1.7, risk: "Очень опасно", description: "Серьёзная проверка силы. Стоит идти подготовленным.", rarityWeights: [16, 38, 30, 13, 3] },
-  red: { key: "red", name: "Красная тропа", short: "Красная", levelOffset: [6, 8], steps: 7, rewardFactor: 2.35, risk: "Смертельно", description: "Самые тяжёлые бои и самая редкая добыча.", rarityWeights: [4, 24, 40, 24, 8] }
+  purple: { key: "purple", name: "Фиолетовая тропа", short: "Фиолетовая", levelOffset: [3, 5], steps: 6, rewardFactor: 1.6, risk: "Очень опасно", description: "Серьёзная проверка силы. Стоит идти подготовленным.", rarityWeights: [16, 38, 30, 13, 3] },
+  red: { key: "red", name: "Красная тропа", short: "Красная", levelOffset: [6, 8], steps: 7, rewardFactor: 2, risk: "Смертельно", description: "Самые тяжёлые бои и самая редкая добыча.", rarityWeights: [4, 24, 40, 24, 8] }
 };
 const ZONE_KEYS = Object.keys(ZONES);
 const RARITY_KEYS = ["white", "green", "orange", "purple", "red"];
 
 const REGIONS = [
   {
-    id: "thicket", name: "Шепчущая чаща", minLevel: 1, floorLevel: 1, resource: "iron-ore", bonusResource: "ether-dust",
+    id: "thicket", name: "Шепчущая чаща", minLevel: 1, floorLevel: 1, levelBand: [1, 16], resource: "iron-ore", bonusResource: "ether-dust",
     description: "Старый лес на краю мира. Отсюда начинаются все дороги к Пределу.",
     enemies: ["wolf", "bandit", "slime", "hunter", "boar"], guardian: "greyfang"
   },
   {
-    id: "ashlands", name: "Пепельные пустоши", minLevel: 14, floorLevel: 13, resource: "ether-dust", bonusResource: "moon-thread",
+    id: "ashlands", name: "Пепельные пустоши", minLevel: 14, floorLevel: 13, levelBand: [14, 32], resource: "ether-dust", bonusResource: "moon-thread",
     description: "Земля, сожжённая первой плавкой. Здесь до сих пор тлеют угли.",
     enemies: ["ash_slime", "ember_imp", "cinder_knight", "scorched_hound", "pyre_cultist"], guardian: "pyre_queen"
   },
   {
-    id: "ruins", name: "Рунные руины", minLevel: 29, floorLevel: 28, resource: "moon-thread", bonusResource: "venom-gland",
+    id: "ruins", name: "Рунные руины", minLevel: 29, floorLevel: 28, levelBand: [29, 52], resource: "moon-thread", bonusResource: "venom-gland",
     description: "Город мастеров, забытый собственными машинами и призраками.",
     enemies: ["rune_guard", "wraith", "stone_golem", "mad_scribe", "rust_stalker"], guardian: "archivist"
   },
   {
-    id: "limit", name: "Предел", minLevel: 49, floorLevel: 48, resource: "venom-gland", bonusResource: "astral-core",
+    id: "limit", name: "Предел", minLevel: 49, floorLevel: 48, levelBand: [49, 72], resource: "venom-gland", bonusResource: "astral-core",
     description: "Край горизонта. Здесь шаги куются заново, а пустота смотрит в ответ.",
     enemies: ["void_stalker", "hollow_pilgrim", "limit_shard", "star_eater", "echo_wanderer"], guardian: "smith"
   }
@@ -48,7 +48,7 @@ const ENEMY_MOVES = {
   curse: { name: "Проклятие слабости", kind: "debuff", cd: 4, apply: { id: "weaken", duration: 3, value: 0.25 } },
   hex: { name: "Сглаз", kind: "debuff", cd: 4, apply: { id: "mark", duration: 3, value: 0.25 } },
   corrode: { name: "Разъедание брони", kind: "physical", power: 0.7, cd: 4, apply: { id: "armor_break", duration: 3, value: 0.3 } },
-  silence: { name: "Печать немоты", kind: "debuff", cd: 5, apply: { id: "silence", duration: 2 } },
+  silence: { name: "Печать немоты", kind: "debuff", cd: 5, apply: { id: "silence", duration: 1 } },
   mend: { name: "Заживление", kind: "heal", ratio: 0.14, cd: 4, when: "hurt" },
   harden: { name: "Панцирь", kind: "shield", ratio: 0.2, cd: 4 },
   enrage: { name: "Ярость", kind: "buff", cd: 5, apply: { id: "rage", duration: 3, value: 0.3 } },

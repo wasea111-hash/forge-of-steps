@@ -188,7 +188,7 @@
         const eventBtn = document.querySelector("[data-action=eventOption]");
         const next = document.querySelector("[data-action=eventContinue]");
         const fork = document.querySelectorAll("[data-action=chooseNode]");
-        if (fate === "retreat" && document.querySelector("[data-action=retreat]") && i > 2) { document.querySelector("[data-action=retreat]").click(); await sleep(60); document.querySelector(".modal-layer:last-child [data-action=__confirm]")?.click(); continue; }
+        if (fate === "retreat" && document.querySelector("[data-action=retreat]:not([disabled])") && i > 2) { document.querySelector("[data-action=retreat]:not([disabled])").click(); await sleep(60); document.querySelector(".modal-layer:last-child [data-action=__confirm]")?.click(); continue; }
         if (boon) boon.click();
         else if (eventBtn) randomFrom([...document.querySelectorAll("[data-action=eventOption]:not([disabled])")])?.click();
         else if (next) next.click();

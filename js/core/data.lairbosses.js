@@ -156,11 +156,11 @@ function getLairTune(master, classKey, level) {
 }
 
 // Masters hunt relics: every relic of this rank worn by the hero wakes them further, so a full set stays a real fight.
-const RELIC_HUNGER = { hp: 0.035, dmg: 0.06 };
+const RELIC_HUNGER = { hp: 0.018, dmg: 0.03 };
 function getRelicHunger(hero, level) {
   const count = Object.values(hero.equipment || {}).filter((item) => item?.rarity === "relic" && item.itemLevel >= level - 15).length;
   // Relics weigh more on low ranks, and the warrior gains the most from a set.
-  const weight = (hero.classKey === "warrior" ? 2 : 1) * (1 + Math.max(0, 30 - level) / 14);
+  const weight = 1 + Math.max(0, 30 - level) / 20;
   return { count, hp: 1 + count * RELIC_HUNGER.hp * weight, dmg: 1 + count * RELIC_HUNGER.dmg * weight };
 }
 

@@ -875,6 +875,7 @@ function heroAction(battle, action) {
     const skill = check.skill;
     usedSkill = skill;
     const cost = getSkillResourceCost(skill, hero);
+    battle.preCostMana = hero.currentMana;
     if (battle.freeSkill) battle.freeSkill = false;
     else if (getHeroResourceType(skill, hero) === "hp") hero.currentHp = Math.max(1, hero.currentHp - cost);
     else hero.currentMana = Math.max(0, hero.currentMana - cost);
