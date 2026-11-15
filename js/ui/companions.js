@@ -62,6 +62,12 @@ function companionCard(hero, c) {
       <div class="small muted">Поступков: ${c.deeds}${next ? ` · до ранга ${RANK_ROMAN[c.rank + 1]}: доверие ${next.trust}, поступки ${next.deeds}` : " · высший ранг"}</div>
       <div class="falls" data-tip="text|Нить Клейма|Три падения подряд — и человек исчезнет навсегда, а Клеймо заберёт память о нём. Любой бой, где спутник выстоял, обнуляет счёт.">${Array.from({ length: COMPANION_FALLS_TO_FORGET }, (_, i) => `<i class="${i < c.fallStreak ? "torn" : ""}"></i>`).join("")}<span class="small muted">${c.fallStreak ? `падений подряд: ${c.fallStreak}` : "нить цела"}</span></div>
     </div>
+    ${companionSkillsBlock(c)}
+    <div class="comp-control" role="group" aria-label="Кто решает в бою">
+      <span class="small muted">В бою:</span>
+      <button class="chip-btn${c.control === "manual" ? " on" : ""}" data-action="compControl" data-id="${esc(c.id)}" data-mode="manual">Решаешь ты</button>
+      <button class="chip-btn${c.control === "auto" ? " on" : ""}" data-action="compControl" data-id="${esc(c.id)}" data-mode="auto">Сам решает</button>
+    </div>
     ${c.habits.length ? `<div class="comp-chips">${c.habits.map((id) => `<span class="chip" data-tip="text|${esc(COMPANION_HABITS[id].name)}|Выучено, потому что ${esc(COMPANION_HABITS[id].learn)}. ${esc(COMPANION_HABITS[id].effect)}">${esc(COMPANION_HABITS[id].name)}</span>`).join("")}</div>` : ""}
     ${joint ? `<p class="small ${jointOpen ? "good-text" : "muted"}">Связка «${esc(joint.name)}»: ${jointOpen ? esc(joint.text) : `откроется на ${JOINT_UNLOCK.level} уровне, при доверии ${JOINT_UNLOCK.trust} и ранге ${RANK_ROMAN[JOINT_UNLOCK.rank]}`}</p>` : ""}
     ${c.memories.length ? `<div class="comp-memories">${c.memories.map((index) => `<button class="chip-btn" data-action="compMemory" data-id="${esc(c.id)}" data-index="${index}">${esc(def.memories[index].title)}</button>`).join("")}</div>` : ""}
@@ -89,6 +95,41 @@ function marketCard(hero, offer) {
     </div>
   </article>`;
 }
+
+// The companion's own skills: three branches, each skill known, ready to learn at the fire, or waiting for something.
+function companionSkillIcon(skill) {
+  return hasArt(`compskill_${skill.id}`) ? artImg(`compskill_${skill.id}`) : companionPortrait(skill.who, "mini");
+}
+
+function companionSkillsBlock(c) {
+  ensureCompanionSkills(c);
+  const skills = companionSkills(c.defId);
+  if (!skills.length) return "";
+  const res = COMPANION_RESOURCES[c.defId];
+  const branches = [...new Set(skills.map((skill) => skill.branch))];
+  const learned = skills.filter((skill) => c.learned.includes(skill.id)).length;
+  const open = App.compOpen === c.id;
+  return `<div class="comp-skills${open ? " open" : ""}">
+    <button class="comp-skills-head" data-action="compSkills" data-id="${esc(c.id)}" aria-expanded="${open}">
+      <span>Приёмы: ${learned} из ${skills.length}${res ? ` · ресурс «${esc(res.name)}»` : ""}</span>${skills.some((skill) => companionSkillState(c, skill).ready) ? '<i class="dot">!</i>' : ""}<b>${open ? "Свернуть" : "Открыть"}</b>
+    </button>
+    ${open ? `${res ? `<p class="small muted">${esc(res.name)}: ${esc(res.hint)}</p>` : ""}<div class="comp-branches">${branches.map((branch) => `<section class="comp-branch"><h4>${esc(branch)}</h4>${skills.filter((skill) => skill.branch === branch).map((skill) => {
+      const state = companionSkillState(c, skill);
+      const cls = state.learned ? "learned" : state.ready ? "ready" : "locked";
+      return `<div class="comp-skill ${cls}"><span class="comp-skill-ic">${companionSkillIcon(skill)}</span><div><b>${esc(skill.name)}${skill.cost ? ` <small>${res?.percent ? `${skill.cost}%` : skill.cost} · ${skill.cd ? `перезарядка ${skill.cd}` : "без перезарядки"}</small>` : skill.cd ? ` <small>перезарядка ${skill.cd}</small>` : ""}</b><p>${esc(skill.text)}</p>${state.learned ? "" : `<p class="comp-need">${esc(state.text)}</p>`}</div>${state.ready ? `<button class="btn small primary" data-action="compLearn" data-id="${esc(c.id)}" data-skill="${skill.id}" ${App.hero.expedition ? "disabled" : ""}>Освоить</button>` : ""}</div>`;
+    }).join("")}</section>`).join("")}</div>` : ""}
+  </div>`;
+}
+
+Actions.compSkills = (el) => { App.compOpen = App.compOpen === el.dataset.id ? null : el.dataset.id; refreshKeepScroll(); };
+Actions.compControl = (el) => { setCompanionControl(App.hero, el.dataset.id, el.dataset.mode); commit(); };
+Actions.compLearn = (el) => {
+  const result = learnCompanionSkill(App.hero, el.dataset.id, el.dataset.skill);
+  if (!result.ok) { toast(result.reason, "warn"); return; }
+  SFX.play("level");
+  toast(`Освоено: «${result.skill.name}».`, "good");
+  commit();
+};
 
 Actions.compFront = (el) => { setAllyFront(App.hero, el.dataset.front === "1"); commit(); };
 Actions.compActive = (el) => {

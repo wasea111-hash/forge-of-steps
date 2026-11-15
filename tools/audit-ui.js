@@ -204,7 +204,7 @@
         if (fate === "win" && battle) { battle.foes.forEach((foe) => { if (foe.currentHp > 1 && foe.maxHp > 3) foe.currentHp = Math.max(1, Math.round(foe.maxHp * 0.02)); }); App.hero.currentHp = App.hero.maxHp; }
         await waitFor(() => App.battle !== nonce || (App.battle?.awaiting && !App.fight?.playing) || App.battle?.over || document.querySelector(".modal-layer"), 25000, "the hero's turn");
         if (App.battle === nonce && App.battle?.awaiting && !App.fight?.playing && !document.querySelector(".modal-layer")) {
-          const buttons = [...document.querySelectorAll("[data-action=battleAct]:not([disabled]):not(.disabled)")];
+          const buttons = [...document.querySelectorAll("[data-action=battleAct]:not([disabled]):not(.disabled), [data-action=allyAct]:not([disabled]):not(.disabled)")];
           if (!buttons.length) note("dead-end", `${where}: no battle button can be pressed`);
           randomFrom(buttons)?.click();
           await sleep(40);

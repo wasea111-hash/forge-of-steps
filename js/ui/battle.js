@@ -404,11 +404,12 @@ function renderAllyCard(snap) {
   const ready = battle.awaiting && !App.fight.playing && !battle.over;
   const joint = canUseJoint(battle);
   const jointDef = JOINT_OPORA[battle.hero.classKey];
-  const extra = ally.coals ? ` · угли ${ally.coals}` : ally.store ? ` · запас ${ally.store}` : "";
+  const extra = ally.resName ? ` · ${ally.resName} ${ally.res}/${ally.resMax}` : "";
   card.classList.toggle("down", ally.down);
+  card.classList.toggle("turn", Boolean(ally.turn));
   card.innerHTML = `<div class="ally-face"><img src="assets/story/portrait_${esc(ally.defId)}.webp" alt=""></div>
     <div class="ally-info">
-      <div class="plate-name"><strong>${esc(ally.name)}</strong><small>${ally.down ? "выбыл" : ally.front ? "впереди" : "сзади"}${extra}</small></div>
+      <div class="plate-name"><strong>${esc(ally.name)}</strong><small>${ally.down ? "выбыл" : ally.front ? "впереди" : "сзади"}${extra}</small><button class="ord-btn ctl${ally.control === "auto" ? " on" : ""}" data-action="allyControl" data-tip="text|Сам решает|Включено — спутник выбирает приёмы сам. Выключено — на его ходу выбираешь ты." ${App.fight.playing ? "disabled" : ""}>${ally.control === "auto" ? "Сам" : "Ты"}</button></div>
       ${plateBar(ally, "hp", "ally")}
       <div class="ally-orders" role="group" aria-label="Приказ спутнику">${Object.entries(COMPANION_ORDERS).map(([id, order]) => `<button class="ord-btn${ally.order === id ? " on" : ""}" data-action="allyOrder" data-order="${id}" data-tip="text|${order.full}|${order.hint} Приказ бесплатный, один раз за твой ход." ${ready && !ally.down ? "" : "disabled"}>${order.name}</button>`).join("")}</div>
     </div>
@@ -429,11 +430,35 @@ Actions.allyOrder = (el) => {
   renderTimeline();
 };
 
+// On the companion's turn the command bar is the companion's: its skills, bracing, waiting, "Сам решает".
+function renderAllyControls() {
+  const battle = App.battle;
+  const st = battle.allyState;
+  const ready = battle.awaiting && !App.fight.playing && !battle.over;
+  const basic = document.getElementById("basicActions");
+  const res = allyResource(battle);
+  document.querySelector(".command-bar")?.classList.add("ally-turn");
+  basic.innerHTML = `
+    <button class="cmd-btn" data-action="allyAct" data-type="brace" data-tip="text|Закрыться|Укрепление 40% до следующего хода спутника." ${ready ? "" : "disabled"}>${icon("guard")}<span>Закрыться</span><kbd>W</kbd></button>
+    <button class="cmd-btn" data-action="allyAct" data-type="wait" data-tip="text|Выждать|Следующий ход спутника наступит раньше." ${ready ? "" : "disabled"}>${icon("wait")}<span>Выждать</span><kbd>E</kbd></button>
+    <button class="cmd-btn" data-action="allyControl" data-tip="text|Сам решает|Спутник будет выбирать приёмы сам, пока ты не вернёшь управление в его карточке." ${ready ? "" : "disabled"}>${icon("auto")}<span>Сам решает</span><kbd>C</kbd></button>`;
+  document.getElementById("skillActions").innerHTML = st.learned.map((id, index) => {
+    const skill = COMPANION_SKILL_BY_ID[id];
+    const check = allySkillCheck(battle, id);
+    const cd = Number(st.cd[id] || 0);
+    const cost = res?.percent ? (["iva_transfer", "iva_splash"].includes(id) ? "все" : `${skill.cost}%`) : skill.cost;
+    return `<button class="skill-btn ally-skill${check.ok ? "" : " unavailable"}" data-action="allyAct" data-type="skill" data-skill="${id}" data-tip="text|${esc(skill.name)}|${esc(skill.text)}${skill.cd ? ` Перезарядка ${skill.cd}.` : ""}${check.ok ? "" : ` ${esc(check.reason)}`}" ${ready && check.ok ? "" : "disabled"} aria-label="${esc(skill.name)}">
+      <span class="ally-skill-face">${companionSkillIcon(skill)}</span><span class="skill-name">${esc(skill.name)}</span>${skill.cost ? `<span class="skill-cost ally">${cost}</span>` : ""}<kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
+  }).join("");
+}
+
 function renderControls() {
   const battle = App.battle;
   const hero = battle.hero;
   const basic = document.getElementById("basicActions");
   if (!basic) return;
+  if (battle.awaitingActor === "ally" && allyAlive(battle)) { renderAllyControls(); return; }
+  document.querySelector(".command-bar")?.classList.remove("ally-turn");
   const ready = battle.awaiting && !App.fight.playing && !battle.over;
   const dis = ready ? "" : "disabled";
   const attackLabel = getBasicAttackLabel(hero);
@@ -791,13 +816,38 @@ async function playBattleEvents() {
   }
   if (fight.auto && battle.awaiting) {
     await delayMs(160);
-    if (isCurrentFight(nonce) && fight.auto) performHeroAction(chooseBotAction(battle));
+    if (!isCurrentFight(nonce) || !fight.auto) return;
+    if (battle.awaitingActor === "ally") performAllyAction(chooseCompanionAction(battle));
+    else performHeroAction(chooseBotAction(battle));
   }
 }
+
+function performAllyAction(action) {
+  const battle = App.battle;
+  if (!battle?.awaiting || App.fight.playing || battle.awaitingActor !== "ally") return;
+  if (action.type === "skill" && action.target === undefined && COMPANION_SKILL_BY_ID[action.skillId]?.target === "foe") action.target = battle.enemy.slot;
+  const result = companionAction(battle, action);
+  if (!result.ok) { notifyResult(result); return; }
+  playBattleEvents();
+}
+
+Actions.allyAct = (el) => {
+  const { type, skill } = el.dataset;
+  performAllyAction(type === "skill" ? { type, skillId: skill } : { type });
+};
+Actions.allyControl = () => {
+  const battle = App.battle;
+  if (!battle?.allyState || App.fight.playing) return;
+  setAllyControl(battle, battle.allyState.control === "auto" ? "manual" : "auto");
+  persist();
+  toast(battle.allyState.control === "auto" ? `${battle.ally.name}: действует по своему разумению.` : `${battle.ally.name}: ждёт твоих решений.`, "neutral");
+  playBattleEvents();
+};
 
 function performHeroAction(action) {
   const battle = App.battle;
   if (!battle?.awaiting || App.fight.playing) return;
+  if (battle.awaitingActor === "ally") return;
   const result = heroAction(battle, action);
   if (!result.ok) {
     if (App.fight.auto) { heroAction(battle, { type: "attack" }); }
@@ -818,6 +868,17 @@ function battleHotkey(event) {
     const alive = livingFoes(App.battle);
     const next = alive[(alive.indexOf(App.battle.enemy) + 1) % alive.length];
     if (next) Actions.setTarget({ dataset: { slot: next.slot } });
+    return;
+  }
+  // On the companion's turn the keys belong to the companion.
+  if (App.battle?.awaitingActor === "ally" && !App.fight.playing) {
+    const learned = App.battle.allyState.learned;
+    if (key >= "1" && key <= "9") { event.preventDefault(); const id = learned[Number(key) - 1]; if (id) performAllyAction({ type: "skill", skillId: id }); return; }
+    if (key === "q" || key === "й") { event.preventDefault(); performAllyAction({ type: "skill", skillId: companionBaseAttack(App.battle) }); return; }
+    if (key === "w" || key === "ц") { event.preventDefault(); performAllyAction({ type: "brace" }); return; }
+    if (key === "e" || key === "у") { event.preventDefault(); performAllyAction({ type: "wait" }); return; }
+    if (key === "c" || key === "с") { event.preventDefault(); Actions.allyControl(); return; }
+    if (key === "a" || key === "ф") { Actions.toggleAuto(); return; }
     return;
   }
   if ((key === "f" || key === "а") && App.battle && canUseUltimate(App.battle)) { event.preventDefault(); performHeroAction({ type: "ult" }); return; }
@@ -842,10 +903,15 @@ function battleHotkey(event) {
 Actions.toggleAuto = () => {
   const fight = App.fight;
   fight.auto = !fight.auto;
+  // The whole party follows the auto battle; personal settings come back when it is off.
+  if (App.battle) App.battle.autoParty = fight.auto;
   const btn = document.getElementById("autoBtn");
   btn?.classList.toggle("on", fight.auto);
   btn?.setAttribute("aria-pressed", String(fight.auto));
-  if (fight.auto && App.battle.awaiting && !fight.playing) performHeroAction(chooseBotAction(App.battle));
+  if (fight.auto && App.battle.awaiting && !fight.playing) {
+    if (App.battle.awaitingActor === "ally") performAllyAction(chooseCompanionAction(App.battle));
+    else performHeroAction(chooseBotAction(App.battle));
+  }
 };
 Actions.toggleSpeed = () => {
   const speeds = [1, 2, 3];
@@ -893,6 +959,7 @@ function onBattleOver() {
   // What the fight did to the companion: a fall, a reset streak, or the thread torn for good.
   const allyResult = settleCompanionBattle(hero, battle);
   if (allyResult?.forgotten) showCompanionForgotten();
+  else if (allyResult?.ready?.length) toast(`${allyResult.name} может освоить: ${allyResult.ready.join(", ")}. Загляни в «Спутники».`, "good");
   else if (allyResult?.fell) toast(`${allyResult.name} падает. Подряд: ${allyResult.streak} из ${COMPANION_FALLS_TO_FORGET}.`, "warn");
   hero.records.maxHit = Math.max(Number(hero.records.maxHit || 0), battle.stats.maxHit);
   clearBattleState(hero);

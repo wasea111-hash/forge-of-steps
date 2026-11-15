@@ -99,7 +99,7 @@ function snapshotBattle(battle) {
   return {
     hero: { ...snapshotUnit(battle.hero), gauges: getMechGauges(battle) }, enemy: snapshotUnit(battle.enemy), target: battle.focus ?? battle.enemy.slot,
     foes: battle.foes.map((foe) => ({ ...snapshotUnit(foe), slot: foe.slot, down: foe.currentHp <= 0 })),
-    ally: battle.ally ? { ...snapshotUnit(battle.ally), name: battle.ally.name, defId: battle.ally.defId, down: battle.ally.currentHp <= 0, front: battle.allyState.front, order: battle.allyState.order, plan: battle.allyState.plan?.text || "", joint: canUseJoint(battle).ok, coals: battle.allyState.coals, store: Math.round(battle.allyState.store) } : null
+    ally: battle.ally ? { ...snapshotUnit(battle.ally), name: battle.ally.name, defId: battle.ally.defId, down: battle.ally.currentHp <= 0, front: battle.allyState.front, order: battle.allyState.order, plan: battle.allyState.plan?.text || "", joint: canUseJoint(battle).ok, res: Math.round(battle.allyState.res), resMax: allyResourceMax(battle), resName: allyResource(battle)?.name || "", control: battle.allyState.control, turn: battle.awaitingActor === "ally" } : null
   };
 }
 
@@ -528,7 +528,8 @@ function advanceBattle(battle) {
   while (!checkBattleOver(battle)) {
     const nextFoe = livingFoes(battle).sort((a, b) => a.ct - b.ct)[0];
     if (allyAlive(battle) && battle.ally.ct < battle.ct.hero && battle.ally.ct <= nextFoe.ct) {
-      allyTurn(battle);
+      // The companion's turn: either the player chooses, or "Сам решает" acts at once.
+      if (beginAllyTurn(battle) === "manual") return;
       continue;
     }
     if (battle.ct.hero <= nextFoe.ct) {
@@ -560,6 +561,7 @@ function advanceBattle(battle) {
       fireMech(battle, "turnStart");
       if (checkBattleOver(battle)) return;
       battle.awaiting = true;
+      battle.awaitingActor = "hero";
       return;
     }
     enemyTurn(battle, nextFoe);
@@ -806,7 +808,7 @@ function getBasicAttackLabel(hero) {
 }
 
 function heroAction(battle, action) {
-  if (!battle.awaiting || battle.over) return { ok: false, reason: "Сейчас не твой ход." };
+  if (!battle.awaiting || battle.over || battle.awaitingActor === "ally") return { ok: false, reason: "Сейчас не твой ход." };
   if (action.target !== undefined) setBattleTarget(battle, action.target);
   const hero = battle.hero;
   const enemy = battle.enemy;

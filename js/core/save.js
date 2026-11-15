@@ -69,8 +69,12 @@ function normalizeCompanions(list) {
     fallStreak: clamp(Math.round(safeNumber(c.fallStreak)), 0, COMPANION_FALLS_TO_FORGET - 1),
     recent: safeList(c.recent).filter((entry) => entry && typeof entry === "object").slice(-12),
     habits: safeList(c.habits).filter((id) => COMPANION_HABITS[id]).slice(0, 2),
-    memories: safeList(c.memories).filter((n) => Number.isInteger(n) && n >= 0 && n < 3), metAt: safeNumber(c.metAt, 1)
-  }));
+    memories: safeList(c.memories).filter((n) => Number.isInteger(n) && n >= 0 && n < 3), metAt: safeNumber(c.metAt, 1),
+    learned: safeList(c.learned).filter((id) => COMPANION_SKILL_BY_ID[id]?.who === c.defId),
+    deedKinds: Object.fromEntries(Object.entries(safeObject(c.deedKinds)).filter(([kind]) => COMPANION_DEEDS[kind]).map(([kind, n]) => [kind, Math.max(0, Math.round(safeNumber(n)))])),
+    control: c.control === "auto" ? "auto" : "manual",
+    ...(Number.isInteger(c.prepared) ? { prepared: c.prepared } : {})
+  })).map(ensureCompanionSkills);
 }
 
 function normalizeHero(raw) {

@@ -23,7 +23,7 @@ const COMPANION_ROLES = {
 // How a role grows with your level: points per level into each stat, and multipliers on top.
 const COMPANION_PROFILES = {
   screen: { stats: { endurance: 3.2, strength: 1.4, agility: 0.5, intellect: 0.3, spirituality: 0.6, luck: 0.3 }, hp: 1.3, dmg: 0.62, speed: 0.92 },
-  press: { stats: { strength: 3, endurance: 1.6, agility: 0.8, intellect: 0.2, spirituality: 0.3, luck: 0.4 }, hp: 0.9, dmg: 0.85, speed: 0.95 },
+  press: { stats: { strength: 3, endurance: 1.6, agility: 0.8, intellect: 0.2, spirituality: 0.3, luck: 0.4 }, hp: 0.9, dmg: 1.05, speed: 0.95 },
   hunt: { stats: { agility: 2.6, strength: 2, endurance: 1.1, intellect: 0.2, spirituality: 0.3, luck: 0.8 }, hp: 0.82, dmg: 0.8, speed: 1.08 },
   resonance: { stats: { intellect: 2.6, spirituality: 1.6, endurance: 1.4, agility: 0.6, strength: 0.2, luck: 0.4 }, hp: 0.88, dmg: 0.62, speed: 1 },
   care: { stats: { spirituality: 2.6, intellect: 1.8, endurance: 1.4, agility: 0.6, strength: 0.2, luck: 0.4 }, hp: 0.86, dmg: 0.5, speed: 1 },

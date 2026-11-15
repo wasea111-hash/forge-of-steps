@@ -27,6 +27,7 @@ function buildManifest() {
     events: EXPEDITION_EVENTS.map((e) => ({ id: e.id, title: e.title, text: e.text })),
     sets: Object.values(SET_CATALOG).map((s) => ({ id: s.id, name: s.name })),
     ults: Object.entries(ULTIMATES).map(([k, u]) => ({ id: k, name: u.name, description: u.description })),
+    companionSkills: COMPANION_SKILLS.map((s) => ({ id: s.id, name: s.name, text: s.text, branch: s.branch, who: s.who })),
     ultOptions: Object.values(ULT_OPTIONS).map((u) => ({ id: u.id.replace(/:/g, "_"), name: u.name, description: u.description, element: u.element }))
   })`));
   const list = [];
@@ -46,6 +47,9 @@ function buildManifest() {
   data.schools.forEach((s) => add(`school_${s.id}`, "1024x1024", "icon", `${ICON} An emblem for a school of talents, its Russian name is "${s.name}", meaning: ${s.description} Symbolic, heraldic, circular composition.`));
   data.events.forEach((e) => add(`event_${e.id}`, "1536x1024", "bg", `${SCENE.replace("no characters, ", "")} A road encounter scene in a fantasy journey, Russian title "${e.title}": ${e.text}`));
   data.sets.forEach((s) => add(`set_${s.id}`, "1024x1024", "icon", `${ICON} A legendary armour set emblem, its Russian name is "${s.name}". Symbolic, ornate.`));
+  // Companion skills: the same symbol style as the hero skills, coloured by the person.
+  const WHO_LOOK = { tessa: "living roots, bark and moss green", rud: "glowing coals, soot and orange fire", iva: "paper pages, glowing teal thread and ink", fena: "glowing violet rope, hooked blade and void dark" };
+  data.companionSkills.forEach((s) => add(`compskill_${s.id}`, "1024x1024", "icon", `${SKILL_ICON} Skill name (Russian): "${s.name}", branch "${s.branch}". Meaning: ${s.text} One bold centered subject with a clear silhouette readable at 48 pixels. Dominant look: ${WHO_LOOK[s.who] || "polished steel"}.`));
   add("memory_key", "1024x1024", "icon", `${ICON} An old hand-forged iron house key with a ring bow shaped like a small house roof with one warm glowing window, faint amber glow inside the metal like the memory of a hearth.`);
   return list;
 }

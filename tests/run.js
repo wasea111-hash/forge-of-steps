@@ -1719,8 +1719,9 @@ const report = run(`(function () {
     if (getLanePicks(hero, stage, lane, final.level) < final.needsLane) eq(getTreePick(hero, stage, final), null, "the final is dropped");
   });
 
-  const allyFight = (hero, defId, front = true, foes = null) => {
+  const allyFight = (hero, defId, front = true, foes = null, manual = false) => {
     const comp = getActiveCompanion(hero) || recruitCompanion(hero, defId);
+    if (comp.control !== "keep") comp.control = manual ? "manual" : "auto";
     return { comp, battle: createBattle(hero, foes || [makeEnemy("wolf", hero.level), makeEnemy("bandit", hero.level)], { ally: { unit: makeAllyUnit(hero, comp), companion: comp, front } }) };
   };
 
@@ -1817,6 +1818,71 @@ const report = run(`(function () {
         battle.events.filter((e) => e.type === "hit").forEach((e) => assert(Number.isFinite(e.amount), def.id + " " + classKey + " finite hit"));
       });
     });
+  });
+
+  test("companions 2.3: a manual turn waits for the player, the hero waits for it", () => {
+    seed(9);
+    const hero = newHero("warrior", true);
+    hero.level = 20; applyDerivedStats(hero, true);
+    const { battle } = allyFight(hero, "rud", true, [makeEnemy("wolf", 3), makeEnemy("bandit", 3)], true);
+    let guard = 0;
+    while (!battle.over && guard++ < 400) {
+      if (battle.awaitingActor === "ally") {
+        eq(heroAction(battle, { type: "attack" }).ok, false, "the hero can not act on the companion's turn");
+        const usable = battle.allyState.learned.filter((id) => allySkillCheck(battle, id).ok);
+        assert(usable.length, "the companion always has something to do");
+        assert(companionAction(battle, { type: "skill", skillId: usable[guard % usable.length] }).ok, "the chosen skill runs");
+        continue;
+      }
+      const r = heroAction(battle, chooseBotAction(battle)); if (!r.ok) heroAction(battle, { type: "attack" });
+    }
+    assert(battle.over, "the fight ends with manual turns");
+    assert(battle.events.some((e) => e.type === "action" && e.who === "ally"), "the companion acted");
+  });
+
+  test("companions 2.3: every personal skill runs, costs and cools down", () => {
+    Object.keys(COMPANION_RESOURCES).forEach((defId) => {
+      companionSkills(defId).forEach((skill) => {
+        seed(3);
+        const hero = newHero("mage", true);
+        hero.level = 30; applyDerivedStats(hero, true);
+        hero.currentHp = Math.round(hero.maxHp * 0.25);
+        const comp = recruitCompanion(hero, defId, { rarity: COMPANIONS[defId].rarities[0] });
+        comp.learned = companionSkills(defId).map((entry) => entry.id);
+        comp.control = "manual";
+        const battle = createBattle(hero, [makeEnemy("wolf", 30), makeEnemy("bandit", 30)], { ally: { unit: makeAllyUnit(hero, comp), companion: comp, front: true } });
+        battle.allyState.learned = comp.learned;
+        battle.ally.currentHp = Math.round(battle.ally.maxHp * 0.2);
+        battle.allyState.res = allyResourceMax(battle);
+        battle.awaiting = true; battle.awaitingActor = "ally";
+        const before = battle.allyState.res;
+        const check = allySkillCheck(battle, skill.id);
+        assert(check.ok, skill.id + " usable: " + check.reason);
+        assert(companionAction(battle, { type: "skill", skillId: skill.id }).ok, skill.id + " runs");
+        assert(battle.allyState.res <= before, skill.id + " does not create its resource from nothing");
+        if (skill.cd) assert(battle.allyState.cd[skill.id] > 0 || battle.over, skill.id + " cools down");
+        [hero, battle.ally, ...battle.foes].forEach((unit) => assert(Number.isFinite(unit.currentHp), skill.id + " finite hp"));
+      });
+    });
+  });
+
+  test("companions 2.3: skills open by trust, deeds and memories; rarity prepares some", () => {
+    const hero = newHero("bard", true);
+    const white = recruitCompanion(hero, "fena", { rarity: "white" });
+    eq(white.learned.length, 3, "white: only the three base skills");
+    const tessa = recruitCompanion(hero, "tessa", { rarity: "green" });
+    eq(tessa.learned.length, 4, "green: one prepared skill");
+    const root = COMPANION_SKILL_BY_ID.tessa_root;
+    tessa.learned = tessa.learned.filter((id) => id !== "tessa_root");
+    eq(companionSkillState(tessa, root).ready, false, "not yet");
+    tessa.trust = 25; tessa.deedKinds.interceptHeavy = 2;
+    eq(companionSkillState(tessa, root).ready, true, "trust and deeds open it");
+    assert(learnCompanionSkill(hero, tessa.id, "tessa_root").ok, "learned at the fire");
+    const house = COMPANION_SKILL_BY_ID.tessa_house;
+    tessa.trust = 70;
+    eq(companionSkillState(tessa, house).ready, tessa.memories.includes(1), "a memory is needed");
+    const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    eq(back.companions.find((c) => c.defId === "tessa").learned.includes("tessa_root"), true, "learned skills survive a reload");
   });
 
   test("camp: people answer the last return and the save keeps it", () => {
