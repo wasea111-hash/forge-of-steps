@@ -92,59 +92,82 @@ function commit() {
 }
 
 // --- Trail picker ---
+// Veya's table: the region on top, its trails as a descent from the white surface to the red bottom, the guardian at the end.
 function viewTrailPicker() {
   const hero = App.hero;
+  if (!isRegionUnlocked(hero, App.regionIndex)) App.regionIndex = hero.unlockedRegion || 0;
   const region = REGIONS[App.regionIndex];
   const guardian = getAvailableGuardian(hero, App.regionIndex);
   const first = hero.records.expeditions === 0;
+  const clears = getTrailClears(hero, region.id);
+  const [bandLow, bandHigh] = region.levelBand || [region.minLevel, region.minLevel + 15];
   return `
-    ${first ? `<div class="coach-card"><b>С чего начать.</b> Выбери белую тропу. Поход состоит из нескольких шагов. Найденные вещи сразу попадают в рюкзак, их можно надеть прямо в пути. Если погибнешь, пропадёт всё, что не надето, и половина золота. Позже смерть начнёт забирать и память о доме — ключ от Ложкина в углу покажет, сколько её осталось.</div>` : ""}
-    <div class="trail-spacer"></div>
-    ${storyObjectiveCard()}
-    <h2 class="section-title">${icon("map")}Регион</h2>
-    <section class="region-section">
-      <div class="region-cards" role="tablist" aria-label="Регионы">
-        ${REGIONS.map((entry, index) => {
-          const open = isRegionUnlocked(hero, index);
-          return `<button role="tab" aria-selected="${index === App.regionIndex}" class="region-card${index === App.regionIndex ? " active" : ""}" data-action="pickRegion" data-index="${index}" ${open ? "" : `disabled data-tip="text|${esc(entry.name)}|Откроется после победы над стражем предыдущего региона."`}><img src="assets/img/region_${entry.id}.webp" alt="" loading="lazy"><span>${open ? "" : icon("lock")}${esc(entry.name)}</span></button>`;
-        }).join("")}
-      </div>
-      <p class="region-lore">${esc(region.description)}</p>
-    </section>
-    <h2 class="section-title">${icon("battle")}Тропа</h2>
-    <section class="zone-grid">
-      ${ZONE_KEYS.map((key) => {
-        const zone = ZONES[key];
-        const [low, high] = getZoneLevelRange(hero, region.id, key);
-        const danger = estimateZoneDanger(hero, region.id, key);
-        const zoneOpen = isZoneOpen(hero, region.id, key);
-        const cleared = getTrailClears(hero, region.id).includes(key);
-        return `<button class="zone-card zone-${key}${zoneOpen ? "" : " locked"}${cleared ? " cleared" : ""}" data-action="startExpedition" data-zone="${key}" data-sound="anvil" ${zoneOpen ? "" : `disabled data-tip="text|${zone.name} закрыта|Сначала пройди предыдущую тропу этого региона до конца."`}>
-          ${zoneOpen ? "" : `<span class="zone-lock">${icon("lock")}</span>`}${cleared ? `<span class="zone-done">Пройдена</span>` : ""}
-          <span class="zone-stripe"></span>
-          <strong>${zone.name}</strong>
-          <small>${esc(zone.description)}</small>
-          <dl><dt>Враги</dt><dd>${low === high ? `ур. ${low}` : `ур. ${low}–${high}`}</dd><dt>Шагов</dt><dd>${zone.steps}</dd><dt>Награды</dt><dd>×${zone.rewardFactor}</dd></dl>
-          <span class="danger danger-${danger.key}">${danger.label}</span>
-        </button>`;
+    <nav class="vt-region-tabs" role="tablist" aria-label="Регионы">
+      ${REGIONS.map((entry, index) => {
+        const open = isRegionUnlocked(hero, index);
+        const done = getTrailClears(hero, entry.id).length;
+        return `<button role="tab" aria-selected="${index === App.regionIndex}" class="vt-region-tab${index === App.regionIndex ? " active" : ""}" data-action="pickRegion" data-index="${index}" ${open ? "" : `disabled data-tip="text|${esc(entry.name)}|Откроется после победы над стражем предыдущего региона."`}>
+          <img src="assets/img/region_${entry.id}.webp" alt="" loading="lazy"><span><b>${open ? "" : icon("lock")}${esc(entry.name)}</b><small>${open ? `${done} из ${ZONE_KEYS.length} троп` : "закрыто"}</small></span></button>`;
       }).join("")}
-    </section>
-    ${stakeLine(hero)}
-    ${guardianCard(guardian, region)}`;
+    </nav>
+    <div class="vt-trail-layout">
+      <div class="vt-trail-main">
+        <section class="vt-region-banner" style="background-image:url('assets/img/region_${region.id}.webp')">
+          <div><h3>${esc(region.name)}</h3><p>${esc(region.description)}</p>
+            <div class="vt-region-facts"><span>Враги ур. ${bandLow}–${bandHigh}</span><span>Пройдено троп: ${clears.length} из ${ZONE_KEYS.length}</span><span>${guardian ? `Страж: ${esc(guardian.def.name)}` : `Страж повержен`}</span></div></div>
+        </section>
+        ${first ? `<div class="coach-card"><b>С чего начать.</b> Выбери белую тропу. Поход состоит из нескольких шагов. Найденные вещи сразу попадают в рюкзак, их можно надеть прямо в пути. Если погибнешь, пропадёт всё, что не надето, и половина золота. Позже смерть начнёт забирать и память о доме — ключ от Ложкина в углу покажет, сколько её осталось.</div>` : ""}
+        <ol class="vt-trail-descent">
+          ${ZONE_KEYS.map((key) => trailRow(hero, region, key)).join("")}
+          ${trailGuardianRow(hero, guardian, region)}
+        </ol>
+      </div>
+      <aside class="vt-trail-side">
+        ${storyObjectiveCard()}
+        ${stakeLine(hero)}
+        ${trailCompanionCard(hero)}
+      </aside>
+    </div>`;
 }
 
-function guardianCard(guardian, region) {
+function trailRow(hero, region, key) {
+  const zone = ZONES[key];
+  const [low, high] = getZoneLevelRange(hero, region.id, key);
+  const open = isZoneOpen(hero, region.id, key);
+  const cleared = getTrailClears(hero, region.id).includes(key);
+  const danger = open ? estimateZoneDanger(hero, region.id, key) : null;
+  return `<li class="vt-trail-row zone-${key}${open ? "" : " locked"}${cleared ? " cleared" : ""}">
+    <span class="vt-trail-node" aria-hidden="true">${cleared ? "✓" : open ? "" : icon("lock")}</span>
+    <img class="vt-trail-thumb" src="assets/ui/tier_${key}.webp" alt="" loading="lazy">
+    <div class="vt-trail-text"><strong>${zone.name}${cleared ? `<em>пройдена</em>` : ""}</strong><small>${esc(zone.description)}</small>
+      <span class="vt-trail-meta"><span>ур. ${low === high ? low : `${low}–${high}`}</span><span>шагов ${zone.steps}</span><span>награды ×${zone.rewardFactor}</span>${danger ? `<span class="danger danger-${danger.key}">${danger.label}</span>` : ""}</span></div>
+    <button class="btn ${open ? (cleared ? "" : "primary") : ""} vt-trail-go" data-action="startExpedition" data-zone="${key}" data-sound="anvil" ${open ? "" : `disabled data-tip="text|${zone.name} закрыта|Сначала пройди предыдущую тропу этого региона до конца."`}>${open ? (cleared ? "Ещё раз" : "Выйти") : "Закрыта"}</button>
+  </li>`;
+}
+
+function trailGuardianRow(hero, guardian, region) {
   if (!guardian) {
     const def = ENEMY_DEFINITIONS[region.guardian];
-    return `<section class="panel guardian done"><div class="guardian-art">${foeArt(region.guardian, def)}</div><div><h3>${esc(def.name)} повержен</h3><p class="muted">${App.hero.won ? "Кузнец повержен. Тропы остаются открытыми: сила врагов растёт вместе с тобой." : "Путь в следующий регион открыт."}</p></div></section>`;
+    return `<li class="vt-trail-row vt-guardian-row done"><span class="vt-trail-node" aria-hidden="true">${"✓"}</span><div class="guardian-art">${foeArt(region.guardian, def)}</div>
+      <div class="vt-trail-text"><strong>${esc(def.name)}<em>повержен</em></strong><small>${hero.won ? "Кузнец повержен. Тропы остаются открытыми: сила врагов растёт вместе с тобой." : "Путь в следующий регион открыт."}</small></div></li>`;
   }
-  const info = describeGuardian(guardian.id, App.hero);
-  const lock = guardian.needsTrail ? "Сначала пройди оранжевую тропу региона." : App.hero.level < guardian.requiredLevel ? `Нужен ${guardian.requiredLevel} уровень.` : "";
-  return `<section class="panel guardian"><div class="guardian-art">${foeArt(region.guardian, guardian.def)}</div>
-    <div class="guardian-text"><span class="eyebrow">Босс региона · всегда ${info.level} уровня</span><h3>${esc(guardian.def.name)}</h3><p class="muted">${esc(guardian.def.lore || "")}</p>
-      <ul class="boss-facts"><li>Здоровье: <b>${info.hp}</b></li><li>Самый сильный удар: <b>≈${info.hit}</b></li><li>Готовность: <b>${info.info.recommended} уровень, ${esc(info.info.gear)}</b></li><li>Ты выдержишь ударов: <b>${info.hitsToDie}</b>, тебе нужно своих: <b>≈${info.blowsToKill}</b></li></ul>
-      <ul class="boss-phases">${info.info.phases.map((text) => `<li>${esc(text)}</li>`).join("")}</ul></div>
-    <button class="btn ${guardian.ready ? "primary" : ""}" data-action="startGuardian" data-id="${guardian.id}" ${guardian.ready ? "" : "disabled"} data-sound="anvil">${guardian.ready ? "Бросить вызов" : esc(lock)}</button></section>`;
+  const info = describeGuardian(guardian.id, hero);
+  const lock = guardian.needsTrail ? "Сначала пройди оранжевую тропу региона." : hero.level < guardian.requiredLevel ? `Нужен ${guardian.requiredLevel} уровень.` : "";
+  return `<li class="vt-trail-row vt-guardian-row${guardian.ready ? "" : " locked"}"><span class="vt-trail-node" aria-hidden="true">${guardian.ready ? icon("boss") : icon("lock")}</span><div class="guardian-art">${foeArt(region.guardian, guardian.def)}</div>
+    <div class="vt-trail-text"><strong>${esc(guardian.def.name)}<em>страж · ${info.level} ур.</em></strong><small>${esc(guardian.def.lore || "")}</small>
+      <span class="vt-trail-meta"><span>здоровье ${info.hp}</span><span>удар до ≈${info.hit}</span><span>выдержишь ${info.hitsToDie}</span><span>нужно своих ≈${info.blowsToKill}</span></span>
+      <details class="vt-boss-more"><summary>Как он сражается</summary><p class="muted small">Готовность: ${info.info.recommended} уровень, ${esc(info.info.gear)}.</p><ul class="boss-phases">${info.info.phases.map((text) => `<li>${esc(text)}</li>`).join("")}</ul></details></div>
+    <button class="btn ${guardian.ready ? "primary" : ""} vt-trail-go" data-action="startGuardian" data-id="${guardian.id}" ${guardian.ready ? "" : `disabled data-tip="text|Страж ждёт|${esc(lock)}"`} data-sound="anvil">${guardian.ready ? "Бросить вызов" : "Рано"}</button>
+  </li>`;
+}
+
+// Who walks with you, and where they stand: the trail is planned with the companion in mind.
+function trailCompanionCard(hero) {
+  if (!companionsVisible(hero)) return "";
+  const c = getActiveCompanion(hero);
+  if (!c) return `<section class="vt-trail-companion empty"><p class="muted small">Спутник не выбран.</p><button class="link-btn" data-action="hubTab" data-tab="companions">Выбрать в палатках</button></section>`;
+  const def = getCompanionDef(c);
+  return `<section class="vt-trail-companion">${companionPortrait(def.id, "mini")}<div><b>${esc(def.name)}</b><small>${esc(getCompanionClass(c).name)} · ${hero.party.allyFront ? "впереди" : "позади"} · доверие ${Math.round(c.trust)}</small></div><button class="link-btn" data-action="hubTab" data-tab="companions">Сменить</button></section>`;
 }
 
 Actions.pickRegion = (el) => { App.regionIndex = Number(el.dataset.index); render(); };

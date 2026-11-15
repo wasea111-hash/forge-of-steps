@@ -26,7 +26,7 @@ function campPlaces(hero) {
 const CAMP_PEOPLE_AT = { mot: { x: 17, y: 71, h: 30 }, sota: { x: 30.5, y: 61, h: 24 }, veya: { x: 59.5, y: 57, h: 22 }, nima: { x: 66, y: 63, h: 25 }, kern: { x: 80.5, y: 76, h: 32 } };
 const CAMP_LIGHTS = [{ x: 44, y: 68, r: 22, k: "fire" }, { x: 5.3, y: 47, r: 6, k: "lamp" }, { x: 23.5, y: 41, r: 5, k: "lamp" }, { x: 57.5, y: 37, r: 6, k: "lamp" }, { x: 92, y: 62, r: 12, k: "forge" }];
 // Panels that need room open wide.
-const WIDE_PLACES = new Set(["hero", "gear", "skills", "talents", "forge"]);
+const WIDE_PLACES = new Set(["hero", "gear", "skills", "talents", "forge", "trail"]);
 const PLACE_TITLES = { town: "Город",  trail: "Стол Веи · Поход", lairs: "Камень логов", hero: "Твоё место", gear: "Твоё место", skills: "Тренировочный столб", talents: "Тренировочный столб", forge: "Кузница Керна", shop: "Лавка Мота", journal: "Палатка Соты", news: "Доска объявлений", companions: "Палатки спутников" };
 
 // Morning, day, dusk or night: each return from the road moves the camp's clock.
