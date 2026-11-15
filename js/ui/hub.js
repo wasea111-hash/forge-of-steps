@@ -182,34 +182,38 @@ Actions.startExpedition = (el) => {
 };
 
 // --- Hero sheet ---
+// The stats a class leans on: marked in the list, so a point is never spent blind.
+const CLASS_KEY_STATS = { warrior: ["strength", "endurance"], mage: ["intellect", "endurance"], archer: ["agility", "strength"], bard: ["intellect", "spirituality"], assassin: ["strength", "agility"] };
+
 function viewHeroStats() {
   const hero = App.hero;
-  const statHint = { intellect: `Мана ${hero.maxMana}, магический урон ${hero.skillDamage}`, endurance: `Здоровье ${hero.maxHp}, защита ${hero.physicalDefense} / ${hero.magicDefense}`, strength: `Физический урон ${hero.physicalDamage}`, luck: `Крит ${hero.critChance}%, добыча ${hero.dropChance}%`, agility: `Скорость ${hero.attackSpeed}, уклонение ${hero.dodgeChance}%`, spirituality: `Лечение ${hero.healingPower}, щиты ${hero.shieldPower}, мана за ход ${getManaRegen(hero)}` };
-  return `<div class="stats-stack">
-    <section class="panel">
-      <div class="panel-head"><h2>Характеристики</h2><span class="chip ${hero.statPoints ? "accent" : ""}">Свободных очков: ${hero.statPoints}</span></div>
-      <div class="stat-table">
-        ${STAT_KEYS.map((key) => {
-          const bonus = hero.totalStats[key] - hero.stats[key];
-          return `<div class="stat-row"><div><strong>${statLabel(key)}</strong><small>${esc(statHint[key])}</small></div><b class="stat-value">${hero.totalStats[key]}${bonus > 0 ? `<i>+${bonus}</i>` : ""}</b><div class="stat-add">
-            <button class="step-btn" data-action="addStat" data-stat="${key}" ${hero.statPoints <= 0 ? "disabled" : ""} aria-label="Добавить 1: ${statLabel(key)}">+</button>
-            ${hero.statPoints >= 3 ? `<button class="step-btn small" data-action="addStat" data-stat="${key}" data-all="1" aria-label="Вложить все очки: ${statLabel(key)}">Все</button>` : ""}
+  const statHint = { intellect: `Мана ${hero.maxMana}, маг. урон ${hero.skillDamage}`, endurance: `Здоровье ${hero.maxHp}, защита ${hero.physicalDefense} / ${hero.magicDefense}`, strength: `Физ. урон ${hero.physicalDamage}`, luck: `Крит ${hero.critChance}%, добыча ${hero.dropChance}%`, agility: `Скорость ${hero.attackSpeed}, уклонение ${hero.dodgeChance}%`, spirituality: `Лечение ${hero.healingPower}, щиты ${hero.shieldPower}, мана за ход ${getManaRegen(hero)}` };
+  const key = CLASS_KEY_STATS[hero.classKey] || [];
+  const points = hero.statPoints;
+  return `<section class="vs-card vs-stats">
+      <header class="vs-head"><h3>Характеристики</h3>${points ? `<span class="vs-points">${points} ${points === 1 ? "очко" : points < 5 ? "очка" : "очков"}</span>` : `<span class="muted small">все очки вложены</span>`}</header>
+      ${STAT_KEYS.map((stat) => {
+        const bonus = hero.totalStats[stat] - hero.stats[stat];
+        const main = key.includes(stat);
+        return `<div class="vs-stat${main ? " main" : ""}">
+          <div class="vs-stat-name"><b>${statLabel(stat)}${main ? `<i data-tip="text|Основная для класса|${esc(classDefinitions[hero.classKey].name)} получает от неё больше всего.">★</i>` : ""}</b><small>${esc(statHint[stat])}</small></div>
+          <b class="vs-stat-value">${hero.totalStats[stat]}${bonus > 0 ? `<em>+${bonus}</em>` : ""}</b>
+          <div class="vs-stat-add">
+            <button class="step-btn" data-action="addStat" data-stat="${stat}" ${points <= 0 ? "disabled" : ""} aria-label="Добавить 1: ${statLabel(stat)}">+1</button>
+            ${points >= 5 ? `<button class="step-btn" data-action="addStat" data-stat="${stat}" data-n="5" aria-label="Добавить 5: ${statLabel(stat)}">+5</button>` : ""}
+            ${points >= 3 ? `<button class="step-btn" data-action="addStat" data-stat="${stat}" data-all="1" aria-label="Вложить все очки: ${statLabel(stat)}">Все</button>` : ""}
           </div></div>`;
-        }).join("")}
-      </div>
-    </section>
-    <section class="panel">
-      <div class="panel-head"><h2>Боевые показатели</h2></div>
-      <div class="derived-grid">
-        ${[["Здоровье", hero.maxHp], ["Мана", hero.maxMana], ["Физ. урон", hero.physicalDamage], ["Маг. урон", hero.skillDamage], ["Физ. защита", hero.physicalDefense], ["Маг. защита", hero.magicDefense], ["Крит", `${hero.critChance}%`], ["Уклонение", `${hero.dodgeChance}%`], ["Скорость", hero.attackSpeed], ["Лечение", hero.healingPower], ["Щиты", hero.shieldPower], ["Шанс добычи", `${hero.dropChance}%`]].map(([label, value]) => `<div class="derived"><span>${label}</span><b>${value}</b></div>`).join("")}
-      </div>
-      <p class="muted small">Скорость решает, как часто ты ходишь. Защита снижает урон по убывающей: чем сильнее враг, тем ниже её эффект.</p>
-    </section>
-  </div>`;
+      }).join("")}
+      <details class="vs-more"><summary>Все показатели</summary>
+        <div class="vs-derived">${[["Здоровье", hero.maxHp], [CLASS_RESOURCES[hero.classKey]?.name || "Мана", hero.maxMana], ["Физ. урон", hero.physicalDamage], ["Маг. урон", hero.skillDamage], ["Физ. защита", hero.physicalDefense], ["Маг. защита", hero.magicDefense], ["Крит", `${hero.critChance}%`], ["Уклонение", `${hero.dodgeChance}%`], ["Скорость", hero.attackSpeed], ["Лечение", hero.healingPower], ["Щиты", hero.shieldPower], ["Шанс добычи", `${hero.dropChance}%`]].map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join("")}</div>
+        <p class="muted small">Скорость решает, как часто ты ходишь. Защита снижает урон по убывающей: чем сильнее враг, тем ниже её эффект.</p>
+      </details>
+    </section>`;
 }
 
 Actions.addStat = (el) => {
-  addStatPoint(App.hero, el.dataset.stat, el.dataset.all ? App.hero.statPoints : 1);
+  const n = el.dataset.all ? App.hero.statPoints : Number(el.dataset.n || 1);
+  addStatPoint(App.hero, el.dataset.stat, Math.min(n, App.hero.statPoints));
   commit();
 };
 
@@ -219,32 +223,55 @@ const EQUIP_LAYOUT = ["head", "necklace", "chest", "ring-1", "ring-2", "legs", "
 const SLOT_LEFT = ["head", "necklace", "chest", "legs", "boots"];
 const SLOT_RIGHT = ["weapon-1", "weapon-2", "ring-1", "ring-2", "bracelet-1", "bracelet-2"];
 
-// One screen for the whole hero: numbers on the left, the figure with its gear in the middle, the bag on the right.
+// How much better a bag item is than what is worn in its slot; 0 when it is not, or cannot be worn.
+function itemGain(hero, item) {
+  if (!item || !canEquip(hero, item)) return 0;
+  return itemPowerScore(item, hero.classKey) - itemPowerScore(hero.equipment[chooseEquipSlot(hero, item)], hero.classKey);
+}
+
+const BAG_VIEWS = [{ id: "all", name: "Все" }, { id: "better", name: "Лучше надетого" }, { id: "usable", name: "Можно надеть" }];
+
+// One screen for the whole hero: the hero on top, numbers on the left, the figure with its gear, the bag on the right.
 function viewSheet() {
   const hero = App.hero;
   const bagCount = hero.inventory.filter(Boolean).length;
+  const need = getExperienceForNextLevel(hero.level);
+  const view = BAG_VIEWS.some((entry) => entry.id === App.bagView) ? App.bagView : "all";
   const slot = (name) => `<div class="equip-slot" data-tip="text|${esc(equipmentSlotLabel(name))}|">${itemCell(hero.equipment[name], "eq", name, { emptyIcon: slotIconName(name) })}</div>`;
-  return `<div class="sheet">
-    <div class="sheet-side">${viewHeroStats()}</div>
-    <section class="sheet-center">
-      <div class="sheet-figure">
-        <div class="slot-col">${SLOT_LEFT.map(slot).join("")}</div>
-        <div class="figure">${heroFigure(hero)}</div>
-        <div class="slot-col">${SLOT_RIGHT.map(slot).join("")}</div>
-      </div>
-      <div class="sheet-tools"><button class="btn primary" data-action="equipBest">Надеть лучшее</button></div>
-    </section>
-    <div class="sheet-side">
-      <section class="panel bag">
-        <div class="panel-head"><h2>Рюкзак <small class="muted">${bagCount} / ${INVENTORY_SIZE}</small></h2>${hero.expedition ? "" : `<button class="btn small${App.bagPick ? " on" : ""}" data-action="bagPickMode">${App.bagPick ? "Готово" : "Выбрать несколько"}</button>`}</div>
-        ${App.bagPick && !hero.expedition ? bulkPanel(true) : ""}
-        <div class="bag-grid">${hero.inventory.map((item, index) => (App.bagPick && !hero.expedition ? pickCell(item, index) : itemCell(item, "inv", index))).join("")}</div>
-        ${App.bagPick ? "" : `<p class="muted small">Нажми на предмет, чтобы надеть, сравнить или продать. «Выбрать несколько» продаёт и разбирает сразу пачкой.</p>`}
+  const listed = hero.inventory.map((item, index) => ({ item, index })).filter(({ item }) => item && (view === "all" || (view === "better" ? itemGain(hero, item) > 0 : canEquip(hero, item))));
+  const betterCount = hero.inventory.filter((item) => itemGain(hero, item) > 0).length;
+  const resourceName = CLASS_RESOURCES[hero.classKey]?.name || "Мана";
+  const facts = [["Здоровье", hero.maxHp], [resourceName, hero.maxMana], [hero.skillDamage > hero.physicalDamage ? "Маг. урон" : "Физ. урон", Math.max(hero.skillDamage, hero.physicalDamage)], ["Защита", `${hero.physicalDefense} / ${hero.magicDefense}`], ["Крит", `${hero.critChance}%`], ["Уклонение", `${hero.dodgeChance}%`], ["Скорость", hero.attackSpeed]];
+  return `<div class="vs-sheet">
+    <header class="vs-hero">
+      <div class="vs-medal">${heroMedal(hero)}<span>${hero.level}</span></div>
+      <div class="vs-name"><h3>${esc(hero.name)}</h3><small>${esc(getHeroTitle(hero))}</small>${bar(hero.experience, need, "exp", `Опыт ${hero.experience} / ${need}`)}</div>
+      <div class="vs-facts">${facts.map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join("")}</div>
+    </header>
+    <div class="vs-body">
+      <div class="vs-left">${viewHeroStats()}</div>
+      <section class="vs-card vs-center">
+        <div class="sheet-figure vs-figure">
+          <div class="slot-col">${SLOT_LEFT.map(slot).join("")}</div>
+          <div class="figure">${heroFigure(hero)}</div>
+          <div class="slot-col">${SLOT_RIGHT.map(slot).join("")}</div>
+        </div>
+        <div class="vs-tools"><button class="btn ${betterCount ? "primary glow" : ""}" data-action="equipBest">Надеть лучшее${betterCount ? ` · ${betterCount}` : ""}</button></div>
+        ${setsPanel(hero)}
       </section>
-      ${setsPanel(hero)}
+      <section class="vs-card vs-bag">
+        <header class="vs-head"><h3>Рюкзак</h3><span class="vs-cap"><i style="width:${Math.round(bagCount / INVENTORY_SIZE * 100)}%"></i><small>${bagCount} / ${INVENTORY_SIZE}</small></span></header>
+        ${App.bagPick && !hero.expedition ? bulkPanel(true) : `<div class="vs-tabs">${BAG_VIEWS.map((entry) => `<button class="chip-btn${view === entry.id ? " on" : ""}" data-action="bagView" data-id="${entry.id}">${entry.name}${entry.id === "better" && betterCount ? ` <small>${betterCount}</small>` : ""}</button>`).join("")}</div>`}
+        ${App.bagPick && !hero.expedition
+          ? `<div class="bag-grid">${hero.inventory.map((item, index) => pickCell(item, index)).join("")}</div>`
+          : listed.length ? `<div class="bag-grid vs-items">${listed.map(({ item, index }) => `<div class="vs-item${itemGain(hero, item) > 0 ? " better" : ""}">${itemCell(item, "inv", index)}</div>`).join("")}</div>` : `<p class="muted vs-empty">${view === "all" ? "Рюкзак пуст. Находки с троп попадают сюда." : view === "better" ? "Всё, что лучше, уже надето." : "Нечего надеть: вещи не подходят по уровню или классу."}</p>`}
+        <footer class="vs-bag-foot">${hero.expedition ? "" : `<button class="btn small${App.bagPick ? " on" : ""}" data-action="bagPickMode">${App.bagPick ? "Готово" : "Продать или разобрать пачкой"}</button>`}${App.bagPick ? "" : `<small class="muted">Нажми на вещь: надеть, сравнить, продать.${INVENTORY_SIZE - bagCount ? ` Свободно мест: ${INVENTORY_SIZE - bagCount}.` : " Мест нет."}</small>`}</footer>
+      </section>
     </div>
   </div>`;
 }
+
+Actions.bagView = (el) => { App.bagView = el.dataset.id; refreshKeepScroll(); };
 
 function setsPanel(hero) {
   const counts = Object.entries(getActiveSetCounts(hero));
