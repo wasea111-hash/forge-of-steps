@@ -106,7 +106,7 @@ const StageVFX = (() => {
     for (let i = 0; i < count; i += 1) {
       const a = rnd(0, 6.28);
       const d = rnd(0, radius);
-      stage.glow.spawn(center.x + Math.cos(a) * d, rnd(0, 0.5), center.z + Math.sin(a) * d, Math.cos(a) * 0.3, rnd(1.8, 4.6) * height, Math.sin(a) * 0.3, rnd(0.16, 0.36), rnd(0.35, 0.75), i % 3 ? mid : hot, 1.1);
+      stage.glow.spawn(center.x + Math.cos(a) * d, rnd(0, 0.5), center.z + Math.sin(a) * d, Math.cos(a) * 0.3, rnd(1.8, 4.6) * height, Math.sin(a) * 0.3, rnd(0.16, 0.36), rnd(0.35, 0.75), i % 3 ? mid : hot, 1.1, 0, i % 2 ? 4 : 0);
     }
     stage.smoke(new T.Vector3(center.x, 0.8, center.z), "#2a2522", 8, 0.35);
     stage.light(new T.Vector3(center.x, 1, center.z), "#ff8a2a", 16, 0.4);
@@ -209,15 +209,15 @@ const StageVFX = (() => {
 
   const ELEMENT_RECIPE = {
     fire: (stage, point) => flames(stage, point),
-    frost: (stage, point) => { spikes(stage, point, "#9fdcff", 6, 1.3, 0.75); stage.burst(point, "#c8f2ff", 16, 2.4, 0.08, 0.5); },
-    water: (stage, point) => { stage.burst(point, "#5fb7ff", 30, 3.2, 0.09, 0.55); stage.shock(point, "#5fb7ff", 1.8, 0.45); },
-    earth: (stage, point) => { spikes(stage, point, "#8a6e4c", 8, 1.5, 0.95); stage.shake(0.12); stage.smoke(new T.Vector3(point.x, 0.2, point.z), "#6a5a44", 12, 0.6); },
+    frost: (stage, point) => { spikes(stage, point, "#9fdcff", 6, 1.3, 0.75); stage.burst(point, "#c8f2ff", 16, 2.4, 0.08, 0.5, 1); },
+    water: (stage, point) => { stage.burst(point, "#5fb7ff", 30, 3.2, 0.09, 0.55, 2); stage.shock(point, "#5fb7ff", 1.8, 0.45); },
+    earth: (stage, point) => { spikes(stage, point, "#8a6e4c", 8, 1.5, 0.95); stage.shake(0.12); stage.smoke(new T.Vector3(point.x, 0.2, point.z), "#6a5a44", 12, 0.6); stage.burst(point, "#c8a878", 12, 2.6, 0.08, 0.5, 1); },
     air: (stage, point) => { lightning(stage, point, "#d6f4ff"); },
-    holy: (stage, point) => { beam(stage, point, "#ffe9a0", 0.5, 0.55); },
+    holy: (stage, point) => { beam(stage, point, "#ffe9a0", 0.5, 0.55); stage.burst(point, "#fff2c0", 14, 2.2, 0.08, 0.6, 3); },
     dark: (stage, point) => voidPull(stage, point),
-    arcane: (stage, point) => { runes(stage, point, "#8fa0ff", 1.1, 0.6); stage.burst(new T.Vector3(point.x, point.y, point.z), "#a8b4ff", 24, 3, 0.1, 0.5); },
-    poison: (stage, point) => { stage.smoke(new T.Vector3(point.x, 0.8, point.z), "#5f8a2f", 16, 0.5); stage.burst(new T.Vector3(point.x, point.y, point.z), "#9be34f", 18, 2, 0.1, 0.65); },
-    blood: (stage, point) => { stage.burst(new T.Vector3(point.x, point.y, point.z), "#ff2f46", 26, 3.4, 0.09, 0.5); }
+    arcane: (stage, point) => { runes(stage, point, "#8fa0ff", 1.1, 0.6); stage.burst(new T.Vector3(point.x, point.y, point.z), "#a8b4ff", 24, 3, 0.1, 0.5, 3); },
+    poison: (stage, point) => { stage.smoke(new T.Vector3(point.x, 0.8, point.z), "#5f8a2f", 16, 0.5); stage.burst(new T.Vector3(point.x, point.y, point.z), "#9be34f", 18, 2, 0.1, 0.65, 2); },
+    blood: (stage, point) => { stage.burst(new T.Vector3(point.x, point.y, point.z), "#ff2f46", 26, 3.4, 0.09, 0.5, 2); }
   };
 
   return { spikes, beam, lightning, flames, runes, soundWaves, whirl, voidPull, arrowRain, aura, ELEMENT_RECIPE };

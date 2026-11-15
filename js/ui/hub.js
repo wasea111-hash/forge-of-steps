@@ -870,6 +870,12 @@ function forgeItems(mode) {
     return `<div class="forge-layout"><section class="panel"><div class="panel-head"><h2>Рюкзак</h2></div><div class="bag-grid forge-grid">${App.hero.inventory.map((item, index) => (item ? pickCell(item, index) : "")).join("")}</div></section><section class="panel forge-work">${bulkPanel(false)}</section></div>`;
   }
   const candidates = forgeCandidates(mode);
+  // The anvil is never empty: without a choice, the weapon in hand (or the first fitting thing) lies on it.
+  const fits = (r) => r && candidates.some((entry) => entry.source === r.source && String(entry.key) === String(r.key));
+  if (!fits(App.forge.ref) && candidates.length) {
+    const first = candidates.find((entry) => entry.source === "eq" && entry.key === "weapon-1") || candidates[0];
+    App.forge.ref = { source: first.source, key: first.key };
+  }
   const ref = App.forge.ref;
   const selected = ref ? getItemByRef(ref.source, ref.key) : null;
   return `<div class="forge-layout">

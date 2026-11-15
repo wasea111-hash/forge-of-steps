@@ -227,21 +227,29 @@ const Stage3D = (() => {
       this.base = new Float32Array(max);
       this.drag = new Float32Array(max);
       this.grow = new Float32Array(max);
+      // 0 soft dot, 1 shard, 2 drop, 3 sparkle, 4 flame tongue: elements differ by shape, not only by colour.
+      this.shape = new Float32Array(max);
       geo.setAttribute("position", new T.BufferAttribute(this.pos, 3));
+      geo.setAttribute("shape", new T.BufferAttribute(this.shape, 1));
       geo.setAttribute("color", new T.BufferAttribute(this.col, 3));
       geo.setAttribute("info", new T.BufferAttribute(this.data, 2));
       this.mesh = new T.Points(geo, new T.ShaderMaterial({
         transparent: true, depthWrite: false, blending,
         uniforms: { scale: { value: 500 } },
-        vertexShader: `attribute vec3 color; attribute vec2 info; varying vec3 vColor; varying float vAlpha; uniform float scale;
-          void main(){ vColor = color; vAlpha = info.y; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = info.x * scale / max(.1, -mv.z); gl_Position = projectionMatrix * mv; }`,
-        fragmentShader: `varying vec3 vColor; varying float vAlpha;
-          void main(){ float d = length(gl_PointCoord - .5) * 2.; float a = smoothstep(1., ${softness}, d) * vAlpha; if (a < .004) discard; gl_FragColor = vec4(vColor * a${blending === T.AdditiveBlending ? "" : " + vColor * 0."}, a); }`
+        vertexShader: `attribute vec3 color; attribute vec2 info; attribute float shape; varying vec3 vColor; varying float vAlpha; varying float vShape; uniform float scale;
+          void main(){ vColor = color; vAlpha = info.y; vShape = shape; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = info.x * scale / max(.1, -mv.z); gl_Position = projectionMatrix * mv; }`,
+        fragmentShader: `varying vec3 vColor; varying float vAlpha; varying float vShape;
+          void main(){ vec2 q = gl_PointCoord - .5; float d;
+            if (vShape < .5) d = length(q) * 2.;
+            else if (vShape < 1.5) d = (abs(q.x) * 2.7 + abs(q.y) * 1.25) * 1.12;
+            else if (vShape < 2.5) d = length(vec2(q.x * 1.6, q.y - .06)) * 2.3 + max(0., -q.y) * 1.4;
+            else if (vShape < 3.5) d = min(min(abs(q.x) * 9. + abs(q.y) * 1.9, abs(q.y) * 9. + abs(q.x) * 1.9), length(q) * 4.);
+            else d = length(vec2(q.x * 2.2, (q.y + .08) * 1.05)) * 2.; float a = smoothstep(1., ${softness}, d) * vAlpha; if (a < .004) discard; gl_FragColor = vec4(vColor * a${blending === T.AdditiveBlending ? "" : " + vColor * 0."}, a); }`
       }));
       this.mesh.frustumCulled = false;
     }
 
-    spawn(x, y, z, vx, vy, vz, size, life, tint, drag = 1.6, grow = 0) {
+    spawn(x, y, z, vx, vy, vz, size, life, tint, drag = 1.6, grow = 0, shape = 0) {
       const i = this.next;
       this.next = (i + 1) % this.max;
       this.pos.set([x, y, z], i * 3);
@@ -252,6 +260,7 @@ const Stage3D = (() => {
       this.base[i] = size;
       this.drag[i] = drag;
       this.grow[i] = grow;
+      this.shape[i] = shape;
     }
 
     update(dt) {
@@ -277,6 +286,7 @@ const Stage3D = (() => {
       geo.attributes.position.needsUpdate = true;
       geo.attributes.color.needsUpdate = true;
       geo.attributes.info.needsUpdate = true;
+      geo.attributes.shape.needsUpdate = true;
     }
   }
 
@@ -630,10 +640,10 @@ const Stage3D = (() => {
         vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
         fragmentShader: `uniform float time; uniform vec3 tint; uniform float power; varying vec2 vUv;
           void main(){ vec2 q = vUv - .5; float d = length(q) * 2.; float a = atan(q.y, q.x);
-            float ring = smoothstep(.72, .86, d) * smoothstep(1., .9, d);
-            float dash = smoothstep(.2, .55, sin(a * 6. + time * 2.4)) * .75 + .25;
-            float inner = smoothstep(.86, .3, d) * .18;
-            float v = (ring * dash + inner) * power; if (v < .003) discard; gl_FragColor = vec4(tint * v * 1.6, v); }`
+            float ring = smoothstep(.83, .9, d) * smoothstep(.99, .93, d);
+            float dash = smoothstep(.1, .7, sin(a * 6. + time * 1.1)) * .45 + .55;
+            float inner = smoothstep(.86, .4, d) * .06;
+            float v = (ring * dash + inner) * power; if (v < .003) discard; gl_FragColor = vec4(tint * v * 1.25, v); }`
       });
       this.targetRing = new T.Mesh(new T.PlaneGeometry(1.9, 1.9), ringMaterial("#ff9a3c"));
       this.targetRing.rotation.x = -Math.PI / 2;
@@ -768,14 +778,14 @@ const Stage3D = (() => {
     }
 
     // ---- effects ----
-    burst(point, hex, count = 24, power = 3, size = 0.12, life = 0.55) {
+    burst(point, hex, count = 24, power = 3, size = 0.12, life = 0.55, shape = 0) {
       const tint = color(hex);
       for (let i = 0; i < count; i += 1) {
         const a = rand(0, 6.28);
         const b = rand(-1, 1);
         const c = Math.sqrt(1 - b * b);
         const v = power * rand(0.35, 1);
-        this.glow.spawn(point.x, point.y, point.z, Math.cos(a) * c * v, b * v + 0.6, Math.sin(a) * c * v, size * rand(0.6, 1.3), life * rand(0.6, 1.2), tint, 3);
+        this.glow.spawn(point.x, point.y, point.z, Math.cos(a) * c * v, b * v + 0.6, Math.sin(a) * c * v, size * (shape ? 1.5 : 1) * rand(0.6, 1.3), life * rand(0.6, 1.2), tint, 3, 0, shape);
       }
     }
 
@@ -1024,7 +1034,8 @@ const Stage3D = (() => {
       if (showTarget) {
         this.targetRing.position.x += (target.root.position.x - this.targetRing.position.x) * Math.min(1, dt * 16);
         this.targetRing.position.z += (target.root.position.z - this.targetRing.position.z) * Math.min(1, dt * 16);
-        const ringScale = (target.height > 1.5 ? 1 : 1.25) * target.scale;
+        // The ring fits the fighter standing in it: a small imp gets a small ring, a golem a wide one.
+        const ringScale = Math.max(0.6, Math.min(1.3, target.height * target.scale * 0.5));
         this.targetRing.scale.setScalar(ringScale);
         this.targetRing.material.uniforms.time.value = this.time;
         this.targetRing.material.uniforms.power.value = alive.length > 1 ? 1 : 0.45;
@@ -1035,7 +1046,7 @@ const Stage3D = (() => {
         this.hoverRing.position.x = hover.root.position.x;
         this.hoverRing.position.z = hover.root.position.z;
         this.hoverRing.material.uniforms.time.value = this.time;
-        this.hoverRing.scale.setScalar((hover.height > 1.5 ? 1 : 1.25) * hover.scale);
+        this.hoverRing.scale.setScalar(Math.max(0.6, Math.min(1.3, hover.height * hover.scale * 0.5)));
       }
       Object.values(this.units).forEach((unit) => {
         const statusGlow = unit.statusRim ? 0.85 + Math.sin(this.time * 4) * 0.25 : 0;
