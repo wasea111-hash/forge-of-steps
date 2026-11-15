@@ -881,6 +881,8 @@ const Stage3D = (() => {
     syncStatus(snap) {
       const apply = (unit, effects) => {
         if (!unit) return;
+        // A fallen fighter carries no lasting sign: its shield, mark, ice and colour go with it.
+        if (unit.alive === false) effects = [];
         unit.status = (effects || []).map((effect) => effect.id).filter((id) => STATUS_FX[id]);
         const hasShield = (effects || []).some((effect) => effect.id === "shield");
         if (hasShield && !unit.bubble) {
@@ -912,6 +914,7 @@ const Stage3D = (() => {
       };
       apply(this.hero, snap.hero.effects);
       (snap.foes || []).forEach((entry) => apply(this.units[`foe${entry.slot}`], entry.effects));
+      if (this.ally && snap.ally) apply(this.ally, snap.ally.down ? [] : snap.ally.effects);
       const hidden = (snap.hero.gauges || []).some((gauge) => gauge.id === "core_assassin" && gauge.value >= 1);
       this.hero.setGhost(hidden ? 0.62 : 0);
     }
@@ -1049,9 +1052,13 @@ const Stage3D = (() => {
         el.style.transform = `translate(${x - w / 2}px, ${yFoot - h}px)`;
         const wrap = el.querySelector(".sprite-wrap");
         if (wrap) { wrap.style.width = `${w}px`; wrap.style.height = `${h}px`; }
-        if (unit.side !== "hero") {
+        // Only enemies have plates; the companion stands with the hero.
+        if (unit.side === "foe") {
           const plateEl = document.getElementById(`foePlate${unit.slot}`);
-          plates.push({ slot: unit.slot, x: clamp(x - 86, 6, this.width - 178), y: Math.max(112, yHead - (plateEl?.offsetHeight || 72) - 6), h: plateEl?.offsetHeight || 72, anchorX: x - w / 2, anchorY: yFoot - h });
+          const intentEl = document.getElementById(`intent${unit.slot}`);
+          const ih = intentEl?.classList.contains("show") ? intentEl.offsetHeight + 4 : 0;
+          const iw = intentEl?.classList.contains("show") ? intentEl.offsetWidth : 0;
+          plates.push({ slot: unit.slot, x: clamp(x - 86, 6, this.width - 178), y: Math.max(112, yHead - (plateEl?.offsetHeight || 72) - 6), h: plateEl?.offsetHeight || 72, ih, w: Math.max(178, iw), anchorX: x - w / 2, anchorY: yFoot - h });
         }
       };
       place("fHero", this.hero);
@@ -1066,8 +1073,10 @@ const Stage3D = (() => {
           for (let j = 0; j < i; j += 1) {
             const a = plates[j];
             const b = plates[i];
-            if (a.y + a.h + 34 <= b.y || b.y + b.h + 34 <= a.y || b.x - a.x >= plateWidth) continue;
-            const push = (plateWidth - (b.x - a.x)) / 2;
+            // A plate and the intent above it are one block: neither may cover the neighbour's.
+            const need = (a.w + b.w) / 2;
+            if (a.y + a.h + 34 <= b.y - b.ih || b.y + b.h + 34 <= a.y - a.ih || b.x - a.x >= need) continue;
+            const push = (need - (b.x - a.x)) / 2;
             a.x -= push;
             b.x += push;
           }
@@ -1208,6 +1217,18 @@ const Stage3D = (() => {
   // A hidden tab stops animation frames. The fight keeps its pace, so its events never wait forever.
   setInterval(() => { if (performance.now() - lastTick > 200) tick(false, 0.25); }, 100);
 
+  // Leaving the fight: running effects finish at once (so nothing waits on them), the scene is freed, nothing keeps it alive.
+  function unmount() {
+    if (!stage) return;
+    const items = stage.fxItems || [];
+    stage.fxItems = [];
+    items.forEach((item) => { try { item.end?.(); } catch (error) { /* already gone */ } });
+    stage.dispose();
+    renderer?.domElement?.remove();
+    stage = null;
+    window.__stage = null;
+  }
+
   function mount(host, battle, regionId, mood) {
     initRenderer();
     const box = host.getBoundingClientRect();
@@ -1223,7 +1244,7 @@ const Stage3D = (() => {
     return stage;
   }
 
-  return { preload, supports, mount, IMPACT, ELEMENT, FPS, paintedFight, wait, get memory() { return renderer?.info.memory; }, get current() { return stage; }, get isReady() { return ready; } };
+  return { preload, supports, mount, unmount, IMPACT, ELEMENT, FPS, paintedFight, wait, get memory() { return renderer?.info.memory; }, get current() { return stage; }, get isReady() { return ready; } };
 })();
 
 Stage3D.preload();

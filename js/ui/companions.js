@@ -231,7 +231,8 @@ const MEETING_TITLES = { infirmary: "У нового лазарета", crossing
 // The first companion: after the Thicket's guardian, once the story has had its say.
 function maybeMeetCompanion() {
   const hero = App.hero;
-  // A meeting waits while a place is open: it never interrupts a purchase or a choice in the tree.
+  // A meeting waits while a place is open, and after a death until the player does something.
+  if (App.quiet) return;
   if (App.tab && !["camp", "trail"].includes(App.tab)) return;
   if (!hero || App.screen !== "hub" || hero.expedition || StoryPlayer.active || (hero.story?.queue || []).length || document.querySelector(".modal-layer, .story-layer, .memory-loss")) return;
   const def = getPendingMeeting(hero);
@@ -256,12 +257,13 @@ Actions.meetCompanion = (el) => {
 };
 
 // The thread is torn: the person is gone, and so is the name.
-function showCompanionForgotten() {
+function showCompanionForgotten(done = null) {
   const layer = document.createElement("div");
   layer.className = "memory-loss forgotten";
   layer.innerHTML = `<small>Нить попутчика рвётся</small><p>Имя держится на языке.</p><p class="sub">Клеймо остывает. Ты уже не знаешь, что хочешь сказать.</p>`;
   document.body.appendChild(layer);
-  const finish = () => { layer.classList.add("out"); setTimeout(() => layer.remove(), 420); };
+  let finished = false;
+  const finish = () => { if (finished) return; finished = true; layer.classList.add("out"); setTimeout(() => { layer.remove(); done?.(); }, 420); };
   setTimeout(finish, 4200);
   layer.addEventListener("click", finish);
 }

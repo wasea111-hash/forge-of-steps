@@ -16,6 +16,7 @@ function persist() {
 }
 
 function setScreen(name, patch = {}) {
+  if (App.screen === "battle" && name !== "battle" && typeof disposeBattleStage === "function") disposeBattleStage();
   Object.assign(App, patch, { screen: name });
   hideTooltip();
   render();
@@ -79,6 +80,8 @@ window.addEventListener("resize", () => {
 
 document.addEventListener("click", (event) => {
   const el = event.target.closest("[data-action]");
+  // The quiet after a death ends with the player's own next step, not with closing the report.
+  if (el && App.quiet && !["closeModal", "resultContinue"].includes(el.dataset.action)) App.quiet = false;
   if (!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
   const handler = Actions[el.dataset.action];
   if (handler) {

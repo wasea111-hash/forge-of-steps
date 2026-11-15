@@ -156,20 +156,38 @@ Actions.retreat = async () => {
 };
 
 function showExpeditionSummary(summary) {
-  if (summary.townRaised?.length) setTimeout(() => toast(`Достроено у лагеря: ${summary.townRaised.join(", ")}.`, "good"), 900);
+  const died = summary.outcome === "death";
+  if (summary.townRaised?.length && !died) setTimeout(() => toast(`Достроено у лагеря: ${summary.townRaised.join(", ")}.`, "good"), 900);
   persist();
   App.eventState = null;
-  App.tab = "trail";
+  App.tab = died ? "camp" : "trail";
   setScreen("hub");
   const zone = { name: summary.lairName || ZONES[summary.zoneKey].name };
-  const titles = { complete: "Поход завершён!", retreat: "Ты вернулся в лагерь", death: "Ты пал на тропе" };
+  const titles = { complete: "Поход завершён!", retreat: "Возвращение в лагерь", death: "Клеймо вернуло тебя" };
+  const lost = [summary.lostItems ? `находок: ${summary.lostItems}` : "", summary.lostGold ? `золота: ${summary.lostGold}` : ""].filter(Boolean);
+  const chips = [summary.gold ? `<span class="chip gold">${icon("gold")}+${summary.gold}</span>` : "", summary.completionBonus ? `<span class="chip accent">Награда за поход: ${summary.completionBonus}</span>` : "", summary.exp ? `<span class="chip">Опыт +${summary.exp}</span>` : "", summary.shards ? `<span class="chip shard">${icon("shard")}+${summary.shards}</span>` : "", resourceChips(summary.resources)].join("");
   SFX.play(summary.outcome === "death" ? "lose" : "win");
   openModal(`<span class="eyebrow">${esc(zone.name)}</span><h2>${titles[summary.outcome]}</h2>
-    ${summary.outcome === "death" ? `<p class="muted">Клеймо собрало тебя в лагере. Утрачено предметов: ${summary.lostItems}, золота: ${summary.lostGold}.${summary.keptWorn ? ` Надетые находки остались с тобой: ${summary.keptWorn}.` : ""} Опыт тоже остаётся.</p>` : ""}
-    <div class="reward-line"><span class="chip gold">${icon("gold")}+${summary.gold}</span>${summary.completionBonus ? `<span class="chip accent">Награда за поход: ${summary.completionBonus}</span>` : ""}<span class="chip">Опыт +${summary.exp}</span>${summary.shards ? `<span class="chip shard">${icon("shard")}+${summary.shards}</span>` : ""}${resourceChips(summary.resources)}</div>
+    ${died ? `<p class="muted">${lost.length ? `На тропе осталось — ${lost.join(", ")}.` : "На тропе не осталось ничего ценного."}${summary.keptWorn ? ` Надетые находки остались с тобой: ${summary.keptWorn}.` : ""} Опыт остаётся с тобой.${summary.townRaised?.length ? ` Пока тебя не было, у лагеря достроили: ${summary.townRaised.join(", ")}.` : ""}</p>` : ""}
+    ${chips ? `<div class="reward-line">${died ? `<small class="muted">Удалось сохранить:</small>` : ""}${chips}</div>` : ""}
     ${summary.items.length ? `<div class="reward-items">${summary.items.map((item) => `<div class="reward-item rarity-${item.rarity}">${itemIcon(item)}<span class="rarity-text-${item.rarity}">${esc(getItemDisplayName(item))}</span></div>`).join("")}</div>` : ""}
     ${summary.soldItems ? `<p class="muted small">Рюкзак был полон: ${summary.soldItems} предм. продано за ${summary.soldGold} золота.</p>` : ""}
-    <div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>К лагерю</button></div>`);
+    <div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>${died ? "К костру" : "К лагерю"}</button></div>`);
+}
+
+// The order of a death: the camp under Nima's awning, then the lost feeling, then a torn companion thread, then the report.
+// Meetings and building news keep quiet until the player does something.
+function returnToCamp(hero, lostBefore, allyResult, done) {
+  App.quiet = true;
+  App.eventState = null;
+  App.tab = "camp";
+  App.fireOpen = false;
+  disposeBattleStage();
+  setScreen("hub");
+  afterMemoryLoss(hero, lostBefore, () => {
+    if (!allyResult?.forgotten) { done(); return; }
+    showCompanionForgotten(done);
+  });
 }
 
 Actions.startGuardian = (el) => {
@@ -186,6 +204,12 @@ Actions.startGuardian = (el) => {
 };
 
 // --- Battle ---
+// The stage of a finished fight is let go as soon as the player leaves it.
+function disposeBattleStage() {
+  if (App.stage || Stage3D.current) Stage3D.unmount();
+  App.stage = null;
+}
+
 function beginFight(enemy, fight) {
   const hero = App.hero;
   const exp = hero.expedition;
@@ -985,7 +1009,8 @@ function onBattleOver() {
   const won = battle.over === "hero";
   // What the fight did to the companion: a fall, a reset streak, or the thread torn for good.
   const allyResult = settleCompanionBattle(hero, battle);
-  if (allyResult?.forgotten) showCompanionForgotten();
+  if (allyResult?.forgotten && won) showCompanionForgotten();
+  else if (!won) { /* told in the return sequence below */ }
   else if (allyResult?.ready?.length) toast(`${allyResult.name} может освоить: ${allyResult.ready.join(", ")}. Загляни в «Спутники».`, "good");
   else if (allyResult?.fell) toast(`${allyResult.name} падает. Подряд: ${allyResult.streak} из ${COMPANION_FALLS_TO_FORGET}.`, "warn");
   hero.records.maxHit = Math.max(Number(hero.records.maxHit || 0), battle.stats.maxHit);
@@ -1000,13 +1025,14 @@ function onBattleOver() {
       noteCampTrip(hero, { outcome: "death", kind: "guardian", guardian: enemy.defId });
       persist();
       SFX.play("lose");
-      afterMemoryLoss(hero, lostBefore, () => openResultCard({ title: "Страж устоял", text: `${enemy.name} оказался сильнее. Клеймо вернуло тебя в лагерь, а вещи целы. Укрепись и возвращайся.`, buttonLabel: "К лагерю", onContinue: () => { App.tab = "trail"; setScreen("hub"); } }));
+      returnToCamp(hero, lostBefore, allyResult, () => openResultCard({ title: "Страж устоял", text: `${enemy.name} оказался сильнее. Клеймо вернуло тебя в лагерь, а вещи целы. Укрепись и возвращайся.`, buttonLabel: "К костру", onContinue: () => { App.tab = "camp"; render(); } }));
       return;
     }
     hero.currentHp = 1;
     const lostBefore = getLostMemories(hero).length;
     const summary = finishExpedition(hero, hero.expedition, "death");
-    afterMemoryLoss(hero, lostBefore, () => showExpeditionSummary(summary));
+    persist();
+    returnToCamp(hero, lostBefore, allyResult, () => showExpeditionSummary(summary));
     return;
   }
 

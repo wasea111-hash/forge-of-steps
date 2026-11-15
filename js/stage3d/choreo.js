@@ -242,7 +242,7 @@ async function stageAction(stage, ev) {
     const direction = target.root.position.clone().sub(actor.root.position).setY(0).normalize();
     const spot = target.root.position.clone().sub(direction.multiplyScalar(2.2));
     actor.play(plan.clip, { fade: 0.06, then: null });
-    actor.moveTo(spot, impactDelay / speedOf());
+    actor.moveTo(spot, impactDelay);
     await Stage3D.wait(impactDelay);
     returnHome(stage, actor, 0.5);
     return;
@@ -291,10 +291,10 @@ async function stageAction(stage, ev) {
       await Stage3D.wait(0.3);
     } else if (plan.shot === "arrow") {
       const shots = plan.volley || 1;
-      for (let i = 0; i < shots - 1; i += 1) { stage.arrow(from, target.chest(), tint === "#ffffff" ? "#fff2c8" : tint, 0.16 / speedOf()); await Stage3D.wait(0.05); }
-      await stage.arrow(from, target.chest(), tint === "#ffffff" ? "#fff2c8" : tint, (plan.big ? 0.14 : 0.18) / speedOf());
+      for (let i = 0; i < shots - 1; i += 1) { stage.arrow(from, target.chest(), tint === "#ffffff" ? "#fff2c8" : tint, 0.16); await Stage3D.wait(0.05); }
+      await stage.arrow(from, target.chest(), tint === "#ffffff" ? "#fff2c8" : tint, plan.big ? 0.14 : 0.18);
     } else {
-      await stage.projectile(from, target.chest(), tint, (plan.big ? 0.34 : 0.22) / speedOf(), plan.big ? 0.26 : plan.shot === "knife" ? 0.07 : 0.13);
+      await stage.projectile(from, target.chest(), tint, plan.big ? 0.34 : 0.22, plan.big ? 0.26 : plan.shot === "knife" ? 0.07 : 0.13);
     }
     if (plan.cloud) stage.smoke(target.chest(), "#6f8f3a", 26, 0.55);
   }
@@ -304,9 +304,8 @@ function speedOf() {
   return Number(App.save.settings.battleSpeed || 1);
 }
 
-// Moves a fighter to a spot in the style of the skill.
+// Moves a fighter to a spot in the style of the skill. Durations are in stage seconds: the stage clock already runs at the fight speed.
 async function travel(stage, actor, spot, style, tint) {
-  const speed = speedOf();
   const start = actor.root.position.clone();
   const distance = start.distanceTo(spot);
   const groundFx = (hex, count) => stage.smoke(new THREE.Vector3(start.x, 0.15, start.z), hex, count, 0.4);
@@ -330,7 +329,7 @@ async function travel(stage, actor, spot, style, tint) {
   if (style === "leap") {
     actor.play(actor.reachOf ? "leap" : "run", { loop: true, fade: 0.05 });
     const height = 1.1 + distance * 0.2;
-    const seconds = Math.min(0.5, 0.22 + distance * 0.05) / speed;
+    const seconds = Math.min(0.5, 0.22 + distance * 0.05);
     groundFx("#8a7a64", 8);
     SFX.play("swing_heavy", { gain: 0.6, rate: [0.7, 0.85] });
     await new Promise((resolve) => {
@@ -346,7 +345,7 @@ async function travel(stage, actor, spot, style, tint) {
   if (style === "dash" || style === "charge") {
     const heavy = style === "charge";
     actor.play("run", { loop: true, fade: 0.04 });
-    const seconds = (heavy ? Math.min(0.34, 0.12 + distance * 0.04) : Math.min(0.2, 0.07 + distance * 0.022)) / speed;
+    const seconds = heavy ? Math.min(0.34, 0.12 + distance * 0.04) : Math.min(0.2, 0.07 + distance * 0.022);
     const glow = tint === "#ffffff" ? "#ffe0b0" : tint;
     groundFx(heavy ? "#5a4e42" : "#5e564e", heavy ? 7 : 3);
     const copies = heavy ? 3 : 4;
@@ -359,7 +358,7 @@ async function travel(stage, actor, spot, style, tint) {
   actor.play("run", { loop: true, fade: 0.06 });
   SFX.play("step");
   SFX.play("step", { delay: 0.14 });
-  await actor.moveTo(spot, Math.min(0.42, 0.1 + distance * 0.055) / speed);
+  await actor.moveTo(spot, Math.min(0.42, 0.1 + distance * 0.055));
 }
 
 // A self skill with footwork: a hop back, or a vanish on the spot.
@@ -660,6 +659,7 @@ async function stagePlayEvent(stage, ev, color) {
         unit.alive = false;
         unit.returnToken = (unit.returnToken || 0) + 1;
         unit.status = [];
+        if (App.battle) stage.syncStatus(snapshotBattle(App.battle));
         unit.setGhost(0);
         unit.play("death", { fade: 0.05, then: null });
         stage.burst(unit.chest(), "#ffe2b0", 22, 2.6, 0.1, 0.7);

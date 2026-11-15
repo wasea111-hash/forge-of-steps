@@ -40,7 +40,7 @@ function campScene(hero) {
   const sprite = companion && typeof FORGE_SPRITES !== "undefined" && FORGE_SPRITES[companion.defId] ? `assets/sprites/${companion.defId}/idle.webp` : null;
   const people = Object.entries(CAMP_PEOPLE_AT).filter(([id]) => (hero.story?.seen || []).some((sceneId) => (STORY_SCENES[sceneId]?.lines || []).some((line) => line.who === id)));
   return `<div class="camp-stage" id="campStage">
-    <div class="camp-world hour-${campHour(hero)}" style="--ar:${CAMP_AR}">
+    <div class="camp-world camp-hour-${campHour(hero)}" style="--ar:${CAMP_AR}">
       <img class="camp-bg" src="assets/camp/${campPanorama(hero)}.webp" alt="" draggable="false">
       ${CAMP_LIGHTS.map((light, i) => `<i class="camp-light ${light.k}" style="left:${light.x}%;top:${light.y}%;--r:${light.r};--d:${(i * 0.7).toFixed(1)}s" aria-hidden="true"></i>`).join("")}
       <i class="camp-smoke fire" style="left:44%;top:56%" aria-hidden="true"></i><i class="camp-smoke chimney" style="left:91.3%;top:30%" aria-hidden="true"></i>

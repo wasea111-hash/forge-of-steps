@@ -790,13 +790,13 @@ button.build-summary { cursor: pointer; }
 .camp-smoke.chimney { width: 4%; height: 20%; }
 @keyframes campSmoke { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(30%, -190%) scale(1.8); opacity: 0; } }
 .camp-world::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s; }
-.hour-morning .camp-bg { filter: brightness(1.07) saturate(calc(1.04 - var(--lost, 0) * .07)) hue-rotate(-8deg); }
-.hour-morning::after { opacity: .35; background: linear-gradient(180deg, rgba(255, 190, 150, .45), transparent 55%); mix-blend-mode: soft-light; }
-.hour-day .camp-bg { filter: brightness(1.16) saturate(calc(1.08 - var(--lost, 0) * .07)) contrast(1.02); }
-.hour-day .camp-light { opacity: .45; }
-.hour-night .camp-bg, .hour-night .camp-person { filter: brightness(.6) saturate(calc(.78 - var(--lost, 0) * .05)) hue-rotate(10deg) drop-shadow(0 8px 6px rgba(0, 0, 0, .55)); }
-.hour-night::after { opacity: 1; background: radial-gradient(ellipse at 44% 68%, transparent 18%, rgba(14, 22, 60, .35) 60%); }
-.hour-night .camp-light { filter: brightness(1.35); }
+.camp-hour-morning .camp-bg { filter: brightness(1.07) saturate(calc(1.04 - var(--lost, 0) * .07)) hue-rotate(-8deg); }
+.camp-hour-morning::after { opacity: .35; background: linear-gradient(180deg, rgba(255, 190, 150, .45), transparent 55%); mix-blend-mode: soft-light; }
+.camp-hour-day .camp-bg { filter: brightness(1.16) saturate(calc(1.08 - var(--lost, 0) * .07)) contrast(1.02); }
+.camp-hour-day .camp-light { opacity: .45; }
+.camp-hour-night .camp-bg, .camp-hour-night .camp-person { filter: brightness(.6) saturate(calc(.78 - var(--lost, 0) * .05)) hue-rotate(10deg) drop-shadow(0 8px 6px rgba(0, 0, 0, .55)); }
+.camp-hour-night::after { opacity: 1; background: radial-gradient(ellipse at 44% 68%, transparent 18%, rgba(14, 22, 60, .35) 60%); }
+.camp-hour-night .camp-light { filter: brightness(1.35); }
 .camp-sparks { z-index: 2; }
 /* Places */
 .camp-place { position: absolute; z-index: 3; transform: translate(-50%, -50%); padding: 0; border: 0; border-radius: 40%; background: transparent; cursor: pointer; }
@@ -883,7 +883,7 @@ button.build-summary { cursor: pointer; }
 .camp-building { position: absolute; z-index: 1; height: calc(var(--h) * 1%); transform: translate(-50%, -100%); filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .5)) saturate(calc(1 - var(--lost, 0) * .06)); transition: opacity .6s; cursor: help; animation: townRise .8s ease-out; }
 .camp-building.rising { opacity: .9; }
 .camp-building.dark { filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .5)) drop-shadow(0 0 10px rgba(160, 30, 30, .35)); }
-.hour-night .camp-building { filter: brightness(.65) saturate(.8) drop-shadow(0 6px 6px rgba(0, 0, 0, .5)); }
+.camp-hour-night .camp-building { filter: brightness(.65) saturate(.8) drop-shadow(0 6px 6px rgba(0, 0, 0, .5)); }
 @keyframes townRise { from { opacity: 0; transform: translate(-50%, -96%); } to { opacity: 1; transform: translate(-50%, -100%); } }
 .town-offer { max-width: 640px; }
 .town-btn { margin-right: 10px; flex: none; animation: campFlicker 2s infinite; }
@@ -894,7 +894,7 @@ button.build-summary { cursor: pointer; }
 
 .town-name { position: absolute; z-index: 19; top: 82px; left: 50%; transform: translateX(-50%); padding: 3px 16px; border-radius: 999px; background: rgba(12, 9, 8, .6); border: 1px solid rgba(255, 196, 110, .3); color: #ffd8a8; font-family: var(--font-head, inherit); letter-spacing: .08em; font-size: .95rem; backdrop-filter: blur(4px); white-space: nowrap; }
 .camp-light.town-window { z-index: 1; opacity: .45; }
-.hour-dusk .camp-light.town-window, .hour-night .camp-light.town-window { opacity: 1; }
+.camp-hour-dusk .camp-light.town-window, .camp-hour-night .camp-light.town-window { opacity: 1; }
 @media (max-width: 820px) { .town-name { top: auto; bottom: 74px; font-size: .8rem; } }
 
 /* 3.1: what a death costs, said before the road */
