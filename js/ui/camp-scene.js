@@ -4,24 +4,25 @@ const CAMP_AR = 2560 / 1441;
 
 // Where each place is on the panorama (percent of width and height) and what it opens.
 const CAMP_PLACES = [
-  { id: "shop", tab: "shop", name: "Лавка Мота", hint: "Снаряжение, зелья, материалы, умения", x: 9, y: 52, w: 18, h: 34 },
-  { id: "journal", tab: "journal", name: "Палатка Соты", hint: "Журнал, главы, свидетельства", x: 25, y: 45, w: 12, h: 26 },
-  { id: "news", tab: "news", name: "Доска объявлений", hint: "Новости обновлений", x: 34, y: 47, w: 6, h: 15 },
-  { id: "fire", tab: null, name: "Костёр", hint: "Поговорить с лагерем", x: 44, y: 69, w: 13, h: 15 },
-  { id: "trail", tab: "trail", name: "Стол Веи", hint: "Карта, регионы и тропы", x: 52, y: 49, w: 11, h: 14 },
-  { id: "lairs", tab: "lairs", name: "Камень логов", hint: "Логова и их хозяева", x: 71, y: 28, w: 8, h: 16 },
-  { id: "companions", tab: "companions", name: "Палатки спутников", hint: "Спутники, приёмы, построение", x: 43, y: 29, w: 33, h: 12 },
-  { id: "healer", tab: "shop", shopTab: "potions", name: "Навес Нимы", hint: "Зелья и лечение", x: 72, y: 50, w: 16, h: 26 },
-  { id: "forge", tab: "forge", name: "Кузница Керна", hint: "Заточка, перековка, реликвии", x: 89, y: 55, w: 21, h: 40 },
-  { id: "hero", tab: "hero", name: "Твоё место", hint: "Лист героя, снаряжение, рюкзак", x: 13, y: 85, w: 17, h: 20 },
-  { id: "skills", tab: "skills", name: "Тренировочный столб", hint: "Навыки и таланты", x: 24, y: 76, w: 7, h: 24 }
+  { id: "shop", tab: "shop", name: "Лавка Мота", hint: "Снаряжение, зелья, материалы, умения", x: 9, y: 52, w: 18, h: 34, sx: 6, sy: 73 },
+  { id: "journal", tab: "journal", name: "Палатка Соты", hint: "Журнал, главы, свидетельства", x: 25, y: 45, w: 12, h: 26, sx: 23, sy: 38 },
+  { id: "news", tab: "news", name: "Доска объявлений", hint: "Новости обновлений", x: 34, y: 47, w: 6, h: 15, sx: 38.5, sy: 52 },
+  { id: "fire", tab: null, name: "Костёр", hint: "Поговорить с лагерем", x: 44, y: 69, w: 13, h: 15, sx: 44, sy: 79 },
+  { id: "trail", tab: "trail", name: "Стол Веи", hint: "Карта, регионы и тропы", x: 52, y: 49, w: 11, h: 14, sx: 50, sy: 56 },
+  { id: "lairs", tab: "lairs", name: "Камень логов", hint: "Логова и их хозяева", x: 71, y: 28, w: 8, h: 16, sx: 71.5, sy: 33 },
+  { id: "companions", tab: "companions", name: "Палатки спутников", hint: "Спутники, приёмы, построение", x: 43, y: 29, w: 33, h: 12, sx: 47, sy: 22 },
+  { id: "healer", tab: "shop", shopTab: "potions", name: "Навес Нимы", hint: "Зелья и лечение", x: 72, y: 50, w: 16, h: 26, sx: 77, sy: 57 },
+  { id: "forge", tab: "forge", name: "Кузница Керна", hint: "Заточка, перековка, реликвии", x: 89, y: 55, w: 21, h: 40, sx: 93, sy: 64 },
+  { id: "hero", tab: "hero", name: "Твоё место", hint: "Лист героя, снаряжение, рюкзак", x: 13, y: 85, w: 17, h: 20, sx: 11, sy: 93 },
+  { id: "skills", tab: "skills", name: "Тренировочный столб", hint: "Навыки и таланты", x: 24, y: 76, w: 7, h: 24, sx: 25, sy: 89 }
 ];
 // The town is a place too: its sign stands on the slope where the settlement grows.
-const TOWN_PLACE = { id: "town", tab: "town", hint: "Постройки и решения города", x: 62, y: 17, w: 30, h: 15 };
+const TOWN_PLACE = { id: "town", tab: "town", hint: "Постройки и решения города", x: 62, y: 17, w: 30, h: 15, sx: 61, sy: 9 };
 function campPlaces(hero) {
   return storyHasFlag(hero, "bridge_decided") ? [...CAMP_PLACES, { ...TOWN_PLACE, name: townStage(hero).name }] : CAMP_PLACES;
 }
 
+// Every place has its own sign point (sx, sy): on the thing itself, never over a face.
 // The people of the camp, standing at their work: foot point and height in percent of the scene.
 const CAMP_PEOPLE_AT = { mot: { x: 17, y: 71, h: 30 }, sota: { x: 30.5, y: 61, h: 24 }, veya: { x: 59.5, y: 57, h: 22 }, nima: { x: 66, y: 63, h: 25 }, kern: { x: 80.5, y: 76, h: 32 } };
 const CAMP_LIGHTS = [{ x: 44, y: 68, r: 22, k: "fire" }, { x: 5.3, y: 47, r: 6, k: "lamp" }, { x: 23.5, y: 41, r: 5, k: "lamp" }, { x: 57.5, y: 37, r: 6, k: "lamp" }, { x: 92, y: 62, r: 12, k: "forge" }];
@@ -52,9 +53,13 @@ function campScene(hero) {
         const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
         const count = place.id === "town" ? (getTownOffer(hero) ? "!" : 0) : place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
         return `<button class="camp-place${place.x > 80 ? " edge-right" : place.x < 18 ? " edge-left" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.x}%;top:${place.y}%;width:${place.w}%;height:${place.h}%" aria-label="${esc(place.name)}" ${locked ? 'aria-disabled="true"' : ""}>
-          <span class="place-label${count ? " waiting" : ""}"><b>${esc(place.name)}${count ? `<i class="dot">${count}</i>` : ""}</b><small>${esc(locked ? "Недоступно в походе" : place.hint)}</small></span>
         </button>`;
       }).join("")}
+      <div class="camp-signs">${campPlaces(hero).map((place) => {
+        const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
+        const count = place.id === "town" ? (getTownOffer(hero) ? "!" : 0) : place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
+        return `<button class="camp-sign${count ? " waiting" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.sx}%;top:${place.sy}%" ${locked ? 'aria-disabled="true"' : ""} tabindex="-1"><b>${esc(place.name)}${count ? `<i class="dot">${count}</i>` : ""}</b><small>${esc(locked ? "Недоступно в походе" : place.hint)}</small></button>`;
+      }).join("")}</div>
     </div>
   </div>`;
 }
@@ -167,6 +172,15 @@ function fitCampPlaces(stage) {
   const W = world.offsetWidth;
   const worldLeft = (vw - W) / 2;
   const places = campPlaces(App.hero);
+  stage.querySelectorAll(".camp-sign").forEach((el) => {
+    el.style.marginLeft = "";
+    const place = places.find((p) => p.id === el.dataset.place);
+    if (!place) return;
+    const center = worldLeft + W * place.sx / 100;
+    const half = el.offsetWidth / 2;
+    const shift = Math.max(0, 8 - (center - half)) - Math.max(0, center + half - (vw - 8));
+    if (shift) el.style.marginLeft = `${shift}px`;
+  });
   stage.querySelectorAll(".camp-place").forEach((el) => {
     el.style.marginLeft = "";
     el.style.width = "";

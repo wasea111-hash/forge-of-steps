@@ -1135,3 +1135,18 @@ body { background: var(--iron-0); }
 .tree-head.shut .tree-face, .tree-form.shut { filter: grayscale(.4) brightness(.78) !important; }
 .tree-node.shut > :first-child { filter: grayscale(.35) brightness(.82) !important; }
 .tree-node.foreign > :first-child { filter: grayscale(1) brightness(.5) !important; opacity: .8; }
+
+/* 4.1 signs: their own layer, on the thing itself, never over a face */
+.camp-signs { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.camp-sign { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; display: flex; flex-direction: column; align-items: center; padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(214, 160, 90, .5); background: linear-gradient(180deg, rgba(64, 42, 24, .88), rgba(34, 23, 14, .9)); color: #ffd8a8; box-shadow: 0 2px 8px rgba(0, 0, 0, .45); cursor: pointer; white-space: nowrap; opacity: .92; transition: opacity .15s, border-color .15s; }
+.camp-sign b { display: inline-flex; align-items: center; gap: 6px; font: 700 .82rem/1.2 var(--font-body); }
+.camp-sign small { max-height: 0; overflow: hidden; opacity: 0; color: #c9b493; font-size: .72rem; transition: max-height .15s, opacity .15s; }
+.camp-sign:hover, .camp-sign.open { opacity: 1; border-color: rgba(255, 200, 120, .9); z-index: 2; }
+.camp-sign:hover small { max-height: 2em; opacity: 1; }
+.camp-sign.waiting { border-color: rgba(255, 190, 90, .95); box-shadow: 0 0 14px rgba(255, 170, 70, .45); }
+.camp-sign.locked { opacity: .55; }
+.camp-sign .dot { position: static; }
+.hub.camp-mode .camp-place .place-label { display: none !important; }
+.has-drawer .camp-sign { opacity: 0; pointer-events: none; }
+.has-drawer .camp-sign.open { opacity: 1; }
+@media (max-width: 820px) { .camp-sign b { font-size: .72rem; } .camp-sign { padding: 2px 7px; } }
