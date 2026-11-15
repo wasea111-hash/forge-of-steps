@@ -99,19 +99,21 @@ const Stage3D = (() => {
   function paintedFight(battle) {
     return StageSprites.has(battle.hero.classKey) && battle.foes.every((foe) => StageSprites.has(foe.defId)) && (!battle.ally || StageSprites.has(battle.ally.defId));
   }
-  // How each layer of a location is lit. Farther layers sink into the haze, the near fringe is dark.
+  // How each layer of a location is lit. The paintings carry their own light, so the far layer stays close to white
+  // (these colours become linear multipliers: #c4a898 would already halve the picture). Depth comes from a gently darker
+  // middle and a darker, never black, near fringe.
   const SCENE_LOOK = {
-    thicket: { far: "#c8c4b0", mid: "#86806a", fore: "#39402c", ground: "#c8bca0", haze: "#6c6a4c" },
-    ashlands: { far: "#c4a898", mid: "#8a6c5c", fore: "#3a2a24", ground: "#c8aa98", haze: "#6c3f2c" },
-    ruins: { far: "#a8b8cc", mid: "#7c8ca0", fore: "#2a3440", ground: "#a8b4c4", haze: "#3a5068" },
-    limit: { far: "#c4b4d8", mid: "#8878a8", fore: "#2e2640", ground: "#b4a8cc", haze: "#3c2c60" }
+    thicket: { far: "#fbf8ee", mid: "#e4dfcc", fore: "#9aa082", ground: "#f2e8d0", haze: "#8c8a68" },
+    ashlands: { far: "#fff0e6", mid: "#e8cfc2", fore: "#9c7a6a", ground: "#f4dccb", haze: "#8c5a44" },
+    ruins: { far: "#f0f4fa", mid: "#d2dce8", fore: "#7a8898", ground: "#e4ebf2", haze: "#5a7088" },
+    limit: { far: "#f6eefc", mid: "#dcd2ee", fore: "#80769a", ground: "#ece4f6", haze: "#5c4c80" }
   };
   // The light of the hour: a trail starts at dawn and reaches its guardian at dusk; lairs and guardians fight late.
   const DAY = [
-    { at: 0, tint: "#ffcfb0", power: 0.9 },
+    { at: 0, tint: "#ffe0c8", power: 0.96 },
     { at: 0.45, tint: "#ffffff", power: 1 },
-    { at: 0.8, tint: "#ffb27e", power: 0.84 },
-    { at: 1, tint: "#93a2ff", power: 0.62 }
+    { at: 0.8, tint: "#ffcca0", power: 0.92 },
+    { at: 1, tint: "#b8c2ff", power: 0.82 }
   ];
   function dayLight(time) {
     const t = Math.max(0, Math.min(1, Number(time) || 0));
@@ -172,7 +174,7 @@ const Stage3D = (() => {
           vec4 c = texture2D(tDiffuse, vUv);
           vec2 q = vUv - .5;
           float v = smoothstep(.95, .28, length(q * vec2(1.05, 1.2)));
-          c.rgb *= mix(.5, 1., v);
+          c.rgb *= mix(.72, 1., v);
           c.rgb += flash * vec3(1., .86, .7);
           gl_FragColor = c;
         }`
@@ -658,9 +660,9 @@ const Stage3D = (() => {
         fragmentShader: `uniform sampler2D map; uniform vec3 shade; uniform vec3 far; varying vec3 w;
           void main(){ vec3 a = texture2D(map, w.xz * .19).rgb; vec3 b = texture2D(map, w.zx * .067 + .37).rgb; vec3 c = mix(a, b, .35) * shade;
             float pool = smoothstep(9.5, 1.5, length(vec2(w.x * .62, w.z - .3)));
-            c *= mix(.55, 1.2, pool);
+            c *= mix(.85, 1.08, pool);
             float d = smoothstep(-1.5, -7.5, w.z);
-            c = mix(c, far, d * .7);
+            c = mix(c, far, d * .5);
             gl_FragColor = vec4(c, 1. - smoothstep(-6.6, -9.6, w.z)); }`
       }));
       ground.rotation.x = -Math.PI / 2;

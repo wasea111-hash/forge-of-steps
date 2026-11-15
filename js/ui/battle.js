@@ -480,6 +480,11 @@ function syncTurnBanner(battle) {
   document.getElementById("plateAlly")?.classList.toggle("active", who === "ally");
 }
 
+// A name with a long word gets a smaller line on the tile, so the word is never cut.
+function longWord(name) {
+  return String(name).split(/\s+/).some((word) => word.length > 9);
+}
+
 function renderAllyControls() {
   const battle = App.battle;
   const st = battle.allyState;
@@ -497,7 +502,7 @@ function renderAllyControls() {
     const cd = Number(st.cd[id] || 0);
     const cost = res?.percent ? (["iva_transfer", "iva_splash"].includes(id) ? "все" : `${skill.cost}%`) : skill.cost;
     return `<button class="skill-btn ally-skill${check.ok ? "" : " unavailable"}" data-action="allyAct" data-type="skill" data-skill="${id}" data-tip="text|${esc(skill.name)}|${esc(skill.text)}${skill.cd ? ` Перезарядка ${skill.cd}.` : ""}${check.ok ? "" : ` ${esc(check.reason)}`}" ${ready && check.ok ? "" : "disabled"} aria-label="${esc(skill.name)}">
-      <span class="ally-skill-face">${companionSkillIcon(skill)}</span><span class="skill-name">${esc(skill.name)}</span>${skill.cost ? `<span class="skill-cost ally">${cost}</span>` : ""}<kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
+      <span class="ally-skill-face">${companionSkillIcon(skill)}</span><span class="skill-name${longWord(skill.name) ? " long" : ""}">${esc(skill.name)}</span>${skill.cost ? `<span class="skill-cost ally">${cost}</span>` : ""}<kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
   }).join("");
 }
 
@@ -527,7 +532,7 @@ function renderControls() {
     const cost = getSkillResourceCost(skill, hero);
     const isHp = getHeroResourceType(skill, hero) === "hp";
     return `<button class="skill-btn${check.ok ? "" : " unavailable"}" data-action="battleAct" data-type="skill" data-slot="${index}" data-tip="slot|${index}" ${ready && check.ok ? "" : "disabled"} aria-label="${esc(skill.name)}">
-      ${skillIcon(skill)}${skillEffectBadges(skill)}<span class="skill-name">${esc(skill.name)}</span><span class="skill-cost ${isHp ? "hp" : "mp"}">${cost}</span><kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
+      ${skillIcon(skill)}${skillEffectBadges(skill)}<span class="skill-name${longWord(skill.name) ? " long" : ""}">${esc(skill.name)}</span><span class="skill-cost ${isHp ? "hp" : "mp"}">${cost}</span><kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
   }).join("");
 }
 
