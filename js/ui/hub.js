@@ -3,6 +3,7 @@ const HUB_TABS = [
   { id: "trail", name: "Поход", icon: "map" },
   { id: "lairs", name: "Логова", icon: "boss" },
   { id: "hero", name: "Герой", icon: "hero" },
+  { id: "companions", name: "Спутники", icon: "heart" },
   { id: "skills", name: "Навыки", icon: "skills" },
   { id: "talents", name: "Таланты", icon: "talents" },
   { id: "forge", name: "Кузница", icon: "anvil" },
@@ -15,10 +16,10 @@ Screens.hub = () => {
   const hero = App.hero;
   const onTrail = Boolean(hero.expedition);
   if (App.tab === "gear") App.tab = "hero";
-  const tabs = HUB_TABS.filter((tab) => !onTrail || ["hero", "skills", "talents", "journal", "news"].includes(tab.id));
+  const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal", "news"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)));
   if (onTrail && !tabs.some((tab) => tab.id === App.tab)) App.tab = "hero";
   const need = getExperienceForNextLevel(hero.level);
-  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews };
+  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews, companions: viewCompanions };
   return `
   <div class="hub" style="--lost:${getLostMemories(hero).length}">
     <div class="hub-backdrop"><img src="assets/ui/bg_hub.webp" alt=""><span class="camp-flicker" aria-hidden="true"></span><canvas class="fx-canvas" data-fx="campfire"></canvas></div>

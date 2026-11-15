@@ -141,13 +141,33 @@ function stagingForEnemy(art, ev) {
 }
 
 // Runs an action up to its moment of impact. The rest of the clip and the way home play on their own.
+// Which unit an event speaks about: you, your companion, or a foe.
+function stageUnit(stage, side, slot) {
+  if (side === "hero") return stage.hero;
+  if (side === "ally") return stage.ally || stage.hero;
+  return stage.unitFor("foe", slot);
+}
+
+// The companion's blows: its class decides the motion.
+const ALLY_STAGING = {
+  rootshield: { attack: { clip: "bash", melee: true, fx: "impact" }, cast: { clip: "guard", self: true, fx: "guard" } },
+  coalbearer: { attack: { clip: "overhead", melee: true, fx: "impact" }, cast: { clip: "warcry", self: true } },
+  binder: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } },
+  voidcatcher: { attack: { clip: "lunge", melee: true, fx: "thrust" }, cast: { clip: "smoke", self: true } }
+};
+
 async function stageAction(stage, ev) {
   const hero = ev.who === "hero";
-  const actor = hero ? stage.hero : stage.unitFor("foe", ev.foe);
-  const target = hero ? stage.unitFor("foe", ev.foe) : stage.hero;
+  const ally = ev.who === "ally" && stage.ally;
+  const actor = hero ? stage.hero : ally ? stage.ally : stage.unitFor("foe", ev.foe);
+  const target = hero || ally ? stage.unitFor("foe", ev.foe) : ev.aim === "ally" && stage.ally?.alive ? stage.ally : stage.hero;
   if (!actor) return;
   let plan;
-  if (hero) {
+  if (ally) {
+    const set = ALLY_STAGING[stage.battle.ally?.classId] || ALLY_STAGING.rootshield;
+    plan = ev.anim === "cast" ? set.cast : set.attack;
+    if (ev.joint) plan = { ...plan, melee: true, fx: "impact", heavy: true };
+  } else if (hero) {
     const defaults = HERO_DEFAULTS[stage.battle.hero.classKey] || {};
     if (ev.anim === "guard") plan = { clip: "guard", self: true, fx: "guard" };
     else if (ev.anim === "wait") plan = defaults.wait || { clip: "guard", self: true };
@@ -372,7 +392,7 @@ function playReleaseSound(plan, ev, delay) {
 // The sound of a blow landing: what hit, what it hit, and how hard.
 function playImpactSound(stage, ev) {
   const plan = stage.lastPlan || {};
-  const victim = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+  const victim = stageUnit(stage, ev.target, ev.foe);
   const body = ev.target === "hero" ? HERO_BODY[stage.battle.hero.classKey] || "hit_flesh" : FOE_BODY[victim?.foe?.art] || "hit_flesh";
   const elemental = ev.kind === "magic" || plan.direct || (plan.shot && plan.shot !== "arrow" && plan.shot !== "knife");
   if (elemental) {
@@ -403,28 +423,28 @@ function returnHome(stage, actor, delay) {
       if (actor.returnToken !== token) return;
     }
     actor.busy = false;
-    actor.face(new THREE.Vector3(actor.side === "hero" ? 9 : -9, 0, actor.root.position.z), 0.16);
+    actor.face(new THREE.Vector3(actor.side !== "foe" ? 9 : -9, 0, actor.root.position.z), 0.16);
     actor.play("idle", { loop: true, fade: 0.16 });
   }, Math.max(0, delay) * 1000 / speedOf());
 }
 
 // Plays the blow landing: the effect depends on the attack that caused it.
 function stageImpact(stage, ev) {
-  const victim = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+  const victim = stageUnit(stage, ev.target, ev.foe);
   if (!victim) return;
   const plan = stage.lastPlan || {};
   const tint = stage.lastTint && stage.lastTint !== "#ffffff" ? stage.lastTint : Stage3D.ELEMENT[ev.element] || "#ffe2b0";
   const chest = victim.chest();
-  const facing = ev.target === "hero" ? -1 : 1;
+  const facing = ev.target === "enemy" ? 1 : -1;
   const heavy = ev.crit || ev.heavy;
-  victim.flash(ev.target === "hero" ? "#ff6a5a" : "#ffffff", heavy ? 0.7 : 0.4);
+  victim.flash(ev.target !== "enemy" ? "#ff6a5a" : "#ffffff", heavy ? 0.7 : 0.4);
   // A skill with its own staging answers with its own shapes instead of the common slash and spark.
   if (plan.sig) {
     const key = `${stage.lastAction}:${victim.slot}`;
     if (stage.sigDone !== key) {
       stage.sigDone = key;
       SkillSignature.run(stage, plan.sig.impact, stage.lastActor, victim, tint);
-      SkillSignature.react(victim, plan.sig.reaction, ev.target === "hero" ? -1 : 1);
+      SkillSignature.react(victim, plan.sig.reaction, ev.target !== "enemy" ? -1 : 1);
       const weight = SkillSignature.WEIGHTS[plan.sig.weight] || SkillSignature.WEIGHTS.mid;
       stage.shake(weight.shake);
       stage.pause(weight.pause);
@@ -446,7 +466,7 @@ function stageImpact(stage, ev) {
   }
   if (plan.fx === "drop" || heavy) stage.shock(victim.root.position, tint, heavy ? 2.6 : 1.8);
   // In a flurry every further hit lands on another painted blow.
-  const striker = ev.target === "hero" ? stage.unitFor("foe", ev.foe) : stage.hero;
+  const striker = ev.target !== "enemy" ? stage.unitFor("foe", ev.foe) : ev.by === "ally" && stage.ally ? stage.ally : stage.hero;
   if (striker?.nextBlow && plan.melee) {
     if (stage.flurryAction === stage.lastAction) striker.nextBlow();
     stage.flurryAction = stage.lastAction;
@@ -495,9 +515,9 @@ async function stagePlayEvent(stage, ev, color) {
     }
     case "miss": {
       SFX.play("miss");
-      { const dodger = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe); if (dodger?.alive && dodger.reachOf && !dodger.busy) dodger.play("dodge"); }
+      { const dodger = stageUnit(stage, ev.target, ev.foe); if (dodger?.alive && dodger.reachOf && !dodger.busy) dodger.play("dodge"); }
       floater(ev.target, "Мимо", "miss");
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       if (unit && unit.alive && !unit.busy) {
         const side = unit.home.clone();
         side.z += 0.55;
@@ -508,7 +528,7 @@ async function stagePlayEvent(stage, ev, color) {
       return true;
     }
     case "heal": {
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       SFX.play("heal");
       if (unit) { stage.burst(unit.chest(), "#8dff9a", 16, 1.5, 0.11, 0.85); unit.flash("#8dff9a", 0.4); }
       floater(ev.target, `+${ev.amount}`, "heal");
@@ -524,7 +544,7 @@ async function stagePlayEvent(stage, ev, color) {
     }
     case "effect": {
       const def = STATUS_EFFECT_DEFINITIONS[ev.id] || {};
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       const hex = STATUS_COLORS[ev.id] || "#ffffff";
       if (unit) {
         stage.shock(unit.root.position, hex, 1.2, 0.35);
@@ -536,7 +556,7 @@ async function stagePlayEvent(stage, ev, color) {
       return true;
     }
     case "tick": {
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       const hex = STATUS_COLORS[ev.id] || "#ffffff";
       if (unit) {
         stage.burst(unit.chest(), hex, 12, 1.7, 0.1, 0.55);
@@ -549,7 +569,7 @@ async function stagePlayEvent(stage, ev, color) {
       return true;
     }
     case "detonate": {
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       SFX.play("crit");
       SFX.play("fire");
       if (unit) {
@@ -582,7 +602,7 @@ async function stagePlayEvent(stage, ev, color) {
       return true;
     }
     case "stunned": {
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       if (unit && unit.alive) unit.play("stun", { fade: 0.1, then: "idle" });
       floater(ev.target, "Оглушён", "debuff");
       await delayMs(320);
@@ -614,7 +634,7 @@ async function stagePlayEvent(stage, ev, color) {
       return true;
     }
     case "death": {
-      const unit = ev.target === "hero" ? stage.hero : stage.unitFor("foe", ev.foe);
+      const unit = stageUnit(stage, ev.target, ev.foe);
       SFX.play("death");
       if (ev.target !== "hero" && FOE_VOICE[unit?.foe?.art] && FOE_VOICE[unit.foe.art] !== "vo_human") SFX.play(FOE_VOICE[unit.foe.art], { gain: 0.8, rate: [0.72, 0.85] });
       if (ev.target === "enemy" && App.battle.foes[ev.foe]) {

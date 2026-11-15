@@ -25,6 +25,7 @@ function cleanCampTrip(raw) {
 // {memory} the feeling the last death took, {region} the region of the trip, {lair} the lair, {boss} the guardian.
 const CAMP_TALK = {
   nima: [
+    { contract: true, text: "Я лечу всех, кто ко мне приходит. Тех, кто пришёл не по своей воле, — первыми." },
     { on: "death", text: "Тихо, ты дома. Клеймо взяло своё: «{memory}». Сядь ближе к огню, тепло пока работает." },
     { on: "death", minDeaths: 3, text: "Я больше не считаю раны. Я считаю то, что ты уже не можешь почувствовать. Список растёт." },
     { on: "guardian_death", text: "Страж бьёт честно: тело я собрала, а вот «{memory}» назад не пришьёшь." },
@@ -36,6 +37,7 @@ const CAMP_TALK = {
     { chapter: 2, text: "Клеймо греется у костра. Не от огня — от того, сколько оно ещё может взять." }
   ],
   veya: [
+    { freedom: true, text: "В убежищах тебя знают. Не по Клейму — по тем, кого ты вывел." },
     { on: "guardian_win", text: "{boss} больше не держит дорогу. Карта сама дорисовалась до следующего края." },
     { on: "guardian_death", text: "{boss} никуда не денется. Значит, и тебе незачем торопиться." },
     { on: "complete", text: "{region}: ещё одна тропа нанесена. Отсюда видно дальше, чем вчера." },
@@ -46,6 +48,7 @@ const CAMP_TALK = {
     { chapter: 3, text: "За Руинами карта кончается. Дальше я веду не по бумаге, а по памяти. Твоей." }
   ],
   mot: [
+    { contract: true, text: "Договор на человека? Я торгую многим. Этим — нет. И советов по такому товару не даю." },
     { on: "complete", text: "Вижу полный мешок. Не говори, сколько там, я и так подниму цену." },
     { on: "death", text: "Половина добычи осталась на тропе? Кто-то там сегодня очень богатый." },
     { on: "lair", text: "Реликвия из логова? Не продавай мне. Серьёзно. Я не смогу оценить её честно." },
@@ -56,6 +59,7 @@ const CAMP_TALK = {
     { if: "mot_bound", text: "Да, за прилавком присматривают. Нет, скидку это не отменяет." }
   ],
   kern: [
+    { contract: true, text: "Оков не кую. Ни для зверя, ни для человека. И для тебя не стану." },
     { on: "lair", text: "Покажи реликвию. Шов ровный, рука чужая. Кто-то её очень берёг." },
     { on: "complete", text: "Ремни потёрлись. Значит, шагали всерьёз. Хороший износ." },
     { on: "death", text: "Броня цела, а ты нет. Обычно бывает наоборот. Клеймо странно считает." },
@@ -94,8 +98,11 @@ function getCampLines(hero, who) {
   const moment = campMoment(hero);
   const chapter = getStoryProgress(hero).currentIndex;
   const deaths = Number(hero.story?.deaths || 0);
-  const fits = (line) => (!line.if || storyHasFlag(hero, line.if)) && (!line.chapter || chapter >= line.chapter) && (!line.minDeaths || deaths >= line.minDeaths);
+  const contract = (hero.companions || []).some((c) => c.legal === "contract");
+  const fits = (line) => (!line.contract || contract) && (!line.freedom || Number(hero.karma || 0) >= 25) && (!line.if || storyHasFlag(hero, line.if)) && (!line.chapter || chapter >= line.chapter) && (!line.minDeaths || deaths >= line.minDeaths);
   const lines = (CAMP_TALK[who] || []).filter(fits);
+  const urgent = lines.filter((line) => line.contract);
+  if (urgent.length) return { answers: urgent, everyday: lines.filter((line) => !line.on && !line.contract) };
   const answers = lines.filter((line) => line.on === moment && (moment !== "death" && moment !== "guardian_death" || getLostMemories(hero).length));
   const everyday = lines.filter((line) => !line.on);
   return { answers, everyday };

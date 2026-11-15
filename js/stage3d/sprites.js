@@ -96,7 +96,7 @@ const StageSprites = (() => {
       this.pixel = this.height / this.sheet.poses.idle.h;
       this.uniforms = {
         map: { value: this.textures.idle }, texel: { value: new T.Vector2(1 / 512, 1 / 512) }, time: { value: Math.random() * 10 }, breathe: { value: 1 }, phase: { value: Math.random() * 6 },
-        light: { value: new T.Color(options.light || "#ffffff") }, rimPower: { value: 0.42 }, rimColor: { value: new T.Color(side === "hero" ? "#ffd9a8" : "#ffb48a") },
+        light: { value: new T.Color(options.light || "#ffffff") }, rimPower: { value: 0.42 }, rimColor: { value: new T.Color(side !== "foe" ? "#ffd9a8" : "#ffb48a") },
         flash: { value: 0 }, flashColor: { value: new T.Color("#ffffff") }, tintColor: { value: new T.Color("#ffffff") }, tintAmount: { value: 0 }, ghost: { value: 0 }
       };
       this.material = new T.ShaderMaterial({ uniforms: this.uniforms, vertexShader: VERTEX, fragmentShader: FRAGMENT, transparent: true, depthWrite: false, side: T.DoubleSide });
@@ -130,7 +130,7 @@ const StageSprites = (() => {
       this.ghost = 0;
       this.ghostTarget = 0;
       this.baseGhost = options.ghost || 0;
-      this.direction = side === "hero" ? 1 : -1;
+      this.direction = side !== "foe" ? 1 : -1;
       this.kick = 0;
       this.kickGoal = 0;
       this.lean = 0;

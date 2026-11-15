@@ -53,6 +53,10 @@ function createBattle(hero, enemyOrGroup, options = {}) {
   const resource = getClassResource(hero);
   if (resource.start !== undefined) hero.currentMana = resource.start;
   initMechanics(battle);
+  if (options.ally) {
+    battle.mech.ally = { value: 0 };
+    initAllyBattle(battle, options.ally.unit, options.ally.companion, options.ally.front);
+  }
   battle.ct.hero = (100 / getSpeed(hero)) * Number(battle.tempoStart || 1);
   foes.forEach((foe, slot) => { foe.ct = (100 / getSpeed(foe)) * (1 + slot * 0.18); });
   emit(battle, "start", {});
@@ -94,7 +98,8 @@ function snapshotUnit(unit) {
 function snapshotBattle(battle) {
   return {
     hero: { ...snapshotUnit(battle.hero), gauges: getMechGauges(battle) }, enemy: snapshotUnit(battle.enemy), target: battle.focus ?? battle.enemy.slot,
-    foes: battle.foes.map((foe) => ({ ...snapshotUnit(foe), slot: foe.slot, down: foe.currentHp <= 0 }))
+    foes: battle.foes.map((foe) => ({ ...snapshotUnit(foe), slot: foe.slot, down: foe.currentHp <= 0 })),
+    ally: battle.ally ? { ...snapshotUnit(battle.ally), name: battle.ally.name, defId: battle.ally.defId, down: battle.ally.currentHp <= 0, front: battle.allyState.front, order: battle.allyState.order, plan: battle.allyState.plan?.text || "", joint: canUseJoint(battle).ok, coals: battle.allyState.coals, store: Math.round(battle.allyState.store) } : null
   };
 }
 
@@ -190,7 +195,9 @@ function dealDamage(battle, target, amount, options = {}) {
   target.effects = (target.effects || []).filter((effect) => effect.id !== "shield" || effect.duration > 0);
   target.currentHp = clamp(target.currentHp - remaining, 0, target.maxHp);
   if (target === battle.hero && battle.lastStand > 0) target.currentHp = Math.max(1, target.currentHp);
-  if (target !== battle.hero) {
+  if (target === battle.ally) {
+    // The companion's wounds are its own.
+  } else if (target !== battle.hero) {
     if (target.charge && remaining > 0) {
       target.charge.taken += remaining;
       if (target.charge.taken >= target.charge.need && target.currentHp > 0) breakCharge(battle);
@@ -520,6 +527,10 @@ function checkBattleOver(battle) {
 function advanceBattle(battle) {
   while (!checkBattleOver(battle)) {
     const nextFoe = livingFoes(battle).sort((a, b) => a.ct - b.ct)[0];
+    if (allyAlive(battle) && battle.ally.ct < battle.ct.hero && battle.ally.ct <= nextFoe.ct) {
+      allyTurn(battle);
+      continue;
+    }
     if (battle.ct.hero <= nextFoe.ct) {
       battle.turn += 1;
       if (battle.guardUsed) { battle.guard = false; battle.guardUsed = false; }
@@ -833,6 +844,13 @@ function heroAction(battle, action) {
     emit(battle, "action", { who: "hero", anim: "wait", name: getWaitLabel(battle), element: "arcane" });
     emit(battle, "mana", { target: "hero", amount: hero.currentMana - before });
     logEvent(battle, `${hero.name} собирается с силами: +${hero.currentMana - before} маны, ход наступит раньше.`, "Тактика");
+  } else if (action.type === "joint") {
+    const check = canUseJoint(battle);
+    if (!check.ok) return check;
+    performJoint(battle);
+  } else if (action.type === "swap") {
+    const check = swapFormation(battle);
+    if (!check.ok) return check;
   } else if (action.type === "potion") {
     const potion = POTIONS[action.kind];
     if (!potion || Number(hero.potions?.[action.kind] || 0) <= 0) return { ok: false, reason: "Зелья закончились." };
@@ -942,6 +960,7 @@ function pickEnemyIntent(battle) {
   const id = randomFrom(pool);
   enemy.lastMove = id;
   battle.intent = { id, ...ENEMY_MOVES[id] };
+  if (hitKinds(battle.intent)) battle.intent.target = chooseFoeTarget(battle, battle.intent);
   emit(battle, "intent", { intent: describeIntent(battle) });
 }
 
@@ -955,10 +974,12 @@ function describeIntent(battle) {
     result.note = charge.left > 0 ? "Копит силу" : "Удар сейчас!";
   }
   const shownPower = charge ? charge.power : intent.power;
+  const atAlly = intent.target === "ally" && allyAlive(battle);
+  if (atAlly) result.targetName = battle.ally.name;
   if (shownPower) {
     const kind = intent.kind === "magic" || intent.charge === "magic" || charge?.kind === "magic" ? "magic" : "physical";
-    const raw = estimateDamage(battle.enemy, battle.hero, kind, shownPower, 0, battle).amount;
-    result.damage = Math.max(1, Math.round(raw * (battle.guard ? 1 - GUARD_REDUCTION : 1)));
+    const raw = estimateDamage(battle.enemy, atAlly ? battle.ally : battle.hero, kind, shownPower, 0, battle).amount;
+    result.damage = Math.max(1, Math.round(raw * (!atAlly && battle.guard ? 1 - GUARD_REDUCTION : 1)));
   }
   if (intent.apply) {
     const def = STATUS_EFFECT_DEFINITIONS[intent.apply.id];
@@ -1068,7 +1089,7 @@ function performEnemyMove(battle, move) {
   const enemy = battle.enemy;
   const hero = battle.hero;
   if (move.kind === "idle") return;
-  emit(battle, "action", { who: "enemy", anim: ["magic", "debuff", "heal", "shield", "buff", "ally_heal", "ally_shield", "ally_rage", "windup"].includes(move.kind) ? "cast" : "attack", name: move.name, element: move.element || (move.kind === "magic" ? "arcane" : "steel"), ranged: move.kind === "magic", heavy: Boolean(move.heavy), stage: (move.kind === "windup" ? move.windStage : move.stage) || null });
+  emit(battle, "action", { who: "enemy", anim: ["magic", "debuff", "heal", "shield", "buff", "ally_heal", "ally_shield", "ally_rage", "windup"].includes(move.kind) ? "cast" : "attack", name: move.name, element: move.element || (move.kind === "magic" ? "arcane" : "steel"), ranged: move.kind === "magic", heavy: Boolean(move.heavy), stage: (move.kind === "windup" ? move.windStage : move.stage) || null, aim: move.target === "ally" && allyAlive(battle) ? "ally" : "hero" });
 
   if (move.kind === "ally_heal" || move.kind === "ally_shield" || move.kind === "ally_rage") {
     const allies = battle.foes.filter((foe) => foe !== enemy && foe.currentHp > 0);
@@ -1121,6 +1142,10 @@ function performEnemyMove(battle, move) {
     return;
   }
 
+  if ((move.target === "ally" || battle.allyState?.cover > 0) && allyAlive(battle)) {
+    enemyHitsAlly(battle, move);
+    return;
+  }
   const kind = move.kind === "magic" ? "magic" : "physical";
   if (fireMech(battle, "enemyAttack", { kind, move, cancel: false }).cancel) return;
   const hits = Math.max(1, Number(move.hits || 1));
@@ -1185,10 +1210,14 @@ function previewTimeline(battle, count = 8) {
   let heroCt = battle.ct.hero;
   const heroStep = 100 / getSpeed(battle.hero);
   const foes = livingFoes(battle).map((foe) => ({ ct: foe.ct, step: 100 / getSpeed(foe) }));
+  const ally = allyAlive(battle) ? { ct: battle.ally.ct, step: 100 / getSpeed(battle.ally) } : null;
   const order = [];
   for (let i = 0; i < count; i += 1) {
     const next = [...foes].sort((a, b) => a.ct - b.ct)[0];
-    if (!next || heroCt <= next.ct) {
+    if (ally && ally.ct < heroCt && (!next || ally.ct <= next.ct)) {
+      order.push("ally");
+      ally.ct += ally.step;
+    } else if (!next || heroCt <= next.ct) {
       order.push("hero");
       heroCt += heroStep;
     } else {

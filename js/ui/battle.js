@@ -194,7 +194,10 @@ function beginFight(enemy, fight) {
     persist();
   }
   App.fight = { ...fight, regionId: exp?.regionId || REGIONS[App.regionIndex].id, zoneKey: exp?.zoneKey || "green", auto: false, playing: false, nonce: Date.now(), logOpen: false };
-  App.battle = createBattle(hero, enemy, { damageBonus });
+  // The companion walks into the fight from where it stands in the camp's formation.
+  const companion = getActiveCompanion(hero);
+  const ally = companion ? { unit: makeAllyUnit(hero, companion), companion, front: hero.party.allyFront } : null;
+  App.battle = createBattle(hero, enemy, { damageBonus, ally });
   setScreen("battle");
   App.stage = null;
   if (Stage3D.supports(App.battle, App.fight.regionId)) {
@@ -221,6 +224,7 @@ Screens.battle = () => {
         <section class="foe-plates" id="foePlates"></section>
       </div>
       <div class="fighter fighter-hero" id="fHero" style="--scale:1"><div class="summons" id="summonsRow"></div><div class="sprite-wrap">${heroSprite(hero.classKey)}</div></div>
+      ${App.battle.ally ? `<div class="fighter fighter-ally" id="fAlly"><div class="ally-plan" id="allyPlan" aria-live="polite"></div><div class="sprite-wrap"></div></div>` : ""}
       <div class="foe-stage foes-${App.battle.foes.length}" id="foeStage"></div>
       <div class="floaters" id="floaters"></div>
       <canvas class="fx-canvas" data-fx="${SCENES[region.id].ambient}"></canvas>
@@ -232,6 +236,7 @@ Screens.battle = () => {
         <div class="bar-medal"><div class="portrait">${heroMedal(hero)}</div></div>
         <div class="bar-info"><div class="plate-name"><strong>${esc(hero.name)}</strong><small>${hero.level} ур.</small></div><div id="heroHp"></div><div id="heroMp" class="res-${hero.classKey}" data-tip="mech|${CORE_BY_CLASS[hero.classKey]}"></div><div class="gauges" id="heroGauges"></div><div class="effects" id="heroFx"></div></div>
       </section>
+      ${App.battle.ally ? `<section class="bar-ally" id="plateAlly"></section>` : ""}
       <div class="skill-actions" id="skillActions"></div>
       <div class="basic-actions" id="basicActions"></div>
       <div class="battle-tools">
@@ -264,6 +269,7 @@ function renderPlates(snap) {
   document.getElementById("heroMp").innerHTML = bar(snap.hero.mp, snap.hero.maxMp, "mp");
   document.getElementById("heroFx").innerHTML = statusPills(snap.hero.effects, "hero");
   renderFoePlates(snap);
+  renderAllyCard(snap);
   const row = document.getElementById("summonsRow");
   row.innerHTML = snap.hero.summons.map((summon) => `<span class="summon-card ${summon.type}" data-tip="text|${esc(summon.name)}|Здоровье: ${Math.max(0, summon.hp)} из ${summon.maxHp}${summon.persistent ? "" : `. Осталось: ${turnsLabel(summon.duration)}`}">${icon(summon.type === "spirit" ? "holy" : summon.type === "beast" ? "earth" : "dark")}<i class="summon-hp"><b style="width:${percent(summon.hp, summon.maxHp)}%"></b></i>${summon.persistent ? "" : `<em>${summon.duration}</em>`}</span>`).join("");
   const gauges = document.getElementById("heroGauges");
@@ -364,7 +370,7 @@ function renderTimeline() {
   const el = document.getElementById("timeline");
   if (!el || !App.battle) return;
   const order = App.battle.over ? [] : previewTimeline(App.battle, 9);
-  el.innerHTML = order.map((who, index) => `<span class="tl-pip ${who}${index === 0 ? " now" : ""}" data-tip="text|${who === "hero" ? "Твой ход" : "Ход врага"}|Очередь зависит от скорости. Быстрые действия приближают твой следующий ход.">${index === 0 ? "" : ""}${icon(who === "hero" ? "hero" : "boss")}</span>`).join("");
+  el.innerHTML = order.map((who, index) => who === "ally" ? `<span class="tl-pip ally${index === 0 ? " now" : ""}" data-tip="text|Ход спутника|${esc(App.battle.ally?.name || "")} действует по своему намерению.">${icon("heart")}</span>` : `<span class="tl-pip ${who}${index === 0 ? " now" : ""}" data-tip="text|${who === "hero" ? "Твой ход" : "Ход врага"}|Очередь зависит от скорости. Быстрые действия приближают твой следующий ход.">${index === 0 ? "" : ""}${icon(who === "hero" ? "hero" : "boss")}</span>`).join("");
 }
 
 function renderAllIntents() {
@@ -379,7 +385,7 @@ function renderIntent(data = null, foe = App.battle?.enemy) {
   const kindIcon = { physical: "attack", magic: "arcane", heal: "regeneration", shield: "shield", buff: "rage", debuff: intent.applyId || "weaken", windup: "stun", release: "stun" }[intent.kind] || "attack";
   const damage = intent.damage ? `<b>${intent.hits > 1 ? `${intent.damage}×${intent.hits}` : `≈${intent.damage}`}</b>` : "";
   el.className = `intent show${intent.heavy ? " heavy" : ""}`;
-  el.innerHTML = `${icon(intent.heavy ? "stun" : kindIcon)}<div><span>${esc(intent.name)}</span>${damage}${intent.note ? `<small>${esc(intent.note)}</small>` : ""}${intent.charge ? `<small class="warn-text">Сорвать: ${intent.charge.need} урона</small>` : intent.heavy ? `<small class="warn-text">Стойка или оглушение</small>` : ""}</div>`;
+  el.innerHTML = `${icon(intent.heavy ? "stun" : kindIcon)}<div><span>${esc(intent.name)}${intent.targetName ? ` → ${esc(intent.targetName)}` : ""}</span>${damage}${intent.note ? `<small>${esc(intent.note)}</small>` : ""}${intent.charge ? `<small class="warn-text">Сорвать: ${intent.charge.need} урона</small>` : intent.heavy ? `<small class="warn-text">Стойка или оглушение</small>` : ""}</div>`;
 }
 
 // Shows on the skill tile which statuses it will put on the enemy.
@@ -388,6 +394,40 @@ function skillEffectBadges(skill) {
   if (!ids.length) return "";
   return `<span class="skill-fx">${ids.map((id) => `<em style="--c:${(typeof STATUS_COLORS !== "undefined" && STATUS_COLORS[id]) || "#ff8a70"}">${icon(id)}</em>`).join("")}</span>`;
 }
+
+// The companion's card in the command bar: health, what it will do, your orders and the joint attack.
+function renderAllyCard(snap) {
+  const card = document.getElementById("plateAlly");
+  const ally = snap?.ally;
+  if (!card || !ally) return;
+  const battle = App.battle;
+  const ready = battle.awaiting && !App.fight.playing && !battle.over;
+  const joint = canUseJoint(battle);
+  const jointDef = JOINT_OPORA[battle.hero.classKey];
+  const extra = ally.coals ? ` · угли ${ally.coals}` : ally.store ? ` · запас ${ally.store}` : "";
+  card.classList.toggle("down", ally.down);
+  card.innerHTML = `<div class="ally-face"><img src="assets/story/portrait_${esc(ally.defId)}.webp" alt=""></div>
+    <div class="ally-info">
+      <div class="plate-name"><strong>${esc(ally.name)}</strong><small>${ally.down ? "выбыл" : ally.front ? "впереди" : "сзади"}${extra}</small></div>
+      ${plateBar(ally, "hp", "ally")}
+      <div class="ally-orders" role="group" aria-label="Приказ спутнику">${Object.entries(COMPANION_ORDERS).map(([id, order]) => `<button class="ord-btn${ally.order === id ? " on" : ""}" data-action="allyOrder" data-order="${id}" data-tip="text|${order.full}|${order.hint} Приказ бесплатный, один раз за твой ход." ${ready && !ally.down ? "" : "disabled"}>${order.name}</button>`).join("")}</div>
+    </div>
+    <div class="ally-acts">
+      <button class="cmd-btn small" data-action="battleAct" data-type="swap" data-tip="text|Поменяться местами|Тратит твоё действие. Ближние удары врагов достаются тому, кто впереди." ${ready && !ally.down ? "" : "disabled"}>${icon("guard")}<span>${ally.front ? "Встать вперёд" : "Пустить вперёд"}</span></button>
+      ${jointDef ? `<button class="cmd-btn small joint${joint.ok ? " ready" : ""}" data-action="battleAct" data-type="joint" data-tip="text|${esc(jointDef.name)}|${esc(jointDef.text)} Условие: ${esc(jointDef.need)}. Раз за бой. ${joint.ok ? "" : esc(joint.reason || "")}" ${ready && joint.ok ? "" : "disabled"}>${icon("star")}<span>Связка</span></button>` : ""}
+    </div>`;
+  const plan = document.getElementById("allyPlan");
+  if (plan) { plan.textContent = ally.down ? "" : ally.plan; plan.className = `ally-plan${ally.plan && !ally.down ? " show" : ""}${ally.joint ? " joint" : ""}`; }
+}
+
+Actions.allyOrder = (el) => {
+  const battle = App.battle;
+  if (!battle?.awaiting || App.fight.playing) return;
+  const result = setAllyOrder(battle, el.dataset.order);
+  if (!result.ok) { toast(result.reason, "warn"); return; }
+  renderAllyCard(snapshotBattle(battle));
+  renderTimeline();
+};
 
 function renderControls() {
   const battle = App.battle;
@@ -436,10 +476,12 @@ function renderStageFromState() {
   renderAllIntents();
   markTarget();
   renderControls();
+  if (battle.ally) renderAllyCard(snapshotBattle(battle));
 }
 
 function fighterEl(side) {
   if (side === "hero") return document.getElementById("fHero");
+  if (side === "ally") return document.getElementById("fAlly") || document.getElementById("fHero");
   return document.getElementById(`fFoe${App.fxFoe ?? App.battle?.enemy?.slot ?? 0}`);
 }
 
@@ -527,9 +569,11 @@ async function playBattleEvent(ev, nonce) {
   }
   switch (ev.type) {
     case "log": logLine(ev); break;
+    case "formation": App.stage?.placeAlly(false); renderAllIntents(); break;
+    case "allyPlan": renderAllyCard(snapshotBattle(App.battle)); break;
     case "turn": {
       const banner = document.getElementById("turnBanner");
-      if (banner) banner.textContent = ev.who === "hero" ? "Твой ход" : "Ход врага";
+      if (banner) banner.textContent = ev.who === "hero" ? "Твой ход" : ev.who === "ally" ? `Ход: ${App.battle.ally?.name || "спутник"}` : "Ход врага";
       document.getElementById("plateHero")?.classList.toggle("active", ev.who === "hero");
       renderTimeline();
       break;
@@ -846,6 +890,10 @@ function onBattleOver() {
   if (hero.expedition) hero.expedition.ambush = false;
   const enemy = battle.foes[0];
   const won = battle.over === "hero";
+  // What the fight did to the companion: a fall, a reset streak, or the thread torn for good.
+  const allyResult = settleCompanionBattle(hero, battle);
+  if (allyResult?.forgotten) showCompanionForgotten();
+  else if (allyResult?.fell) toast(`${allyResult.name} падает. Подряд: ${allyResult.streak} из ${COMPANION_FALLS_TO_FORGET}.`, "warn");
   hero.records.maxHit = Math.max(Number(hero.records.maxHit || 0), battle.stats.maxHit);
   clearBattleState(hero);
 

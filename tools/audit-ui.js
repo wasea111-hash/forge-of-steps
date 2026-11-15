@@ -51,6 +51,9 @@
     hero.records.kills = 100;
     hero.story.queue = [];
     hero.story.seen = Object.keys(STORY_SCENES);
+    // Companions: a scenario can set them up; otherwise the first one is already met after the Thicket.
+    if (window.__compSetup) window.__compSetup(hero);
+    else if (hero.defeatedGuardians.includes("greyfang")) recruitCompanion(hero, "tessa");
     applyDerivedStats(hero, true);
     return hero;
   }

@@ -5,6 +5,7 @@ const Stage3D = (() => {
   const hasWebGL = (() => { try { return Boolean(document.createElement("canvas").getContext("webgl2")); } catch (error) { return false; } })();
 
   const HERO_MODELS = { assassin: "assassin", warrior: "warrior", mage: "mage", archer: "archer", bard: "bard" };
+  const ALLY_MODELS = { rootshield: "knight", coalbearer: "knight", binder: "caster", voidcatcher: "rogue" };
   const ART_MODELS = { beast: "beast", rogue: "rogue", caster: "caster", slime: "slime", imp: "imp", knight: "knight", golem: "golem", wraith: "wraith", shard: "shard", smith: "smith" };
   // Body proportions the stage needs to place effects, rings and plates.
   const ART_SHAPE = { beast: { height: 1.15, scale: 0.92 }, slime: { height: 1 }, imp: { height: 1.95, scale: 0.72, hover: 0.34 }, golem: { height: 2.2, scale: 1.15 }, wraith: { height: 1.95, hover: 0.42, ghost: 0.26 }, shard: { height: 1.9, hover: 0.12 }, smith: { height: 2.15, scale: 1.34, noTint: true } };
@@ -96,7 +97,7 @@ const Stage3D = (() => {
 
   // The painted look needs every fighter of the fight to be drawn. Otherwise the fight stays fully 3D.
   function paintedFight(battle) {
-    return StageSprites.has(battle.hero.classKey) && battle.foes.every((foe) => StageSprites.has(foe.defId));
+    return StageSprites.has(battle.hero.classKey) && battle.foes.every((foe) => StageSprites.has(foe.defId)) && (!battle.ally || StageSprites.has(battle.ally.defId));
   }
   // How each layer of a location is lit. Farther layers sink into the haze, the near fringe is dark.
   const SCENE_LOOK = {
@@ -260,9 +261,9 @@ const Stage3D = (() => {
       this.pivot.add(this.model);
       this.scale = options.scale || 1;
       this.pivot.scale.setScalar(this.scale);
-      this.facing = side === "hero" ? Math.PI / 2 : -Math.PI / 2;
+      this.facing = side !== "foe" ? Math.PI / 2 : -Math.PI / 2;
       this.pivot.rotation.y = this.facing;
-      this.uniforms = { rimPower: { value: 0.42 }, rimColor: { value: side === "hero" ? color("#ffd9a8") : color("#ffb48a") }, flash: { value: 0 }, flashColor: { value: color("#ffffff") } };
+      this.uniforms = { rimPower: { value: 0.42 }, rimColor: { value: side !== "foe" ? color("#ffd9a8") : color("#ffb48a") }, flash: { value: 0 }, flashColor: { value: color("#ffffff") } };
       this.materials = [];
       const tint = options.tint ? new T.Color(options.tint) : null;
       this.model.traverse((node) => {
@@ -518,6 +519,10 @@ const Stage3D = (() => {
       this.hero = this.addUnit(HERO_MODELS[battle.hero.classKey], "hero", -1, {});
       this.hero.root.position.set(-2.8 * squeezeX(), 0, 0.35);
       this.hero.home.copy(this.hero.root.position);
+      if (battle.ally) {
+        this.ally = this.addUnit(ALLY_MODELS[battle.ally.classId] || "warrior", "ally", -2, { defId: battle.ally.defId });
+        this.placeAlly(true);
+      }
       battle.foes.forEach((foe) => this.addFoe(foe));
       this.placeFoes(true);
       this.time = 0;
@@ -668,12 +673,13 @@ const Stage3D = (() => {
 
     addUnit(model, side, slot, options) {
       const spriteId = this.painted ? (side === "hero" ? heroLookId(this.battle.hero) : options.defId) : null;
+      // The companion stands on your side and looks the same way you do.
       const unit = spriteId && StageSprites.has(spriteId)
         ? new StageSprites.SpriteUnit(spriteId, side, slot, { ...options, light: PAINTED_LIGHT[this.regionId] })
         : new Unit(model, side, slot, options);
       this.scene.add(unit.root);
       unit.trails.forEach((trail) => this.scene.add(trail.mesh));
-      this.units[side === "hero" ? "hero" : `foe${slot}`] = unit;
+      this.units[side === "hero" ? "hero" : side === "ally" ? "ally" : `foe${slot}`] = unit;
       return unit;
     }
 
@@ -698,7 +704,17 @@ const Stage3D = (() => {
     }
 
     unitFor(side, slot) {
+      if (side === "ally") return this.ally || this.hero;
       return side === "hero" ? this.hero : this.units[`foe${slot}`] || this.hero;
+    }
+
+    // In front the companion stands between you and the foes; behind, it stays at your back.
+    placeAlly(instant) {
+      if (!this.ally) return;
+      const front = this.battle.allyState?.front;
+      this.ally.home.set((front ? -1.55 : -4.05) * squeezeX(), 0, front ? 1.05 : -0.75);
+      if (instant) this.ally.root.position.copy(this.ally.home);
+      else if (!this.ally.busy) this.ally.moveTo(this.ally.home.clone(), 0.45);
     }
 
     resize() {
@@ -978,7 +994,7 @@ const Stage3D = (() => {
       Object.values(this.units).forEach((unit) => {
         const statusGlow = unit.statusRim ? 0.85 + Math.sin(this.time * 4) * 0.25 : 0;
         unit.uniforms.rimPower.value += (Math.max(unit === hover ? 1.1 : 0.42, statusGlow) - unit.uniforms.rimPower.value) * Math.min(1, dt * 12);
-        unit.uniforms.rimColor.value.lerp(unit.statusRim || (unit.side === "hero" ? HERO_RIM : FOE_RIM), Math.min(1, dt * 6));
+        unit.uniforms.rimColor.value.lerp(unit.statusRim || (unit.side !== "foe" ? HERO_RIM : FOE_RIM), Math.min(1, dt * 6));
         if (unit.reticle) { unit.reticle.rotation.z = this.time * 1.6; unit.reticle.position.y = unit.height * unit.scale + 0.42 + Math.sin(this.time * 3) * 0.04; }
       });
 
@@ -1039,6 +1055,7 @@ const Stage3D = (() => {
         }
       };
       place("fHero", this.hero);
+      if (this.ally && this.ally.alive !== false) place("fAlly", this.ally);
       this.battle.foes.forEach((foe) => { if (this.units[`foe${foe.slot}`]?.alive !== false) place(`fFoe${foe.slot}`, this.units[`foe${foe.slot}`]); });
       // Plates must never cover each other: they slide apart along the screen.
       const plateWidth = 178;

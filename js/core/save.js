@@ -8,7 +8,8 @@ const DEFAULT_SETTINGS = { sound: true, volume: 0.6, music: 0.5, ambience: 0.3, 
 const SAVED_HERO_FIELDS = [
   "id", "name", "classKey", "className", "subclass", "profession", "level", "experience", "statPoints", "skillPoints", "gold", "mutationShards",
   "resources", "potions", "stats", "startingStats", "inventory", "equipment", "knownSkillIds", "passiveIds", "activeSkillSlots", "skillProgress", "shopPassiveIds", "shopActive", "talents", "talentVersion", "talentsExchanged",
-  "skillForms", "skillPicks", "styleId", "ultimateId", "ultimateSeen", "buildVersion", "freeRespec", "story", "unlockedRegion", "trailClears", "lairTokens", "lairClears", "lairBest", "defeatedGuardians", "won", "records", "expedition", "shop", "createdAt", "updatedAt", "currentHp", "currentMana"
+  "skillForms", "skillPicks", "styleId", "ultimateId", "ultimateSeen", "buildVersion", "freeRespec", "story", "unlockedRegion", "trailClears", "lairTokens", "lairClears", "lairBest", "defeatedGuardians", "won", "records", "expedition", "shop", "createdAt", "updatedAt", "currentHp", "currentMana",
+  "companions", "party", "karma", "companionLog"
 ];
 
 function getStorage() {
@@ -55,6 +56,21 @@ function normalizeExpedition(raw) {
   exp.choices = safeList(raw.choices).filter((choice) => choice?.type);
   if (!exp.choices.length) generateChoices(exp);
   return exp;
+}
+
+// Companions from a save: only known people with sane numbers survive.
+function normalizeCompanions(list) {
+  return safeList(list).filter((c) => c && COMPANIONS[c.defId]?.ready && typeof c.id === "string").map((c) => ({
+    id: c.id, defId: c.defId, rarity: COMPANION_RARITIES.includes(c.rarity) ? c.rarity : COMPANIONS[c.defId].rarities[0],
+    legal: c.legal === "contract" ? "contract" : "free", source: typeof c.source === "string" ? c.source : "road",
+    rank: clamp(Math.round(safeNumber(c.rank)), 0, COMPANION_RANKS.length - 1),
+    trust: clamp(safeNumber(c.trust), 0, c.legal === "contract" ? 39 : 100), tripTrust: clamp(safeNumber(c.tripTrust), 0, 10),
+    deeds: Math.max(0, Math.round(safeNumber(c.deeds))), hpRatio: clamp(safeNumber(c.hpRatio, 1), 0.05, 1),
+    fallStreak: clamp(Math.round(safeNumber(c.fallStreak)), 0, COMPANION_FALLS_TO_FORGET - 1),
+    recent: safeList(c.recent).filter((entry) => entry && typeof entry === "object").slice(-12),
+    habits: safeList(c.habits).filter((id) => COMPANION_HABITS[id]).slice(0, 2),
+    memories: safeList(c.memories).filter((n) => Number.isInteger(n) && n >= 0 && n < 3), metAt: safeNumber(c.metAt, 1)
+  }));
 }
 
 function normalizeHero(raw) {
@@ -127,8 +143,11 @@ function normalizeHero(raw) {
     shop: raw.shop && typeof raw.shop === "object" ? { stock: safeList(raw.shop.stock).map(normalizeItem).filter(Boolean), expeditionsAtRefresh: safeNumber(raw.shop.expeditionsAtRefresh) } : null,
     createdAt: raw.createdAt || raw.meta?.createdAt || Date.now(), updatedAt: raw.updatedAt || Date.now(),
     effects: [], summonedUnits: [], cooldowns: {},
-    currentHp: raw.currentHp, currentMana: raw.currentMana
+    currentHp: raw.currentHp, currentMana: raw.currentMana,
+    companions: normalizeCompanions(raw.companions),
+    party: safeObject(raw.party), karma: clamp(safeNumber(raw.karma), -KARMA_LIMIT, KARMA_LIMIT), companionLog: safeObject(raw.companionLog)
   };
+  ensureCompanionState(hero);
   // Old talents stay only if they fit the new board and the new budget; otherwise the board starts clean.
   if (getTalentBoard(hero).length) {
     if (raw.buildVersion !== BUILD_VERSION) hero.talents = hero.talents.filter((id) => findBoardSlot(hero, id));

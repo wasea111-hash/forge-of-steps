@@ -108,6 +108,13 @@ function enterNode(hero, exp, choiceIndex) {
   const node = exp.choices[choiceIndex] || exp.choices[0];
   exp.pending = { type: node.type };
   if (["event", "camp", "shrine"].includes(node.type)) {
+    // Sometimes the road brings a person, not a chest.
+    const rescue = node.type === "event" ? buildRescueEvent(hero, exp) : null;
+    if (rescue) {
+      exp.seenEvents.push(rescue.id);
+      exp.pending.eventId = rescue.id;
+      return { kind: "event", event: rescue };
+    }
     const matches = (event) => (node.type === "event" ? !event.node : event.node === node.type);
     const available = EXPEDITION_EVENTS.filter((event) => matches(event) && !exp.seenEvents.includes(event.id));
     const event = randomFrom(available.length ? available : EXPEDITION_EVENTS.filter(matches));
@@ -131,6 +138,7 @@ function buildNodeEnemy(hero, exp, node) {
 
 function completeStep(hero, exp) {
   const type = exp.pending?.type || "battle";
+  mendCompanionStep(hero);
   exp.path.push(type);
   exp.step += 1;
   exp.pending = null;
@@ -286,6 +294,7 @@ function finishExpedition(hero, exp, outcome) {
   }
   [...hero.inventory, ...Object.values(hero.equipment)].forEach((item) => { if (item) item.fromTrail = false; });
   noteCampTrip(hero, { outcome, kind: exp.lairId ? "lair" : "trail", regionId: exp.regionId, zoneKey: exp.zoneKey, lairId: exp.lairId });
+  settleCompanionTrip(hero, outcome);
   hero.expedition = null;
   restoreHero(hero);
   if (!hero.shop || Number(hero.records.expeditions) - Number(hero.shop.expeditionsAtRefresh || 0) >= 2) refreshShopStock(hero);

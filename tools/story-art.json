@@ -25,6 +25,26 @@
   "prompt": "Waist-up portrait of a stout older woman with tawny skin, white hair in a short braid, steady gray eyes, dark blue wool dress and clean rolled sleeves, a mended ceramic cup in one hand and a bundle of fresh bandages in the other. Kind unsmiling expression, painterly dark fantasy, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
  },
  {
+  "id": "portrait_tessa",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a sturdy middle-aged woman warden with weathered olive skin, a thick braid of dark hair with twigs in it, a wry half smile, bark-like wooden pauldrons grown over a worn green gambeson, a large round shield made of living interwoven roots on her back. Dry humour in her eyes, painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_rud",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a burly young coal worker with soot-blackened skin and arms, short singed red hair, a leather apron with ember burns, a heavy smouldering iron coal shovel on the shoulder, glowing embers caught in the hair. Impatient energetic look, painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_fena",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a wiry young woman rescuer with a fierce grin, sun-bleached cropped hair, a scar across the chin, a dark violet hooded coat with many pockets, a hooked climbing blade and a coil of glowing rope over the shoulder. Restless daring eyes, painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
+  "id": "portrait_iva",
+  "size": "1024x1024",
+  "prompt": "Waist-up portrait of a slight young woman bookbinder with ink-stained fingers, dark hair tied up with a strip of torn page, round wire spectacles, a patched teal coat stuffed with scraps of paper and thread, a needle tucked behind one ear. Thrifty careful look, quietly anxious, painterly dark fantasy, plain dim background, no lettering. Rich painterly premium RPG character portrait, dramatic rim light, head and shoulders fill the frame."
+ },
+ {
   "id": "intro_home",
   "size": "1536x1024",
   "prompt": "Wide landscape composition, 3:2 aspect ratio, painterly dark fantasy illustration, tactile brushwork, restrained color palette, believable worn materials, cinematic natural lighting, no text, no lettering, no logos, no UI. A person of indeterminate gender seen only from behind holding a plain house key at an empty crossroads. A village has been erased leaving a rectangular patch of bare earth, one suspended kitchen spoon and a path ending in pale nothingness. Modest grief, no heroic pose.",

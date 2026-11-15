@@ -45,7 +45,7 @@ function fireMech(battle, hook, ctx = {}) {
 }
 
 function getMechGauges(battle) {
-  const gauges = Object.keys(battle.mech || {}).map((id) => {
+  const gauges = Object.keys(battle.mech || {}).filter((id) => !MECHANICS[id]?.hidden).map((id) => {
     const def = MECHANICS[id];
     const state = battle.mech[id];
     return { id, name: def.name, value: Math.round(def.value ? def.value(battle, state) : state.value), max: def.max ? (typeof def.max === "function" ? def.max(battle) : def.max) : 0, text: def.text ? def.text(battle, state) : "" };

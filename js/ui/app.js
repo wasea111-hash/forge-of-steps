@@ -50,7 +50,7 @@ function afterRender() {
   else FX.detach();
   document.querySelector("[data-autofocus]")?.focus();
   placeTreeView();
-  if (App.hero) { syncStoryEvents(App.hero); scheduleStory(); }
+  if (App.hero) { syncStoryEvents(App.hero); scheduleStory(); setTimeout(maybeMeetCompanion, 700); }
 }
 
 window.addEventListener("resize", () => {
@@ -336,6 +336,7 @@ function resourceChips(resources, showZero = false) {
 
 function pendingBadgeCount(tab) {
   const hero = App.hero;
+  if (tab === "companions") return (hero.companions || []).filter((c) => canTakeOath(c).ok).length;
   if (tab === "news") return App.save?.settings?.newsSeen === GAME_VERSION ? 0 : 1;
   if (tab === "hero") return hero.statPoints;
   if (tab === "talents") return Math.max(0, getDevPointsFree(hero));

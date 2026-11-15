@@ -1719,6 +1719,106 @@ const report = run(`(function () {
     if (getLanePicks(hero, stage, lane, final.level) < final.needsLane) eq(getTreePick(hero, stage, final), null, "the final is dropped");
   });
 
+  const allyFight = (hero, defId, front = true, foes = null) => {
+    const comp = getActiveCompanion(hero) || recruitCompanion(hero, defId);
+    return { comp, battle: createBattle(hero, foes || [makeEnemy("wolf", hero.level), makeEnemy("bandit", hero.level)], { ally: { unit: makeAllyUnit(hero, comp), companion: comp, front } }) };
+  };
+
+  test("companions: met once, rarity sets the start, the save keeps everything", () => {
+    const hero = newHero("mage", true);
+    eq(getPendingMeeting(hero), null, "nobody before the Thicket's guardian");
+    hero.defeatedGuardians.push("greyfang");
+    eq(getPendingMeeting(hero)?.id, "tessa", "Tessa waits after Greyfang");
+    const tessa = recruitCompanion(hero, "tessa", { rarity: "green" });
+    eq(tessa.rank, 1, "green starts at rank I");
+    eq(recruitCompanion(hero, "tessa"), null, "the same person can not join twice");
+    eq(getActiveCompanion(hero).id, tessa.id, "the first one walks with you");
+    tessa.trust = 33; tessa.deeds = 7; tessa.fallStreak = 2;
+    hero.karma = -40;
+    const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    eq(back.companions[0].trust, 33, "trust"); eq(back.companions[0].fallStreak, 2, "fall streak"); eq(back.karma, -40, "karma");
+    eq(back.party.activeId, tessa.id, "the party");
+  });
+
+  test("companions: trust opens oaths and memories, a contract caps both", () => {
+    const hero = newHero("bard", true);
+    const free = recruitCompanion(hero, "tessa");
+    eq(canTakeOath(free).ok, false, "no oath yet");
+    addCompanionTrust(free, 40); free.deeds = 5;
+    assert(takeOath(hero, free.id).ok, "the first oath");
+    eq(free.rank, 1, "rank I");
+    assert(free.memories.includes(0), "the first memory at trust 30");
+    hero.unlockedRegion = 2; hero.gold = 1e6;
+    const offer = getMarketOffers(hero)[0];
+    const bought = buyContract(hero, offer.defId, true);
+    assert(bought.ok, "a contract can be bought");
+    addCompanionTrust(bought.companion, 90);
+    eq(bought.companion.trust, 39, "a contract caps trust at 39");
+    eq(canTakeOath(bought.companion).ok, false, "no oaths under a contract");
+    assert(hero.karma < 0, "keeping a contract weighs toward Ownership");
+    assert(tearContract(hero, bought.companion.id).ok, "the contract can be torn");
+    eq(bought.companion.legal, "free", "free now");
+  });
+
+  test("companions: three falls in a row forget the person, a survived fight resets the count", () => {
+    const hero = newHero("warrior", true);
+    const comp = recruitCompanion(hero, "rud");
+    const fall = (fell) => { const { battle } = allyFight(hero, "rud"); battle.allyState.fell = fell; return settleCompanionBattle(hero, battle); };
+    fall(true); fall(true); fall(false);
+    eq(comp.fallStreak, 0, "a survived fight resets");
+    fall(true); fall(true);
+    const last = fall(true);
+    assert(last.forgotten, "the third fall in a row");
+    eq(hero.companions.length, 0, "gone from the roster");
+    eq(recruitCompanion(hero, "rud"), null, "never met again");
+    eq(getActiveCompanion(hero), null, "nobody walks with you");
+  });
+
+  test("companions: the one in front takes melee blows, the fight stays sound", () => {
+    seed(77);
+    const hero = newHero("mage");
+    const { battle } = allyFight(hero, "tessa", true, [makeEnemy("wolf", hero.level)]);
+    const wolf = battle.foes[0];
+    wolf.moves = ["strike"];
+    battle.intent = null; pickEnemyIntent(battle);
+    eq(battle.intent.target, "ally", "melee aims at the one in front");
+    const heroHp = hero.currentHp; const allyHp = battle.ally.currentHp;
+    performEnemyMove(battle, battle.intent);
+    eq(hero.currentHp, heroHp, "the hero is untouched");
+    assert(battle.ally.currentHp <= allyHp, "the companion took it");
+    swapFormation(battle);
+    battle.intent = null; pickEnemyIntent(battle);
+    eq(battle.intent.target, "hero", "behind the hero now");
+    let guard = 0;
+    while (!battle.over && guard++ < 300) { const r = heroAction(battle, chooseBotAction(battle)); if (!r.ok) heroAction(battle, { type: "attack" }); }
+    assert(battle.over, "the fight ends");
+    assert(battle.events.some((e) => e.type === "turn" && e.who === "ally") || battle.allyState.fell, "the companion acted");
+    assert(numericFinite(battle.ally) || battle.allyState.fell, "numbers stay finite");
+  });
+
+  test("companions: every playable one fights with every class without breaking", () => {
+    Object.values(COMPANIONS).filter((def) => def.ready).forEach((def) => {
+      Object.keys(BRANCH_CATALOG).forEach((classKey) => {
+        seed(5);
+        const hero = newHero(classKey, true);
+        hero.level = 30;
+        applyDerivedStats(hero, true);
+        const comp = recruitCompanion(hero, def.id);
+        comp.rank = 3; comp.trust = 70;
+        hero.level = 30;
+        const { battle } = allyFight(hero, def.id, def.classId === "rootshield");
+        let guard = 0;
+        while (!battle.over && guard++ < 300) {
+          if (battle.awaiting && canUseJoint(battle).ok) { heroAction(battle, { type: "joint" }); continue; }
+          setAllyOrder(battle, ["help", "press", "guard"][guard % 3]);
+          const r = heroAction(battle, chooseBotAction(battle)); if (!r.ok) heroAction(battle, { type: "attack" });
+        }
+        assert(battle.over, def.id + " with " + classKey + " ends");
+        battle.events.filter((e) => e.type === "hit").forEach((e) => assert(Number.isFinite(e.amount), def.id + " " + classKey + " finite hit"));
+      });
+    });
+  });
+
   test("camp: people answer the last return and the save keeps it", () => {
     const hero = newHero("mage", true);
     hero.story.seen = ["intro"];

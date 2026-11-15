@@ -57,6 +57,11 @@ const SHEETS = {
   brazier: foe("a floating black iron brazier in the shape of a crowned cage, full of roaring orange flames, chains hanging from it, no limbs.", "floater"),
   page_swarm: foe("a swirling swarm of torn parchment pages in the rough shape of a hooded figure, ink dripping, glowing letters.", "floater"),
   anvil_spirit: foe("a spirit of a living anvil, a stocky body of dark iron with an anvil for a head and shoulders, molten orange cracks, heavy chain arms."),
+  // Companions: they stand on your side and face the same way as the hero.
+  tessa: hero("a sturdy middle-aged woman warden with a thick dark braid, bark-like wooden pauldrons grown over a worn green gambeson, a large round shield of living interwoven roots and a short heavy wooden club."),
+  rud: hero("a burly young coal worker with soot-blackened arms, short singed red hair, a leather apron with ember burns, swinging a heavy smouldering iron coal shovel, embers trailing."),
+  iva: hero("a slight young woman bookbinder in a patched teal coat stuffed with paper scraps, round wire spectacles, fighting with a long bookbinding needle and a floating ribbon of glowing thread and pages.", "Cells in reading order: (1) calm ready stance, needle raised, thread floating; (2) lunging with the long needle at full extension; (3) low fast dash forward, coat and pages streaming behind; (4) weaving glowing thread forward with both hands, pages swirling; (5) recoiling from a hit, head snapped back; (6) collapsed on the ground, defeated."),
+  fena: hero("a wiry young woman rescuer in a dark violet hooded coat with many pockets, sun-bleached cropped hair, a hooked climbing blade in one hand and a coil of glowing rope in the other."),
   // Lair masters: one huge opponent each, far larger and more detailed than ordinary foes.
   lair_she_wolf: foe("a colossal ancient she-wolf the size of a house, silver-black matted fur, a mane of bone spurs, dozens of old broken spears stuck in her flanks, blood-red eyes, jaws dripping, monstrous and regal.", "beast"),
   lair_viper_mother: foe("a gigantic serpent matriarch, the upper body of a scaled venomous woman with a cobra hood and four clawed arms, the lower body a thick coiled olive-and-black python tail, green venom dripping from long fangs, a crown of living vipers."),

@@ -157,7 +157,7 @@ Object.assign(MECHANICS, {
     beforeHit(b, s, c) { if (s.hidden && !c.proc) { c.mult *= 1.6 + tm(b.hero, "shadowPower"); c.forceCrit = true; s.spent = true; } },
     afterAction(b, s) { if (s.spent) { s.hidden = false; s.spent = false; } },
     incoming(b, s, c) { if (s.hidden && roll(0.4 + tm(b.hero, "shadowDodge"))) { c.parried = true; logEvent(b, "Удар проходит сквозь тень.", "Тень"); } },
-    foeDown(b, s) { if (!s.hidden) { s.hidden = true; s.spent = false; mechNote(b, "Снова в тени"); fireMech(b, "rehidden"); } },
+    foeDown(b, s) { if (b.allyActing) return; if (!s.hidden) { s.hidden = true; s.spent = false; mechNote(b, "Снова в тени"); fireMech(b, "rehidden"); } },
     bot(b, s) { return !s.hidden && !s.cd && hpRatio(b.hero) < 0.55 ? { type: "wait" } : null; },
     wait: { name: "Скрыться", tempo: 0.7, can: (b, s) => !s.cd && !s.hidden, run(b, s) { s.hidden = true; s.cd = 3; fireMech(b, "rehidden"); return "Ассасин растворяется в тени."; }, fallback: "Перевести дух", tip: "Снова в тень раз в 3 хода, следующий ход раньше." }
   }

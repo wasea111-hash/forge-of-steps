@@ -5,17 +5,24 @@ function campFire() {
   const seed = Number(hero.story.lastTrip?.n || 0);
   // A new return: the one who has something to say about it speaks first again.
   if (App.campSeed !== seed) { App.campSeed = seed; App.campWho = null; App.campTurn = 0; }
+  const companionLine = companionFireLine(hero);
+  if (App.campWho === "comp" && companionLine) return campFireHtml(hero, { people: getCampTalk(hero)?.people || [], speaker: "comp", text: companionLine.text, answered: false }, companionLine);
   const talk = getCampTalk(hero, App.campWho, App.campTurn || 0);
   if (!talk || !talk.text) return "";
+  return campFireHtml(hero, talk, companionLine);
+}
+
+function campFireHtml(hero, talk, companionLine) {
   const names = Object.fromEntries(STORY_CHARACTERS.map((character) => [character.id, character]));
-  const speaker = names[talk.speaker];
+  const speaker = talk.speaker === "comp" ? { name: companionLine.name } : names[talk.speaker];
+  const face = talk.speaker === "comp" ? companionLine.id : talk.speaker;
   return `<section class="campfire${talk.answered ? " answered" : ""}" aria-label="У костра">
     <span class="campfire-glow" aria-hidden="true"></span>
     <div class="campfire-speaker">
-      <img src="assets/story/portrait_${talk.speaker}.webp" alt="">
+      <img src="assets/story/portrait_${face}.webp" alt="">
       <p class="campfire-say" aria-live="polite"><b>${esc(speaker?.name || "")}</b><span>${esc(talk.text)}</span></p>
     </div>
-    <div class="campfire-people">${talk.people.map((id) => `<button class="campfire-face${id === talk.speaker ? " speaking" : ""}" data-action="campTalk" data-who="${id}" data-sound="select" data-tip="text|${esc(names[id]?.name || "")}|${esc(names[id]?.role || "")}"><img src="assets/story/portrait_${id}.webp" alt="${esc(names[id]?.name || "")}"></button>`).join("")}</div>
+    <div class="campfire-people">${companionLine ? `<button class="campfire-face companion${talk.speaker === "comp" ? " speaking" : ""}" data-action="campTalk" data-who="comp" data-sound="select" data-tip="text|${esc(companionLine.name)}|Идёт с тобой в поход."><img src="assets/story/portrait_${companionLine.id}.webp" alt="${esc(companionLine.name)}"></button>` : ""}${talk.people.map((id) => `<button class="campfire-face${id === talk.speaker ? " speaking" : ""}" data-action="campTalk" data-who="${id}" data-sound="select" data-tip="text|${esc(names[id]?.name || "")}|${esc(names[id]?.role || "")}"><img src="assets/story/portrait_${id}.webp" alt="${esc(names[id]?.name || "")}"></button>`).join("")}</div>
   </section>`;
 }
 
