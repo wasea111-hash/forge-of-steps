@@ -18,15 +18,14 @@ Screens.hub = () => {
   const onTrail = Boolean(hero.expedition);
   if (App.tab === "gear") App.tab = "hero";
   const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal", "news"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)));
-  if (App.tab && App.tab !== "camp" && !tabs.some((tab) => tab.id === App.tab)) App.tab = "camp";
+  if (App.tab && App.tab !== "camp" && !(App.tab === "town" && !onTrail && storyHasFlag(hero, "bridge_decided")) && !tabs.some((tab) => tab.id === App.tab)) App.tab = "camp";
   const need = getExperienceForNextLevel(hero.level);
-  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews, companions: viewCompanions };
+  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews, companions: viewCompanions, town: viewTown };
   const drawer = campDrawer(views);
   const fire = !drawer && App.fireOpen !== false && hero.records.expeditions > 0 ? campFire() : "";
   return `
-  <div class="hub camp-mode${drawer ? " has-drawer" : ""}" style="--lost:${getLostMemories(hero).length}">
+  <div class="hub camp-mode${drawer ? " has-drawer" : ""}${drawer && WIDE_PLACES.has(App.tab) ? " has-wide" : ""}" style="--lost:${getLostMemories(hero).length}">
     ${campScene(hero)}
-    <div class="town-name" data-tip="text|${esc(townStage(hero).name)}|Город растёт из твоих решений у костра. Готовых построек: ${Object.keys(ensureTown(hero).built).filter((id) => townBuilt(hero, id) && id !== "shelter_seed").length}.">${esc(townStage(hero).name)}</div>
     <header class="camp-top">
       <button class="hero-chip" data-action="hubTab" data-tab="hero" aria-label="Лист героя">
         <div class="hero-chip-art">${heroMedal(hero)}</div>
@@ -40,9 +39,7 @@ Screens.hub = () => {
       <div class="wallet">
         <span class="chip gold" data-tip="text|Золото|Покупки, заточка и смена пути.">${icon("gold")}${hero.gold}</span>
         <span class="chip shard" data-tip="text|Осколки мутации|Выпадают из элиты и вожаков. Идут на мутации и перековку.">${icon("shard")}${hero.mutationShards}</span>
-        <span class="chip hp" data-tip="text|Зелья лечения|${POTIONS.hp.description}">${icon("potionHp")}${hero.potions.hp}</span>
-        <span class="chip mp" data-tip="text|Зелья маны|${POTIONS.mp.description}">${icon("potionMp")}${hero.potions.mp}</span>
-        <span class="res-group">${resourceChips(hero.resources)}</span>
+        <span class="chip supplies" data-tip="text|Припасы|${esc(suppliesText(hero))}">${icon("bag")}${hero.potions.hp + hero.potions.mp}</span>
       </div>
       <div class="hub-tools">
         ${memoryKey(hero)}
@@ -1028,3 +1025,32 @@ Actions.devDo = (el) => {
   closeModal();
   if (App.screen !== "battle") render();
 };
+
+// What the bag holds, said in one line for the camp's top bar.
+function suppliesText(hero) {
+  const mats = SHOP_RESOURCE_CATALOG.filter((res) => Number(hero.resources?.[res.id] || 0) > 0).map((res) => `${res.name}: ${hero.resources[res.id]}`);
+  return `Зелья лечения: ${hero.potions.hp} · зелья маны: ${hero.potions.mp}.${mats.length ? ` Материалы — ${mats.join(", ")}.` : " Материалов нет."}`;
+}
+
+// The town: how far it has grown, what stands, what is rising, what waits at the fire.
+function viewTown() {
+  const hero = App.hero;
+  const town = ensureTown(hero);
+  const stage = townStage(hero);
+  const index = TOWN_STAGES.indexOf(stage);
+  const next = TOWN_STAGES[index + 1];
+  const finished = Object.keys(town.built).filter((id) => townBuilt(hero, id) && id !== "shelter_seed").length;
+  const offer = getTownOffer(hero);
+  const rows = Object.entries(town.built).filter(([id]) => !(id === "shelter_seed" && town.built.shelter)).map(([id, state]) => {
+    const building = TOWN_BUILDINGS[id];
+    if (!building) return "";
+    const done = state.stage >= TOWN_BUILD_STAGES.length - 1;
+    return `<li class="town-row${building.dark ? " dark" : ""}${done ? "" : " rising"}">${hasCampArt(`town_${id}`) ? `<img src="assets/camp/town_${id}.webp" alt="" loading="lazy">` : ""}<div><b>${esc(building.name)}</b><small>${done ? esc(building.effect) : `Строится: ${TOWN_BUILD_STAGES[state.stage].toLowerCase()}. Ещё ${TOWN_BUILD_STAGES.length - 1 - state.stage} возвращ.`}</small></div></li>`;
+  }).join("");
+  return `<section class="panel town-panel">
+      <div class="town-steps">${TOWN_STAGES.map((entry, i) => `<span class="${i < index ? "past" : i === index ? "now" : ""}">${esc(entry.name)}</span>`).join("")}</div>
+      <p>${next ? `Готовых построек: ${finished}. До ступени «${esc(next.name)}» — ещё ${next.at - finished}.` : `Готовых построек: ${finished}. Город дорос до своего имени.`}</p>
+      ${offer ? `<button class="btn primary glow" data-action="townOffer">У костра ждут решения: ${esc(TOWN_PROJECTS[offer].name)}</button>` : `<p class="muted small">Новые решения приходят к костру после походов.</p>`}
+    </section>
+    ${rows ? `<ul class="town-list">${rows}</ul>` : `<p class="muted">Пока здесь только шалаши переселенцев с моста.</p>`}`;
+}

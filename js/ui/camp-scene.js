@@ -16,12 +16,18 @@ const CAMP_PLACES = [
   { id: "hero", tab: "hero", name: "Твоё место", hint: "Лист героя, снаряжение, рюкзак", x: 13, y: 85, w: 17, h: 20 },
   { id: "skills", tab: "skills", name: "Тренировочный столб", hint: "Навыки и таланты", x: 24, y: 76, w: 7, h: 24 }
 ];
+// The town is a place too: its sign stands on the slope where the settlement grows.
+const TOWN_PLACE = { id: "town", tab: "town", hint: "Постройки и решения города", x: 62, y: 17, w: 30, h: 15 };
+function campPlaces(hero) {
+  return storyHasFlag(hero, "bridge_decided") ? [...CAMP_PLACES, { ...TOWN_PLACE, name: townStage(hero).name }] : CAMP_PLACES;
+}
+
 // The people of the camp, standing at their work: foot point and height in percent of the scene.
 const CAMP_PEOPLE_AT = { mot: { x: 17, y: 71, h: 30 }, sota: { x: 30.5, y: 61, h: 24 }, veya: { x: 59.5, y: 57, h: 22 }, nima: { x: 66, y: 63, h: 25 }, kern: { x: 80.5, y: 76, h: 32 } };
 const CAMP_LIGHTS = [{ x: 44, y: 68, r: 22, k: "fire" }, { x: 5.3, y: 47, r: 6, k: "lamp" }, { x: 23.5, y: 41, r: 5, k: "lamp" }, { x: 57.5, y: 37, r: 6, k: "lamp" }, { x: 92, y: 62, r: 12, k: "forge" }];
 // Panels that need room open wide.
 const WIDE_PLACES = new Set(["hero", "gear", "skills", "talents", "forge"]);
-const PLACE_TITLES = { trail: "Стол Веи · Поход", lairs: "Камень логов", hero: "Твоё место", gear: "Твоё место", skills: "Тренировочный столб", talents: "Тренировочный столб", forge: "Кузница Керна", shop: "Лавка Мота", journal: "Палатка Соты", news: "Доска объявлений", companions: "Палатки спутников" };
+const PLACE_TITLES = { town: "Город",  trail: "Стол Веи · Поход", lairs: "Камень логов", hero: "Твоё место", gear: "Твоё место", skills: "Тренировочный столб", talents: "Тренировочный столб", forge: "Кузница Керна", shop: "Лавка Мота", journal: "Палатка Соты", news: "Доска объявлений", companions: "Палатки спутников" };
 
 // Morning, day, dusk or night: each return from the road moves the camp's clock.
 function campHour(hero) {
@@ -35,18 +41,18 @@ function campScene(hero) {
   const people = Object.entries(CAMP_PEOPLE_AT).filter(([id]) => (hero.story?.seen || []).some((sceneId) => (STORY_SCENES[sceneId]?.lines || []).some((line) => line.who === id)));
   return `<div class="camp-stage" id="campStage">
     <div class="camp-world hour-${campHour(hero)}" style="--ar:${CAMP_AR}">
-      <img class="camp-bg" src="assets/camp/camp_panorama.webp" alt="" draggable="false">
+      <img class="camp-bg" src="assets/camp/${campPanorama(hero)}.webp" alt="" draggable="false">
       ${CAMP_LIGHTS.map((light, i) => `<i class="camp-light ${light.k}" style="left:${light.x}%;top:${light.y}%;--r:${light.r};--d:${(i * 0.7).toFixed(1)}s" aria-hidden="true"></i>`).join("")}
       <i class="camp-smoke fire" style="left:44%;top:56%" aria-hidden="true"></i><i class="camp-smoke chimney" style="left:91.3%;top:30%" aria-hidden="true"></i>
       ${people.map(([id, at], i) => `<img class="camp-person" data-person="${id}" src="assets/camp/npc_${id}.webp" alt="" style="left:${at.x}%;top:${at.y}%;--h:${at.h};--d:${(i * 1.3).toFixed(1)}s" draggable="false">`).join("")}
       ${sprite ? `<img class="camp-person companion" src="${sprite}" alt="" style="left:37%;top:81%;--h:25;--d:.4s" draggable="false">` : ""}
-      ${townLayer(hero)}
+      ${campPanorama(hero) === "camp_panorama" ? townLayer(hero) : ""}
       <canvas class="fx-canvas camp-sparks" data-fx="campfire" data-origin="0.44,0.66"></canvas>
-      ${CAMP_PLACES.map((place) => {
+      ${campPlaces(hero).map((place) => {
         const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
-        const count = place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
-        return `<button class="camp-place${place.x > 80 ? " edge-right" : place.x < 18 ? " edge-left" : ""}${locked ? " locked" : ""}${App.tab === place.tab && place.tab ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.x}%;top:${place.y}%;width:${place.w}%;height:${place.h}%" aria-label="${esc(place.name)}" ${locked ? 'aria-disabled="true"' : ""}>
-          <span class="place-label"><b>${esc(place.name)}</b><small>${esc(locked ? "Недоступно в походе" : place.hint)}</small></span>${count ? `<i class="dot">${count}</i>` : ""}
+        const count = place.id === "town" ? (getTownOffer(hero) ? "!" : 0) : place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
+        return `<button class="camp-place${place.x > 80 ? " edge-right" : place.x < 18 ? " edge-left" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.x}%;top:${place.y}%;width:${place.w}%;height:${place.h}%" aria-label="${esc(place.name)}" ${locked ? 'aria-disabled="true"' : ""}>
+          <span class="place-label${count ? " waiting" : ""}"><b>${esc(place.name)}${count ? `<i class="dot">${count}</i>` : ""}</b><small>${esc(locked ? "Недоступно в походе" : place.hint)}</small></span>
         </button>`;
       }).join("")}
     </div>
@@ -66,6 +72,24 @@ function townLayer(hero) {
     const glow = done ? `<i class="camp-light lamp town-window" style="left:${building.spot.x}%;top:${building.spot.y - building.spot.h * 0.45}%;--r:${(building.spot.h * 0.5).toFixed(1)};--d:${(building.spot.x / 10).toFixed(1)}s" aria-hidden="true"></i>` : "";
     return glow + `<img class="camp-building${done ? "" : " rising"}${building.dark ? " dark" : ""}" src="assets/camp/${art}.webp" alt="" style="left:${building.spot.x}%;top:${building.spot.y}%;--h:${h}" data-tip="text|${esc(tip)}" draggable="false">`;
   }).join("");
+}
+
+// The picture of the camp for the town stage it has reached; a town of contracts looks like one.
+function campPanorama(hero) {
+  const index = TOWN_STAGES.indexOf(townStage(hero));
+  if (index <= 0) return "camp_panorama";
+  const dark = index >= 2 && (townBuilt(hero, "slave_market") || townBuilt(hero, "overseers"));
+  const id = `camp_stage${index}${dark ? "_dark" : ""}`;
+  return hasCampArt(id) ? id : "camp_panorama";
+}
+
+// Which place of the scene an open section belongs to.
+function campPlaceOf(tab) {
+  if (!tab || tab === "camp") return null;
+  const places = campPlaces(App.hero);
+  if (tab === "shop") return places.find((p) => p.shopTab && p.shopTab === App.shopTab) || places.find((p) => p.id === "shop");
+  const alias = { talents: "skills", gear: "hero" }[tab] || tab;
+  return places.find((p) => p.tab === alias) || null;
 }
 
 function hasCampArt(id) {
@@ -97,9 +121,9 @@ Actions.townDecide = (el) => {
 function campDrawer(views) {
   const tab = App.tab;
   if (!tab || tab === "camp" || !views[tab]) return "";
-  const title = PLACE_TITLES[tab] || "";
+  const title = tab === "town" ? townStage(App.hero).name : tab === "shop" && App.shopTab === "potions" ? "Навес Нимы" : PLACE_TITLES[tab] || "";
   const trainer = tab === "skills" || tab === "talents";
-  return `<aside class="camp-drawer${WIDE_PLACES.has(tab) ? " wide" : ""}" aria-label="${esc(title)}">
+  return `<aside class="camp-drawer${WIDE_PLACES.has(tab) ? " wide" : ""}" data-place="${esc(campPlaceOf(tab)?.id || "")}" aria-label="${esc(title)}">
     <header class="drawer-head"><h2>${esc(title)}</h2>
       ${trainer ? `<div class="tab-row" role="tablist"><button role="tab" class="tab${tab === "skills" ? " active" : ""}" aria-selected="${tab === "skills"}" data-action="hubTab" data-tab="skills">Навыки</button><button role="tab" class="tab${tab === "talents" ? " active" : ""}" aria-selected="${tab === "talents"}" data-action="hubTab" data-tab="talents">Таланты</button></div>` : ""}
       <button class="icon-btn drawer-close" data-action="closePlace" aria-label="Вернуться в лагерь">✕</button></header>
@@ -108,7 +132,7 @@ function campDrawer(views) {
 }
 
 Actions.campPlace = (el) => {
-  const place = CAMP_PLACES.find((entry) => entry.id === el.dataset.place);
+  const place = campPlaces(App.hero).find((entry) => entry.id === el.dataset.place);
   if (!place) return;
   if (el.getAttribute("aria-disabled") === "true") { toast("Это место откроется, когда вернёшься из похода.", "warn"); return; }
   if (!place.tab) { Actions.fireTalk(); return; }
@@ -134,20 +158,43 @@ Actions.fireHide = () => { App.fireOpen = false; render(); };
 
 // On a wide screen the picture is cropped at the sides: places at the edge shrink to what is visible, so their labels stay readable.
 function fitCampPlaces(stage) {
+  focusCampPlace(stage);
   if (getComputedStyle(stage).overflowX !== "hidden" && stage.scrollWidth > stage.clientWidth) return;
-  const box = stage.getBoundingClientRect();
-  stage.querySelectorAll(".camp-place").forEach((place) => {
-    place.style.marginLeft = "";
-    place.style.width = place.style.width.endsWith("px") ? place.dataset.w : place.style.width;
-    place.dataset.w = place.style.width;
-    const r = place.getBoundingClientRect();
-    const right = Math.max(0, r.right - box.right + 6);
-    const left = Math.max(0, box.left + 6 - r.left);
-    if (!right && !left) return;
-    const width = Math.max(40, r.width - right - left);
-    place.style.width = width + "px";
-    place.style.marginLeft = (left - right) / 2 + "px";
+  // Computed from the picture's own geometry, never from the screen: the camera may still be sliding back.
+  const world = stage.querySelector(".camp-world");
+  if (!world) return;
+  const vw = stage.clientWidth;
+  const W = world.offsetWidth;
+  const worldLeft = (vw - W) / 2;
+  const places = campPlaces(App.hero);
+  stage.querySelectorAll(".camp-place").forEach((el) => {
+    el.style.marginLeft = "";
+    el.style.width = "";
+    const place = places.find((p) => p.id === el.dataset.place);
+    if (!place) return;
+    const center = worldLeft + W * place.x / 100;
+    const half = W * place.w / 200;
+    const right = Math.max(0, center + half - vw + 6);
+    const left = Math.max(0, 6 - (center - half));
+    if (!right && !left) { el.style.width = `${place.w}%`; return; }
+    el.style.width = `${Math.max(40, half * 2 - right - left)}px`;
+    el.style.marginLeft = `${(left - right) / 2}px`;
   });
+}
+
+// With a side panel open the camera moves: the open place stands in the middle of the part of the camp still seen.
+function focusCampPlace(stage) {
+  const world = stage.querySelector(".camp-world");
+  if (!world) return;
+  const drawer = stage.closest(".hub")?.querySelector(".camp-drawer:not(.wide)");
+  const place = campPlaceOf(App.tab);
+  if (!drawer || !place || window.innerWidth < 900) { world.style.removeProperty("--pan"); return; }
+  const vw = stage.clientWidth;
+  const dw = drawer.offsetWidth;
+  const W = world.offsetWidth;
+  const want = (vw - dw) / 2 - (vw / 2 - W / 2 + W * place.x / 100);
+  const pan = Math.max(vw / 2 - W / 2 - dw, Math.min(W / 2 - vw / 2, want));
+  world.style.setProperty("--pan", `${Math.round(pan)}px`);
 }
 
 // On a phone the scene scrolls sideways; it opens at the fire.

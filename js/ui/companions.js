@@ -231,6 +231,8 @@ const MEETING_TITLES = { infirmary: "У нового лазарета", crossing
 // The first companion: after the Thicket's guardian, once the story has had its say.
 function maybeMeetCompanion() {
   const hero = App.hero;
+  // A meeting waits while a place is open: it never interrupts a purchase or a choice in the tree.
+  if (App.tab && !["camp", "trail"].includes(App.tab)) return;
   if (!hero || App.screen !== "hub" || hero.expedition || StoryPlayer.active || (hero.story?.queue || []).length || document.querySelector(".modal-layer, .story-layer, .memory-loss")) return;
   const def = getPendingMeeting(hero);
   if (!def) return;
