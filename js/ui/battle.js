@@ -379,7 +379,6 @@ function statusPills(effects, side) {
 }
 
 // The moment a status lands: a big label over the fighter that also says what it does.
-let calloutShift = 0;
 function statusCallout(side, id, def, hex) {
   const wrap = document.getElementById("floaters");
   if (!wrap) return;
@@ -388,11 +387,12 @@ function statusCallout(side, id, def, hex) {
   el.className = `floater st-callout ${def.tone === "good" ? "good" : "bad"}`;
   el.style.setProperty("--c", hex);
   el.innerHTML = `${icon(id)}<span><b>${esc(def.name || id)}</b>${STATUS_HINTS[id] ? `<small>${esc(STATUS_HINTS[id])}</small>` : ""}</span>`;
-  calloutShift = (calloutShift + 1) % 3;
+  const lane = laneFor(`s:${side}`, 2);
   el.style.left = `${center.x}px`;
-  el.style.top = `${center.y + calloutShift * 44}px`;
+  el.style.top = `${center.y + lane.length * 44}px`;
   wrap.appendChild(el);
-  setTimeout(() => el.remove(), 1700);
+  lane.push(el);
+  setTimeout(() => el.remove(), 1700 / Math.sqrt(fightSpeed()));
 }
 
 function effectChips(effects, side) {
@@ -585,17 +585,28 @@ function playAnim(side, name, ms = 500) {
   setTimeout(() => el.classList.remove(`a-${name}`), ms / speed);
 }
 
+// Each fighter has its own lane: at most two numbers at once, stacked, never scattered over the plates.
+const FLOAT_LANES = {};
+function laneFor(key, max) {
+  const lane = (FLOAT_LANES[key] = (FLOAT_LANES[key] || []).filter((el) => el.isConnected));
+  while (lane.length >= max) lane.shift().remove();
+  return lane;
+}
+const fightSpeed = () => Math.max(1, Number(App.save?.settings?.battleSpeed || 1));
+
 function floater(side, text, kind = "damage") {
   const wrap = document.getElementById("floaters");
   if (!wrap) return;
   const center = fighterCenter(side, 0.28);
+  const lane = laneFor(`n:${side}`, 2);
   const el = document.createElement("div");
   el.className = `floater ${kind}`;
   el.textContent = text;
-  el.style.left = `${center.x + (Math.random() - 0.5) * 60}px`;
-  el.style.top = `${center.y + (Math.random() - 0.5) * 26}px`;
+  el.style.left = `${center.x + (lane.length ? 26 : -8)}px`;
+  el.style.top = `${center.y - lane.length * 30}px`;
   wrap.appendChild(el);
-  setTimeout(() => el.remove(), 1300);
+  lane.push(el);
+  setTimeout(() => el.remove(), 1300 / Math.sqrt(fightSpeed()));
 }
 
 function shakeStage(power = "s") {

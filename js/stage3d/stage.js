@@ -45,11 +45,42 @@ const Stage3D = (() => {
   const HERO_RIM = new T.Color("#ffd9a8");
   const FOE_RIM = new T.Color("#ffb48a");
   const BODY_STATUS = [
-    { id: "freeze", color: "#a8e4ff", tint: 0.6 }, { id: "stun", color: "#fff27a", tint: 0.12 }, { id: "burn", color: "#ff7a2c", tint: 0.18 }, { id: "poison", color: "#7fd03a", tint: 0.2 },
-    { id: "corruption", color: "#9a55f0", tint: 0.24 }, { id: "bleed", color: "#ff2f46", tint: 0.2 }, { id: "frostbite", color: "#9fe4ff", tint: 0.3 }, { id: "frost", color: "#9fe4ff", tint: 0.2 },
-    { id: "mark", color: "#ffd25a", tint: 0.08 }, { id: "armor_break", color: "#c49a5c", tint: 0.1 }, { id: "weaken", color: "#8a8fa8", tint: 0.2 }, { id: "silence", color: "#b0b4c8", tint: 0.14 },
-    { id: "rage", color: "#ff5a3c", tint: 0.14 }, { id: "regeneration", color: "#8dff9a", tint: 0.08 }, { id: "haste", color: "#d8fff0", tint: 0.06 }
+    // Tints stay light (3–7%, ice 20% because it is a shell): a poisoned wolf is still a wolf, the rim tells the status.
+    { id: "freeze", color: "#a8e4ff", tint: 0.2 }, { id: "stun", color: "#fff27a", tint: 0.06 }, { id: "burn", color: "#ff7a2c", tint: 0.07 }, { id: "poison", color: "#7fd03a", tint: 0.06 },
+    { id: "corruption", color: "#9a55f0", tint: 0.07 }, { id: "bleed", color: "#ff2f46", tint: 0.06 }, { id: "frostbite", color: "#9fe4ff", tint: 0.1 }, { id: "frost", color: "#9fe4ff", tint: 0.07 },
+    { id: "mark", color: "#ffd25a", tint: 0.03 }, { id: "armor_break", color: "#c49a5c", tint: 0.04 }, { id: "weaken", color: "#8a8fa8", tint: 0.06 }, { id: "silence", color: "#b0b4c8", tint: 0.05 },
+    { id: "rage", color: "#ff5a3c", tint: 0.05 }, { id: "regeneration", color: "#8dff9a", tint: 0.04 }, { id: "haste", color: "#d8fff0", tint: 0.03 }
   ];
+  // Signs painted once on a canvas: a target sigil for the mark and a curved ward of light for the shield.
+  const SIGN_TEX = {};
+  function signTexture(kind) {
+    if (SIGN_TEX[kind]) return SIGN_TEX[kind];
+    const canvas = document.createElement("canvas");
+    const g = canvas.getContext("2d");
+    if (kind === "sigil") {
+      canvas.width = canvas.height = 128;
+      g.translate(64, 64);
+      g.strokeStyle = "#ffd27a"; g.shadowColor = "#ff8a2c"; g.shadowBlur = 12; g.lineCap = "round";
+      g.lineWidth = 4; g.beginPath(); g.arc(0, 0, 36, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = 2; g.globalAlpha = 0.7; g.beginPath(); g.arc(0, 0, 24, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+      g.lineWidth = 4;
+      for (let i = 0; i < 4; i += 1) { g.save(); g.rotate(i * Math.PI / 2); g.beginPath(); g.moveTo(0, -56); g.lineTo(0, -30); g.stroke(); g.restore(); }
+      g.fillStyle = "#fff0c8"; g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.fill();
+    } else {
+      canvas.width = 128; canvas.height = 256;
+      const grad = g.createLinearGradient(0, 0, 0, 256);
+      grad.addColorStop(0, "rgba(255,214,140,0)"); grad.addColorStop(0.25, "rgba(255,214,140,.9)"); grad.addColorStop(0.75, "rgba(255,214,140,.9)"); grad.addColorStop(1, "rgba(255,214,140,0)");
+      g.shadowColor = "#ffb85a"; g.shadowBlur = 16;
+      g.strokeStyle = grad; g.lineWidth = 14; g.beginPath(); g.arc(-170, 128, 240, -0.5, 0.5); g.stroke();
+      g.lineWidth = 4; g.globalAlpha = 0.9; g.strokeStyle = grad; g.beginPath(); g.arc(-170, 128, 252, -0.46, 0.46); g.stroke();
+      g.globalAlpha = 0.16; g.fillStyle = grad; g.beginPath(); g.arc(-170, 128, 240, -0.5, 0.5); g.lineTo(-170, 128); g.fill();
+    }
+    const texture = new T.CanvasTexture(canvas);
+    texture.colorSpace = T.SRGBColorSpace;
+    SIGN_TEX[kind] = texture;
+    return texture;
+  }
+
   // Where the blade tip rests in the model, used for the slash ribbons. [x, y up, z forward]
   const WEAPON_TIPS = {
     assassin: [{ bone: "handR", tip: [-0.385, 0.735, 0.6] }, { bone: "handL", tip: [0.385, 0.735, 0.6] }],
@@ -765,22 +796,30 @@ const Stage3D = (() => {
 
     // A bright crescent where the blade passes.
     slash(point, hex, facing, big = false) {
-      const inner = big ? 0.62 : 0.5;
-      const geo = new T.RingGeometry(inner, inner + (big ? 0.62 : 0.42), 28, 1, -1.15, 2.3);
+      const inner = big ? 0.66 : 0.52;
+      const width = big ? 0.26 : 0.17;
+      const geo = new T.RingGeometry(inner, inner + width, 48, 1, -1.15, 2.3);
       const material = new T.ShaderMaterial({
         transparent: true, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending,
-        uniforms: { tint: { value: color(hex) }, t: { value: 0 } },
-        vertexShader: "varying vec2 vUv; varying vec3 p; void main(){ vUv = uv; p = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
-        fragmentShader: `uniform vec3 tint; uniform float t; varying vec3 p;
-          void main(){ float ang = atan(p.y, p.x) / 1.15; float front = 1. - smoothstep(-1. + t * 2.6 - .5, -1. + t * 2.6, ang) * 0.; float r = length(p);
-            float edge = smoothstep(.0, .25, abs(ang - 1.) ) ; float fade = (1. - t) * (1. - abs(ang)) ; gl_FragColor = vec4((tint + .35) * fade * 1.15, fade); }`
+        uniforms: { tint: { value: color(hex) }, t: { value: 0 }, inner: { value: inner }, width: { value: width } },
+        vertexShader: "varying vec3 p; void main(){ p = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
+        fragmentShader: `uniform vec3 tint; uniform float t; uniform float inner; uniform float width; varying vec3 p;
+          void main(){
+            float a = (atan(p.y, p.x) + 1.15) / 2.3;            // 0..1 along the arc
+            float head = t * 1.35;                               // the blade sweeps along it
+            float trail = smoothstep(head - .78, head, a) * (1. - smoothstep(head, head + .03, a));
+            float across = 1. - abs((length(p) - inner) / width * 2. - 1.); // bright in the middle of the band
+            float taper = sin(clamp(a, 0., 1.) * 3.14159);
+            float alpha = trail * pow(max(across, 0.), 1.2) * taper * (1. - t * .45);
+            vec3 col = mix(tint, vec3(1.), .55 * trail);
+            gl_FragColor = vec4(col * alpha * 2.4, min(1., alpha * 1.4)); }`
       });
       const mesh = new T.Mesh(geo, material);
       mesh.position.copy(point);
       mesh.rotation.set(rand(-0.4, 0.4), facing > 0 ? 0.25 : -0.25 + Math.PI, rand(-1.1, 1.1));
       mesh.renderOrder = 5;
       this.scene.add(mesh);
-      this.fxItems.push({ age: 0, duration: 0.2, update: (t) => { material.uniforms.t.value = t; mesh.scale.setScalar(0.85 + t * 0.4); }, end: () => { this.scene.remove(mesh); geo.dispose(); material.dispose(); } });
+      this.fxItems.push({ age: 0, duration: 0.24, update: (t) => { material.uniforms.t.value = t; mesh.scale.setScalar(0.95 + t * 0.15); }, end: () => { this.scene.remove(mesh); geo.dispose(); material.dispose(); } });
     }
 
     // A flat shock ring on the ground.
@@ -852,9 +891,11 @@ const Stage3D = (() => {
 
     // A target sign above a marked fighter.
     setReticle(unit, on) {
-      if (!on) { unit.root.remove(unit.reticle); unit.reticle.geometry.dispose(); unit.reticle.material.dispose(); unit.reticle = null; return; }
-      unit.reticle = new T.Mesh(new T.RingGeometry(0.2, 0.25, 4, 1), new T.MeshBasicMaterial({ color: color("#ffd25a").multiplyScalar(1.6), transparent: true, side: T.DoubleSide, depthWrite: false }));
-      unit.reticle.position.y = unit.height * unit.scale + 0.42;
+      if (!on) { unit.root.remove(unit.reticle); unit.reticle.material.dispose(); unit.reticle = null; return; }
+      unit.reticle = new T.Sprite(new T.SpriteMaterial({ map: signTexture("sigil"), transparent: true, depthWrite: false, depthTest: false, blending: T.AdditiveBlending }));
+      unit.reticle.renderOrder = 6;
+      unit.reticle.scale.setScalar(0.42 + unit.height * unit.scale * 0.12);
+      unit.reticle.position.set(0, unit.height * unit.scale * 0.6, 0.1);
       unit.root.add(unit.reticle);
     }
 
@@ -888,12 +929,12 @@ const Stage3D = (() => {
         unit.status = (effects || []).map((effect) => effect.id).filter((id) => STATUS_FX[id]);
         const hasShield = (effects || []).some((effect) => effect.id === "shield");
         if (hasShield && !unit.bubble) {
-          const bubble = new T.Mesh(new T.SphereGeometry(unit.height * 0.72 * unit.scale, 24, 16), new T.ShaderMaterial({
-            transparent: true, depthWrite: false, blending: T.AdditiveBlending,
-            vertexShader: "varying vec3 n; varying vec3 v; void main(){ n = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.); v = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }",
-            fragmentShader: "varying vec3 n; varying vec3 v; void main(){ float f = pow(max(0., 1. - abs(dot(n, v))), 2.4); gl_FragColor = vec4(vec3(1., .86, .5) * f * 1.1, f); }"
-          }));
-          bubble.position.y = unit.height * 0.5 * unit.scale;
+          const h = unit.height * unit.scale;
+          const facing = unit.side === "foe" ? -1 : 1;
+          const bubble = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: signTexture("ward"), transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0.7 }));
+          bubble.scale.set(h * 0.5 * facing, h * 0.9, 1);
+          bubble.position.set(facing * h * 0.24, h * 0.5, 0.15);
+          bubble.renderOrder = 5;
           unit.root.add(bubble);
           unit.bubble = bubble;
         } else if (!hasShield && unit.bubble) {
@@ -1000,7 +1041,8 @@ const Stage3D = (() => {
         const statusGlow = unit.statusRim ? 0.85 + Math.sin(this.time * 4) * 0.25 : 0;
         unit.uniforms.rimPower.value += (Math.max(unit === hover ? 1.1 : 0.42, statusGlow) - unit.uniforms.rimPower.value) * Math.min(1, dt * 12);
         unit.uniforms.rimColor.value.lerp(unit.statusRim || (unit.side !== "foe" ? HERO_RIM : FOE_RIM), Math.min(1, dt * 6));
-        if (unit.reticle) { unit.reticle.rotation.z = this.time * 1.6; unit.reticle.position.y = unit.height * unit.scale + 0.42 + Math.sin(this.time * 3) * 0.04; }
+        if (unit.reticle) { unit.reticle.material.rotation = this.time * 0.7; unit.reticle.material.opacity = 0.62 + Math.sin(this.time * 4) * 0.2; }
+        if (unit.bubble) unit.bubble.material.opacity = 0.62 + Math.sin(this.time * 2.6) * 0.12;
       });
 
       // Camera: settled wide shot, leans toward the action, shakes on heavy hits.
