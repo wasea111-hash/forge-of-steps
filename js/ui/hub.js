@@ -101,7 +101,7 @@ function viewTrailPicker() {
   const guardian = getAvailableGuardian(hero, App.regionIndex);
   const first = hero.records.expeditions === 0;
   return `
-    ${first ? `<div class="coach-card"><b>С чего начать.</b> Выбери белую тропу. Поход состоит из нескольких шагов. Найденные вещи сразу попадают в рюкзак, их можно надеть прямо в пути. Если погибнешь, пропадёт всё, что не надето, и половина золота.</div>` : ""}
+    ${first ? `<div class="coach-card"><b>С чего начать.</b> Выбери белую тропу. Поход состоит из нескольких шагов. Найденные вещи сразу попадают в рюкзак, их можно надеть прямо в пути. Если погибнешь, пропадёт всё, что не надето, и половина золота. Позже смерть начнёт забирать и память о доме — ключ от Ложкина в углу покажет, сколько её осталось.</div>` : ""}
     <div class="trail-spacer"></div>
     ${storyObjectiveCard()}
     <h2 class="section-title">${icon("map")}Регион</h2>
@@ -132,6 +132,7 @@ function viewTrailPicker() {
         </button>`;
       }).join("")}
     </section>
+    ${stakeLine(hero)}
     ${guardianCard(guardian, region)}`;
 }
 
@@ -470,6 +471,7 @@ function viewSkills() {
   const pickedReachable = picked && doesSkillMatchBranch(picked, hero);
   const needs = picked && getSkillStudyState(hero, picked) === "NEEDS_PREV" ? getSkillPrereqs(picked).map((other) => other.name).join(" или ") : "";
   return `
+    ${buildChoicesCard(hero)}
     <div class="tree-top">
       <section class="tree-bar">
         <div class="tree-points">${devPointsChip(hero)}${rebuildNote(hero)}<small class="muted">На каждом шаге дерева берётся один навык из нескольких, и ветки играются по-разному. На панель идут пять из выбранных. Пути выбираются на ${SUBCLASS_UNLOCK_LEVEL} и ${PROFESSION_UNLOCK_LEVEL} уровнях, и с ними меняется облик героя.</small></div>

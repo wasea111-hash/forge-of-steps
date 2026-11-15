@@ -109,21 +109,46 @@ Actions.keepUltimate = (el) => {
 };
 
 // Asked only when nothing else is on screen, after the story has spoken.
+// Choices of the build never jump into the face. A new one is announced once, quietly; it waits in the Skills tab.
+function pendingBuildChoices(hero) {
+  const list = [];
+  const pick = getPendingTreePick(hero);
+  if (pick) list.push({ kind: "tree", key: `tree:${pick.stage.owner}:${pick.tier.level}`, text: `Новый навык ${pick.tier.level} уровня: выбери один путь.` });
+  const ult = getPendingUltimateChoice(hero);
+  if (ult) list.push({ kind: "ult", key: `ult:${ult.owner}`, text: "Открылся новый ультимейт: реши, какой взять в руку." });
+  if (hero.level >= STYLE_UNLOCK_LEVEL && !hero.styleId) list.push({ kind: "style", key: "style", text: "Можно выбрать стиль боя." });
+  return list;
+}
+
 function promptBuildChoices() {
   const hero = App.hero;
   if (!hero || App.screen !== "hub" || hero.expedition || document.querySelector(".modal-layer") || StoryPlayer.active) return;
-  const pendingPick = getPendingTreePick(hero);
-  if (pendingPick) { openTreePickChoice(pendingPick); return; }
-  const pending = getPendingUltimateChoice(hero);
-  if (pending) { openUltimateChoice(pending); return; }
-  if (hero.level >= STYLE_UNLOCK_LEVEL && !hero.styleId && !hero.records.stylePrompted) {
-    hero.records.stylePrompted = true;
-    persist();
-    openModal(`<span class="eyebrow">Первый настоящий выбор</span><h2 class="result-title">Какой у тебя стиль боя?</h2>
+  const fresh = pendingBuildChoices(hero).filter((choice) => !(hero.records.buildNoticed || []).includes(choice.key));
+  if (!fresh.length) return;
+  hero.records.buildNoticed = [...(hero.records.buildNoticed || []), ...fresh.map((choice) => choice.key)].slice(-40);
+  persist();
+  toast(`${fresh[0].text} Загляни во вкладку «Навыки».`, "good");
+}
+
+function buildChoicesCard(hero) {
+  const list = pendingBuildChoices(hero);
+  if (!list.length) return "";
+  return `<section class="build-waiting">${list.map((choice) => `<div><span>${esc(choice.text)}</span><button class="btn small primary glow" data-action="openBuildChoice" data-kind="${choice.kind}">Выбрать</button></div>`).join("")}</section>`;
+}
+
+Actions.openBuildChoice = (el) => {
+  const hero = App.hero;
+  if (el.dataset.kind === "tree") { const pick = getPendingTreePick(hero); if (pick) openTreePickChoice(pick); }
+  else if (el.dataset.kind === "ult") { const ult = getPendingUltimateChoice(hero); if (ult) openUltimateChoice(ult); }
+  else openStyleChoice();
+};
+
+function openStyleChoice() {
+  const hero = App.hero;
+  openModal(`<span class="eyebrow">Первый настоящий выбор</span><h2 class="result-title">Какой у тебя стиль боя?</h2>
       <p class="muted">Стиль определяет, как ты ведёшь каждый обмен ходами. Он работает с любым подклассом и растёт вместе с тобой.</p>
       <div class="build-cards">${getClassStyles(hero.classKey).map((style) => `<button class="build-card" data-action="pickStyle" data-id="${esc(style.id)}"><strong>${esc(style.name)}</strong><small>${esc(style.description)}</small><span class="build-foot">Выбрать</span></button>`).join("")}</div>
       <div class="modal-actions"><button class="btn" data-action="closeModal">Решу позже</button></div>`, { wide: true });
-  }
 }
 
 // --- Forms in the side panel of the tree ---

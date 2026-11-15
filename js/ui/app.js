@@ -55,7 +55,16 @@ function afterRender() {
   document.querySelector("[data-autofocus]")?.focus();
   placeTreeView();
   if (typeof placeCampView === "function") placeCampView();
-  if (App.hero) { syncStoryEvents(App.hero); scheduleStory(); setTimeout(maybeMeetCompanion, 700); }
+  whenCalm(700);
+}
+
+// Whatever waits (a scene, a meeting, a quiet notice) is checked the moment the screen calms down: after a render, a closed dialog or a finished scene.
+function whenCalm(meetDelay = 450) {
+  if (!App.hero) return;
+  syncStoryEvents(App.hero);
+  scheduleStory();
+  clearTimeout(window.__meet);
+  window.__meet = setTimeout(maybeMeetCompanion, meetDelay);
 }
 
 window.addEventListener("resize", () => {
@@ -145,6 +154,7 @@ function closeModal() {
   layer.remove();
   hideTooltip();
   callback?.();
+  if (!document.querySelector(".modal-layer")) whenCalm();
 }
 
 Actions.closeModal = () => closeModal();
@@ -349,7 +359,7 @@ function pendingBadgeCount(tab) {
   if (tab === "talents") return Math.max(0, getDevPointsFree(hero));
   if (tab === "skills") {
     const openForms = getDevPointsFree(hero) > 0 ? getVisibleClassSkills(hero, "active").filter((skill) => getSkillForms(skill.id).length && !hero.skillForms?.[skill.id] && Number(skill.unlockLevel || 1) <= hero.level).length : 0;
-    return openForms + (hero.level >= STYLE_UNLOCK_LEVEL && !hero.styleId ? 1 : 0) + (getPendingUltimateChoice(hero) ? 1 : 0);
+    return openForms + pendingBuildChoices(hero).length;
   }
   return 0;
 }

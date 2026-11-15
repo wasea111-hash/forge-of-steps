@@ -1602,6 +1602,15 @@ const report = run(`(function () {
     assert(hero.story.queue.includes("retreat:first"), "a retreat is noticed");
     hero.expedition = createExpedition(hero, "thicket", "white");
     finishExpedition(hero, hero.expedition, "death");
+    eq(Number(hero.story.deaths || 0), 0, "before the Thicket's guardian the Brand returns on credit");
+    eq(getLostMemories(hero).length, 0, "nothing is lost yet");
+    eq(memoryAtStake(hero), null, "nothing is at stake yet");
+    syncStoryEvents(hero);
+    assert(hero.story.queue.includes("death:credit"), "the credit is explained");
+    hero.defeatedGuardians.push("greyfang");
+    eq(memoryAtStake(hero)?.label, STORY_MEMORIES[0].label, "now the first feeling is at stake");
+    hero.expedition = createExpedition(hero, "thicket", "white");
+    finishExpedition(hero, hero.expedition, "death");
     eq(hero.story.deaths, 1);
     eq(getLostMemories(hero).length, 1, "one feeling is gone");
     syncStoryEvents(hero);
@@ -1975,10 +1984,33 @@ const report = run(`(function () {
     eq(getEndingState(hero, "shared").ok, false, "no shared ending while someone is held");
   });
 
+  test("3.1: kept memories pay for the hearth ending and colour every epilogue", () => {
+    const hero = newHero("warrior", true);
+    hero.defeatedGuardians.push("greyfang", "smith");
+    assert(storyHasFlag(hero, "memories_whole"), "a whole memory at the start");
+    assert(getEndingState(hero, "hearth").ok, "the hammer can be paid for");
+    hero.story.deaths = STORY_MEMORIES.length - MEMORIES_FOR_HEARTH;
+    assert(getEndingState(hero, "hearth").ok && storyHasFlag(hero, "memories_some"), "exactly enough is still enough");
+    hero.story.deaths += 1;
+    const state = getEndingState(hero, "hearth");
+    assert(!state.ok && /памят/.test(state.reason), "one more death closes the hammer, with a reason");
+    assert(storyHasFlag(hero, "memories_few"), "and the epilogues know it");
+    assert(getEndingState(hero, "bank").ok, "other endings stay open");
+    const lines = getStoryLines(hero, STORY_SCENES["ending:bank"].lines);
+    eq(lines.filter((line) => /^memories_/.test(line.if || "")).length, 1, "exactly one home line in the epilogue");
+    const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    eq(back.story.creditDeaths, 0, "the credit counter survives a reload");
+  });
+
   test("camp: people answer the last return and the save keeps it", () => {
     const hero = newHero("mage", true);
     hero.story.seen = ["intro"];
     eq(getCampTalk(hero).moment, "none", "nothing happened yet");
+    const early = createExpedition(hero, REGIONS[0].id, "white");
+    hero.expedition = early;
+    finishExpedition(hero, early, "death");
+    assert(getCampTalk(hero).text.includes("в долг"), "a death on credit is named as such");
+    hero.defeatedGuardians.push(REGIONS[0].guardian);
     const exp = createExpedition(hero, REGIONS[0].id, "white");
     hero.expedition = exp;
     finishExpedition(hero, exp, "death");

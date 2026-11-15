@@ -86,7 +86,7 @@ function playStoryScene(sceneId, { replay = false, onDone = null } = {}) {
       StoryPlayer.active = false;
       if (!replay && !state.postponed) { markStorySeen(hero, sceneId); persist(); }
       if (onDone) onDone();
-      else if (!replay) maybePlayStory();
+      else if (!replay) whenCalm();
     }, 260);
   };
   const showChoice = () => {

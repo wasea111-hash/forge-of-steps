@@ -41,12 +41,24 @@ function memoryKey(hero) {
   if (!hero.story) return "";
   const lost = getLostMemories(hero);
   const kept = STORY_MEMORIES.length - lost.length;
-  const body = lost.length ? `Клеймо уже забрало: ${lost.map((memory) => memory.label.toLowerCase()).join(" · ")}. Факты остаются, ощущения — нет.` : "Ключ держит оттиск порога. Пока ты помнишь Ложкино, дорога туда существует.";
+  const rule = `Каждая смерть забирает одно ощущение навсегда. Финал «Молот в твоей ладони» требует сохранить хотя бы ${MEMORIES_FOR_HEARTH}: молотом платят собственной памятью.${memoryGraceActive(hero) ? " Пока жив страж Чащи, Клеймо возвращает в долг." : ""}`;
+  const body = `${lost.length ? `Клеймо уже забрало: ${lost.map((memory) => memory.label.toLowerCase()).join(" · ")}. Факты остаются, ощущения — нет.` : "Ключ держит оттиск порога. Пока ты помнишь Ложкино, дорога туда существует."} ${rule}`;
   return `<button class="memory-key" style="--kept:${(kept / STORY_MEMORIES.length).toFixed(2)}" data-action="hubTab" data-tab="journal" aria-label="Ключ от Ложкина" data-tip="text|Ключ от Ложкина · ${kept} из ${STORY_MEMORIES.length}|${esc(body)}">
     ${hasArt("memory_key") ? `<img src="assets/img/memory_key.webp" alt="">` : icon("key")}
     <svg viewBox="0 0 80 80" aria-hidden="true">${KEY_CRACKS.slice(0, lost.length).map((d) => `<path d="${d}"/>`).join("")}</svg>
     <span class="memory-key-text"><b>Ложкино</b><small>${kept ? `помнишь ${kept} из ${STORY_MEMORIES.length}` : "только факты"}</small></span>
   </button>`;
+}
+
+// What a death would cost right now, said before the road, not after.
+function stakeLine(hero) {
+  if (!hero.story || hero.story.ending) return "";
+  if (memoryGraceActive(hero)) return `<p class="stake-line grace">${icon("key")}<span>Пока жив страж Чащи, Клеймо возвращает в долг: смерть стоит снаряжения из рюкзака и половины золота, но не памяти.</span></p>`;
+  const next = memoryAtStake(hero);
+  if (!next) return `<p class="stake-line gone">${icon("key")}<span>Память о доме исчерпана: Клейму больше нечего забрать. Путь «Молот в твоей ладони» закрыт.</span></p>`;
+  const kept = keptMemories(hero);
+  const edge = kept === MEMORIES_FOR_HEARTH ? " Ещё одна смерть — и путь «Молот в твоей ладони» закроется: им платят собственной памятью." : "";
+  return `<p class="stake-line${edge ? " edge" : ""}">${icon("key")}<span>Если падёшь, Клеймо заберёт «${esc(next.label)}». Осталось ${kept} из ${STORY_MEMORIES.length}.${edge}</span></p>`;
 }
 
 // The moment the Brand takes a feeling: its name stands for a breath, then falls apart into ash.

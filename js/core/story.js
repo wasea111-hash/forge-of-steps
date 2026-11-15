@@ -12,6 +12,7 @@ function migrateStory(raw) {
     story.queue = (Array.isArray(story.queue) ? story.queue : []).filter((id) => STORY_SCENES[id] && !story.seen.includes(id));
     story.choices = story.choices && typeof story.choices === "object" ? story.choices : {};
     story.deaths = Number.isFinite(Number(story.deaths)) ? Math.max(0, Number(story.deaths)) : 0;
+    story.creditDeaths = Math.max(0, Number(story.creditDeaths) || 0);
     story.flags = Array.isArray(story.flags) ? story.flags : [];
     story.bonuses = (Array.isArray(story.bonuses) ? story.bonuses : []).filter((bonus) => bonus?.id);
     story.lastTrip = cleanCampTrip(story.lastTrip);
@@ -58,7 +59,11 @@ const STORY_DERIVED = {
   boss_greyfang: (has, hero) => hero.defeatedGuardians?.includes("greyfang"),
   boss_pyre_queen: (has, hero) => hero.defeatedGuardians?.includes("pyre_queen"),
   boss_archivist: (has, hero) => hero.defeatedGuardians?.includes("archivist"),
-  boss_smith: (has, hero) => hero.defeatedGuardians?.includes("smith")
+  boss_smith: (has, hero) => hero.defeatedGuardians?.includes("smith"),
+  // How much of home is still felt: the endings and some talks read it.
+  memories_whole: (has, hero) => keptMemories(hero) >= 7,
+  memories_some: (has, hero) => keptMemories(hero) >= MEMORIES_FOR_HEARTH && keptMemories(hero) < 7,
+  memories_few: (has, hero) => keptMemories(hero) < MEMORIES_FOR_HEARTH
 };
 
 function storyHasFlag(hero, flag) {
@@ -90,6 +95,7 @@ function getEndingState(hero, endingId) {
   const lairs = getStoryLairsBeaten(hero);
   if (missing.length || lairs < Number(ending.needsLairs || 0)) return { ok: false, lairs };
   const held = (hero.companions || []).filter((c) => c.legal === "contract").length;
+  if (endingId === "hearth" && keptMemories(hero) < MEMORIES_FOR_HEARTH) return { ok: false, lairs, reason: `Молотом платят собственной памятью, а её осталось ${keptMemories(hero)} из ${STORY_MEMORIES.length}. Нужно хотя бы ${MEMORIES_FOR_HEARTH}.` };
   if (endingId === "shared" && held) return { ok: false, lairs, held, reason: `В лагере держатся договором: ${held}. Право выпустить молот — только у свободных.` };
   return { ok: true, lairs };
 }
@@ -159,6 +165,7 @@ function syncStoryEvents(hero) {
   if (hero.subclass) storyEvent(hero, "path:subclass");
   if (hero.profession) storyEvent(hero, "path:profession");
   if (Number(story.retreats || 0) > 0) storyEvent(hero, "retreat:first");
+  if (Number(story.creditDeaths || 0) >= 1) storyEvent(hero, "death:credit");
   const deaths = Number(story.deaths || 0);
   if (deaths >= 1) storyEvent(hero, "death:first");
   if (deaths >= 3) storyEvent(hero, "death:third");
@@ -169,9 +176,25 @@ function syncStoryEvents(hero) {
 }
 
 // A real death in battle takes one feeling. Facts, names and skills stay.
+// Until the Thicket's guardian falls the Brand returns you on credit: it takes nothing yet, and Nima says what comes next.
+const MEMORIES_FOR_HEARTH = 4;
+function memoryGraceActive(hero) {
+  return !hero.defeatedGuardians?.includes("greyfang");
+}
 function noteStoryDeath(hero) {
   if (!hero.story || hero.story.ending) return;
+  if (memoryGraceActive(hero)) { hero.story.creditDeaths = Number(hero.story.creditDeaths || 0) + 1; return; }
   hero.story.deaths = Number(hero.story.deaths || 0) + 1;
+}
+
+function keptMemories(hero) {
+  return STORY_MEMORIES.length - getLostMemories(hero).length;
+}
+
+// The feeling the next real death would take, or null while the credit lasts or nothing is left.
+function memoryAtStake(hero) {
+  if (!hero.story || hero.story.ending || memoryGraceActive(hero)) return null;
+  return STORY_MEMORIES[getLostMemories(hero).length] || null;
 }
 
 function getLostMemories(hero) {

@@ -11,6 +11,7 @@ function noteCampTrip(hero, trip) {
     zoneKey: trip.zoneKey || null,
     lairId: trip.lairId || null,
     guardian: trip.guardian || null,
+    credit: trip.outcome === "death" && memoryGraceActive(hero),
     n: Number(hero.records?.expeditions || 0) + Number(hero.records?.deaths || 0) + hero.defeatedGuardians.length
   };
 }
@@ -18,7 +19,7 @@ function noteCampTrip(hero, trip) {
 function cleanCampTrip(raw) {
   if (!raw || typeof raw !== "object" || !["death", "complete", "retreat"].includes(raw.outcome)) return null;
   const text = (value) => (typeof value === "string" ? value : null);
-  return { outcome: raw.outcome, kind: ["trail", "lair", "guardian"].includes(raw.kind) ? raw.kind : "trail", regionId: text(raw.regionId), zoneKey: text(raw.zoneKey), lairId: text(raw.lairId), guardian: text(raw.guardian), n: Number.isFinite(Number(raw.n)) ? Number(raw.n) : 0 };
+  return { outcome: raw.outcome, kind: ["trail", "lair", "guardian"].includes(raw.kind) ? raw.kind : "trail", regionId: text(raw.regionId), zoneKey: text(raw.zoneKey), lairId: text(raw.lairId), guardian: text(raw.guardian), credit: raw.credit === true, n: Number.isFinite(Number(raw.n)) ? Number(raw.n) : 0 };
 }
 
 // on: what happened last (death, complete, retreat, lair, guardian_win, guardian_death, none). chapter: from this chapter on.
@@ -26,6 +27,7 @@ function cleanCampTrip(raw) {
 const CAMP_TALK = {
   nima: [
     { contract: true, text: "Я лечу всех, кто ко мне приходит. Тех, кто пришёл не по своей воле, — первыми." },
+    { on: "death", credit: true, text: "Тихо, ты дома. В этот раз Клеймо ничего не взяло: пока страж Чащи жив, оно возвращает в долг. Долг кончится вместе с ним. Потом каждое возвращение будет брать что-то из памяти о доме." },
     { on: "death", text: "Тихо, ты дома. Клеймо взяло своё: «{memory}». Сядь ближе к огню, тепло пока работает." },
     { on: "death", minDeaths: 3, text: "Я больше не считаю раны. Я считаю то, что ты уже не можешь почувствовать. Список растёт." },
     { on: "guardian_death", text: "Страж бьёт честно: тело я собрала, а вот «{memory}» назад не пришьёшь." },
@@ -103,7 +105,8 @@ function getCampLines(hero, who) {
   const lines = (CAMP_TALK[who] || []).filter(fits);
   const urgent = lines.filter((line) => line.contract);
   if (urgent.length) return { answers: urgent, everyday: lines.filter((line) => !line.on && !line.contract) };
-  const answers = lines.filter((line) => line.on === moment && (moment !== "death" && moment !== "guardian_death" || getLostMemories(hero).length));
+  const lastFree = (moment === "death" || moment === "guardian_death") && hero.story?.lastTrip?.credit;
+  const answers = lines.filter((line) => line.on === moment && (line.credit ? lastFree : moment !== "death" && moment !== "guardian_death" || (!lastFree && getLostMemories(hero).length)));
   const everyday = lines.filter((line) => !line.on);
   return { answers, everyday };
 }

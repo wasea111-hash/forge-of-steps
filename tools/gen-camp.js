@@ -32,10 +32,10 @@ const MANIFEST = {
   town_workshops: { size: "1024x1024", prompt: `${STYLE} A single isolated game building for a layered camp scene, seen slightly from above at a three-quarter angle matching a travellers camp at dusk, the whole object visible with a 10% margin, ground contact at the bottom, warm lantern light. The whole background is one perfectly flat solid pure magenta colour (#FF00FF), no ground plane beyond a small patch under the building, no shadow on the background, no magenta on the object. The building: a small square of different free workshops: a pottery kiln, a carpenter shed, a weaving loom under a roof, open doors, shared courtyard.` },
   town_overseers: { size: "1024x1024", prompt: `${STYLE} A single isolated game building for a layered camp scene, seen slightly from above at a three-quarter angle matching a travellers camp at dusk, the whole object visible with a 10% margin, ground contact at the bottom, warm lantern light. The whole background is one perfectly flat solid pure magenta colour (#FF00FF), no ground plane beyond a small patch under the building, no shadow on the background, no magenta on the object. The building: a heavy fortified checkpoint with a gatehouse, identical grim barracks behind a palisade, a small watchtower with a red ledger banner.` },
   npc_veya: { size: "1024x1536", prompt: NPC("a lean middle-aged woman guide with windburned brown skin, short iron-grey hair, patched moss-green travel coat, a red measuring cord around one wrist, leaning on a wooden walking staff and studying a folded map.") },
-  npc_mot: { size: "1024x1536", prompt: NPC("a wiry trader in his forties with a clever tired face, a short dark beard, a layered merchant coat of faded red and brown, a money pouch and a small brass scale in his hands.") },
-  npc_kern: { size: "1024x1536", prompt: NPC("a broad old blacksmith with thick grey forearms, a burnt leather apron, a soot-dark face with a white beard, resting a heavy hammer on his shoulder.") },
-  npc_sota: { size: "1024x1536", prompt: NPC("a slim young scribe with ink-stained fingers, short dark hair, round spectacles, a long dark-blue coat with many pockets, holding an open ledger and a quill.") },
-  npc_nima: { size: "1024x1536", prompt: NPC("a calm middle-aged healer woman with a grey-streaked bun, a plain apron over a dark dress, rolled sleeves, holding a roll of clean bandages.") }
+  npc_mot: { size: "1024x1536", ref: "story/portrait_mot.png", prompt: NPC("a stocky man in his forties with deep-set hazel eyes, cropped black curls, a narrow burn along the jaw, a faded plum merchant coat with mismatched buttons, holding a brass weighing pan, two copper tokens in the other hand.") },
+  npc_kern: { size: "1024x1536", ref: "story/portrait_kern.png", prompt: NPC("an elderly broad-shouldered metalworker with dark umber skin, a close white beard, a soot-black linen apron, two missing fingertips, faint amber light through cracked skin at his collarbone, holding small repair tongs, a heavy hammer hanging at his belt.") },
+  npc_sota: { size: "1024x1536", ref: "story/portrait_sota.png", prompt: NPC("a young adult woman with olive skin, tightly braided black hair, large attentive dark eyes, ink-stained fingers, a plain ochre shawl over a dark dress, a tiny silver staple through one eyebrow, holding a thick book with blank weathered pages and a quill.") },
+  npc_nima: { size: "1024x1536", ref: "story/portrait_nima.png", prompt: NPC("a stout older woman with tawny skin, white hair in a short braid, steady grey eyes, a dark blue wool dress with clean rolled sleeves, a mended ceramic cup in one hand and a bundle of fresh bandages in the other.") }
 };
 
 if (process.argv.includes("--convert")) {
@@ -72,8 +72,13 @@ if (process.argv.includes("--convert")) {
     while (queue.length) {
       const id = queue.shift();
       await new Promise((resolve) => {
-        const prompt = `Generate one image with your image generation tool, size ${MANIFEST[id].size}, with exactly this prompt: ${MANIFEST[id].prompt}\nAfter it is generated, copy its PNG into the current working directory as ${id}.png. Do not do anything else.`;
-        const child = spawn(CODEX, ["exec", "--skip-git-repo-check", "-s", "workspace-write", "-C", RAW, "--disable", "code_mode", "-c", 'model_reasoning_effort="low"', "-"], { stdio: ["pipe", "ignore", "ignore"] });
+        const refNote = MANIFEST[id].ref ? " The attached portrait shows this exact person: keep the same face, age, skin tone, hair and the same clothes and colours, now as a full figure." : "";
+        const prompt = `Generate one image with your image generation tool, size ${MANIFEST[id].size}, with exactly this prompt: ${MANIFEST[id].prompt}${refNote}\nAfter it is generated, copy its PNG into the current working directory as ${id}.png. Do not do anything else.`;
+        const args = ["exec", "--skip-git-repo-check", "-s", "workspace-write", "-C", RAW, "--disable", "code_mode", "-c", 'model_reasoning_effort="low"'];
+        // A camp figure is the same person as the portrait in the talks: the portrait goes along as a reference.
+        if (MANIFEST[id].ref) args.push("-i", path.join(ROOT, "art", MANIFEST[id].ref));
+        args.push("-");
+        const child = spawn(CODEX, args, { stdio: ["pipe", "ignore", "ignore"] });
         child.stdin.end(prompt);
         child.on("close", () => { console.log(id, fs.existsSync(path.join(RAW, `${id}.png`)) ? "ok" : "MISSING"); resolve(); });
       });
