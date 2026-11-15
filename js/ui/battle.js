@@ -279,6 +279,14 @@ function renderPlates(snap) {
   if (gauges) gauges.innerHTML = (snap.hero.gauges || []).map((gauge) => `<div class="gauge" data-tip="mech|${gauge.id}" tabindex="0"><span>${esc(gauge.name)}</span>${gauge.text ? `<em>${esc(gauge.text)}</em>` : ""}${gauge.max ? `<i class="gauge-bar"><b style="width:${percent(gauge.value, gauge.max)}%"></b></i><small>${gauge.value}/${gauge.max}</small>` : gauge.value ? `<small>${gauge.value}</small>` : ""}</div>`).join("");
 }
 
+// The enemy's next move in one line, inside its plate (shown on narrow screens instead of the floating bubble).
+function plateIntent(foe) {
+  const intent = App.battle.over || foe.currentHp <= 0 ? null : describeIntentFor(App.battle, foe);
+  if (!intent) return "";
+  const damage = intent.damage ? ` ${intent.hits > 1 ? `${intent.damage}×${intent.hits}` : `≈${intent.damage}`}` : "";
+  return `<div class="plate-intent${intent.heavy ? " heavy" : ""}">${esc(intent.name)}${intent.targetName ? ` → ${esc(intent.targetName)}` : ""}<b>${damage}</b></div>`;
+}
+
 function foeTitleClass(foe) {
   return foe.isGuardian || foe.isBoss ? "boss-name" : foe.isElite ? "elite-name" : "";
 }
@@ -293,6 +301,7 @@ function renderFoePlates(snap) {
     return `<button class="plate plate-enemy${snap.target === entry.slot ? " targeted" : ""}" id="foePlate${entry.slot}" style="${App.plateAt?.[entry.slot] || ""}" data-action="setTarget" data-slot="${entry.slot}" aria-pressed="${snap.target === entry.slot}">
       <div class="plate-name"><strong class="${foeTitleClass(foe)}">${esc(foe.name)}</strong><small>${foe.level} ур.</small></div>
       ${plateBar(entry, "enemy", "enemy")}
+      ${plateIntent(foe)}
       ${entry.effects.length ? `<div class="st-row">${statusPills(entry.effects, `foe${entry.slot}`)}</div>` : ""}
       ${traits.length ? `<div class="trait-row">${traits.map((id) => `<span class="trait-chip" data-tip="trait|${id}">${esc(ENEMY_TRAITS[id].name)}</span>`).join("")}</div>` : ""}
     </button>`;
@@ -384,6 +393,8 @@ function renderIntent(data = null, foe = App.battle?.enemy) {
   const el = document.getElementById(`intent${foe?.slot}`);
   if (!el || !App.battle) return;
   const intent = data || (App.battle.over || foe.currentHp <= 0 ? null : describeIntentFor(App.battle, foe));
+  const line = document.querySelector(`#foePlate${foe.slot} .plate-intent`);
+  if (line) line.outerHTML = plateIntent(foe) || `<div class="plate-intent"></div>`;
   if (!intent) { el.innerHTML = ""; el.className = "intent"; return; }
   const kindIcon = { physical: "attack", magic: "arcane", heal: "regeneration", shield: "shield", buff: "rage", debuff: intent.applyId || "weaken", windup: "stun", release: "stun" }[intent.kind] || "attack";
   const damage = intent.damage ? `<b>${intent.hits > 1 ? `${intent.damage}×${intent.hits}` : `≈${intent.damage}`}</b>` : "";
@@ -435,6 +446,16 @@ Actions.allyOrder = (el) => {
 };
 
 // On the companion's turn the command bar is the companion's: its skills, bracing, waiting, "Сам решает".
+// At the moment of choice the banner reads the battle itself, whatever order the events came in.
+function syncTurnBanner(battle) {
+  if (!battle.awaiting || battle.over) return;
+  const who = battle.awaitingActor === "ally" && allyAlive(battle) ? "ally" : "hero";
+  const banner = document.getElementById("turnBanner");
+  if (banner) { banner.textContent = who === "hero" ? "Твой ход" : `Ход: ${battle.ally?.name || "спутник"}`; banner.dataset.who = who; }
+  document.getElementById("plateHero")?.classList.toggle("active", who === "hero");
+  document.getElementById("plateAlly")?.classList.toggle("active", who === "ally");
+}
+
 function renderAllyControls() {
   const battle = App.battle;
   const st = battle.allyState;
@@ -461,6 +482,7 @@ function renderControls() {
   const hero = battle.hero;
   const basic = document.getElementById("basicActions");
   if (!basic) return;
+  syncTurnBanner(battle);
   if (battle.awaitingActor === "ally" && allyAlive(battle)) { renderAllyControls(); return; }
   document.querySelector(".command-bar")?.classList.remove("ally-turn");
   const ready = battle.awaiting && !App.fight.playing && !battle.over;
@@ -602,7 +624,8 @@ async function playBattleEvent(ev, nonce) {
     case "allyPlan": renderAllyCard(snapshotBattle(App.battle)); break;
     case "turn": {
       const banner = document.getElementById("turnBanner");
-      if (banner) banner.textContent = ev.who === "hero" ? "Твой ход" : ev.who === "ally" ? `Ход: ${App.battle.ally?.name || "спутник"}` : "Ход врага";
+      if (banner) { banner.textContent = ev.who === "hero" ? "Твой ход" : ev.who === "ally" ? `Ход: ${App.battle.ally?.name || "спутник"}` : "Ход врага"; banner.dataset.who = ev.who; }
+      document.getElementById("plateAlly")?.classList.toggle("active", ev.who === "ally");
       document.getElementById("plateHero")?.classList.toggle("active", ev.who === "hero");
       renderTimeline();
       break;

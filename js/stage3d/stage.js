@@ -1008,7 +1008,7 @@ const Stage3D = (() => {
       const sx = (Math.random() - 0.5) * this.shakeAmount;
       const sy = (Math.random() - 0.5) * this.shakeAmount;
       camera.position.set(this.focus.x * 0.5 + sway + sx, 2.35 + sy + portrait, distance);
-      camera.lookAt(this.focus.x * 0.62 + sx * 0.4, 1.2 + sy * 0.4, 0);
+      camera.lookAt(this.focus.x * 0.62 + sx * 0.4, 1.2 + portrait * 1.6 + sy * 0.4, 0);
       if (this.backdrop) {
         // The painting always fills the frame and drifts a little slower than the fighters.
         // The far land barely moves, the middle moves more, the near fringe most: that is what gives depth.
