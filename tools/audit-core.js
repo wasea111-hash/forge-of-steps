@@ -649,7 +649,7 @@ const report = run(`(function () {
       if (done.lair && !Object.values(LAIR_CATALOG).some((l) => l.master === done.lair || l.id === done.lair)) note("story", chapter.id + " lair " + done.lair);
     }));
     STORY_ENDINGS.forEach((ending) => (ending.needs || []).forEach((flag) => addRead(flag, "ending " + ending.id)));
-    read.forEach((where, flag) => { if (!set.has(flag)) note("story-flag", "flag " + flag + " is read in " + where + " but nothing sets it"); });
+    read.forEach((where, flag) => { if (!set.has(flag) && !(flag.startsWith("met_") && COMPANIONS[flag.slice(4)])) note("story-flag", "flag " + flag + " is read in " + where + " but nothing sets it"); });
   }
 
   // Situations that are easy to miss: a full pack at the moment of reward.
