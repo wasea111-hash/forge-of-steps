@@ -1750,6 +1750,8 @@ const report = run(`(function () {
     eq(free.rank, 1, "rank I");
     assert(free.memories.includes(0), "the first memory at trust 30");
     hero.unlockedRegion = 2; hero.gold = 1e6;
+    eq(getMarketOffers(hero).length, 0, "no market until the player allows it");
+    ensureTown(hero).built.slave_market = { stage: 2, since: 0 };
     const offer = getMarketOffers(hero)[0];
     const bought = buyContract(hero, offer.defId, true);
     assert(bought.ok, "a contract can be bought");
@@ -1883,6 +1885,31 @@ const report = run(`(function () {
     eq(companionSkillState(tessa, house).ready, tessa.memories.includes(1), "a memory is needed");
     const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
     eq(back.companions.find((c) => c.defId === "tessa").learned.includes("tessa_root"), true, "learned skills survive a reload");
+  });
+
+  test("town 2.7: offers come from decisions, buildings rise over returns and do their work", () => {
+    const hero = newHero("archer", true);
+    eq(getTownOffer(hero), null, "nothing to discuss at the start");
+    hero.unlockedRegion = 1; hero.records.expeditions = 2;
+    eq(getTownOffer(hero), "caravan", "the caravan comes to the Ashlands camp");
+    assert(decideTown(hero, "caravan", "shelter_offer").ok, "the decision is taken");
+    eq(decideTown(hero, "caravan", "market_permitted").ok, false, "once decided, decided");
+    eq(isMarketOpen(hero), false, "no market when refused");
+    assert(hero.karma > 0, "freedom grows");
+    hero.story.flags.push("bridge_people");
+    eq(getTownOffer(hero), "crossing", "the bridge choice brings its project");
+    decideTown(hero, "crossing", "crossing_settled");
+    eq(townBuilt(hero, "crossing"), false, "not built at once");
+    hero.records.expeditions += 1; advanceTown(hero);
+    hero.records.expeditions += 1; const raised = advanceTown(hero);
+    assert(townBuilt(hero, "crossing") && raised.includes("Общий переход"), "built after two returns");
+    const summary = { outcome: "complete", gold: 100, resources: {} };
+    const before = hero.gold;
+    applyTownToTrip(hero, summary);
+    eq(hero.gold - before, 10, "the crossing brings 10% more gold");
+    const back = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    eq(back.town.decided.caravan, "shelter_offer", "decisions survive a reload");
+    eq(townBuilt(back, "crossing"), true, "buildings survive a reload");
   });
 
   test("camp: people answer the last return and the save keeps it", () => {

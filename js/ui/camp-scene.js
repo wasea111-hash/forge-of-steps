@@ -40,10 +40,11 @@ function campScene(hero) {
       <i class="camp-smoke fire" style="left:44%;top:56%" aria-hidden="true"></i><i class="camp-smoke chimney" style="left:91.3%;top:30%" aria-hidden="true"></i>
       ${people.map(([id, at], i) => `<img class="camp-person" data-person="${id}" src="assets/camp/npc_${id}.webp" alt="" style="left:${at.x}%;top:${at.y}%;--h:${at.h};--d:${(i * 1.3).toFixed(1)}s" draggable="false">`).join("")}
       ${sprite ? `<img class="camp-person companion" src="${sprite}" alt="" style="left:37%;top:81%;--h:25;--d:.4s" draggable="false">` : ""}
+      ${townLayer(hero)}
       <canvas class="fx-canvas camp-sparks" data-fx="campfire" data-origin="0.44,0.66"></canvas>
       ${CAMP_PLACES.map((place) => {
         const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
-        const count = place.tab ? pendingBadgeCount(place.tab) : 0;
+        const count = place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
         return `<button class="camp-place${place.x > 80 ? " edge-right" : place.x < 18 ? " edge-left" : ""}${locked ? " locked" : ""}${App.tab === place.tab && place.tab ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.x}%;top:${place.y}%;width:${place.w}%;height:${place.h}%" aria-label="${esc(place.name)}" ${locked ? 'aria-disabled="true"' : ""}>
           <span class="place-label"><b>${esc(place.name)}</b><small>${esc(locked ? "Недоступно в походе" : place.hint)}</small></span>${count ? `<i class="dot">${count}</i>` : ""}
         </button>`;
@@ -51,6 +52,45 @@ function campScene(hero) {
     </div>
   </div>`;
 }
+
+// The town around the camp: finished buildings, and scaffolding for those still rising.
+function townLayer(hero) {
+  const town = ensureTown(hero);
+  return Object.entries(town.built).filter(([id]) => !(id === "shelter_seed" && town.built.shelter)).map(([id, state]) => {
+    const building = TOWN_BUILDINGS[id];
+    if (!building) return "";
+    const done = state.stage >= TOWN_BUILD_STAGES.length - 1;
+    const art = done && hasCampArt(`town_${id}`) ? `town_${id}` : "town_scaffold";
+    const h = done ? building.spot.h : building.spot.h * (0.55 + state.stage * 0.2);
+    const tip = `${building.name}|${done ? building.effect : `Строится: ${TOWN_BUILD_STAGES[state.stage].toLowerCase()}. Ещё ${TOWN_BUILD_STAGES.length - 1 - state.stage} возвращения.`}`;
+    return `<img class="camp-building${done ? "" : " rising"}${building.dark ? " dark" : ""}" src="assets/camp/${art}.webp" alt="" style="left:${building.spot.x}%;top:${building.spot.y}%;--h:${h}" data-tip="text|${esc(tip)}" draggable="false">`;
+  }).join("");
+}
+
+function hasCampArt(id) {
+  return typeof FORGE_CAMP_ART === "undefined" || FORGE_CAMP_ART.has(id);
+}
+
+// A decision the camp brings to the fire: what will grow around it.
+function openTownOffer() {
+  const hero = App.hero;
+  const id = getTownOffer(hero);
+  if (!id) return;
+  const project = TOWN_PROJECTS[id];
+  openModal(`<div class="town-offer"><h2>${esc(project.name)}</h2><p class="muted small">${esc(project.place)}</p><p>${esc(project.text)}</p>
+    <div class="event-options">${project.options.map((option) => `<button class="choice-card" data-action="townDecide" data-project="${id}" data-option="${option.id}"><strong>${esc(option.label)}</strong>${option.hint ? `<small>${esc(option.hint)}</small>` : ""}</button>`).join("")}</div></div>`, { dismissable: true });
+}
+
+Actions.townOffer = () => openTownOffer();
+Actions.townDecide = (el) => {
+  const result = decideTown(App.hero, el.dataset.project, el.dataset.option);
+  if (!result.ok) { toast(result.reason, "warn"); return; }
+  persist();
+  closeModal();
+  SFX.play(result.option.build ? "anvil" : "click");
+  toast(result.option.build ? `Решено. Стройка начнётся у лагеря: ${TOWN_BUILDINGS[result.option.build]?.name || ""}.` : "Решено.", result.option.karma < 0 ? "warn" : "good");
+  render();
+};
 
 // The panel over the scene for the open place.
 function campDrawer(views) {
@@ -79,6 +119,7 @@ Actions.closePlace = () => { App.tab = "camp"; render(); };
 
 // At the fire: the next person speaks.
 Actions.fireTalk = () => {
+  if (getTownOffer(App.hero)) { openTownOffer(); return; }
   const talk = getCampTalk(App.hero, App.campWho, App.campTurn || 0);
   if (!talk) return;
   const people = talk.people;

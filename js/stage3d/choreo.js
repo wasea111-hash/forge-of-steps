@@ -153,7 +153,15 @@ const ALLY_STAGING = {
   rootshield: { attack: { clip: "bash", melee: true, fx: "impact" }, cast: { clip: "guard", self: true, fx: "guard" } },
   coalbearer: { attack: { clip: "overhead", melee: true, fx: "impact" }, cast: { clip: "warcry", self: true } },
   binder: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } },
-  voidcatcher: { attack: { clip: "lunge", melee: true, fx: "thrust" }, cast: { clip: "smoke", self: true } }
+  voidcatcher: { attack: { clip: "lunge", melee: true, fx: "thrust" }, cast: { clip: "smoke", self: true } },
+  ashseamstress: { attack: { clip: "stab", melee: true, fx: "thrust" }, cast: { clip: "mend", self: true } },
+  interliner: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } },
+  lampbearer: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "mend", self: true } },
+  listener: { attack: { clip: "lunge", melee: true, fx: "thrust" }, cast: { clip: "guard", self: true } },
+  boundary: { attack: { clip: "bash", melee: true, fx: "impact" }, cast: { clip: "guard", self: true, fx: "guard" } },
+  stepcounter: { attack: { clip: "stab", melee: true, fx: "thrust" }, cast: { clip: "cast_up", self: true } },
+  caster: { attack: { clip: "overhead", melee: true, fx: "impact" }, cast: { clip: "warcry", self: true } },
+  namebearer: { attack: { clip: "cast_forward", fx: "bolt" }, cast: { clip: "cast_up", self: true } }
 };
 
 async function stageAction(stage, ev) {

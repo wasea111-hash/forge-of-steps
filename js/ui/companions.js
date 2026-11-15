@@ -36,7 +36,7 @@ function viewCompanions() {
     ${hero.companions.length ? `<div class="comp-grid">${hero.companions.map((c) => companionCard(hero, c)).join("")}</div>` : `<p class="muted">Пока с тобой никого нет. ${hero.defeatedGuardians.includes("greyfang") ? "" : "Первый человек встретится за Серым Клыком."}</p>`}
     ${market.length ? `<h2 class="section-title">${icon("gold")}Торг</h2>
       <p class="muted small">Здесь продают людей. ${market[0].closed ? "Закрытые торги: те, кто держит договоры, показывают лучших." : "Открытые прилавки."} Купленный по договору идёт в бой, но не даёт клятв и не верит тебе больше чем на 39. Выкупить и отпустить — дороже для совести рынка, но человек свободен.</p>
-      <div class="market">${market.map((offer) => marketCard(hero, offer)).join("")}</div>` : isMarketOpen(hero) ? "" : `<p class="muted small">Торг откроется в Пепельных пустошах.</p>`}
+      <div class="market">${market.map((offer) => marketCard(hero, offer)).join("")}</div>` : isMarketOpen(hero) ? "" : `<p class="muted small">${ensureTown(hero).decided.caravan === "market_permitted" ? "Невольничий рынок ещё строится." : ensureTown(hero).decided.caravan ? "В этом лагере людьми не торгуют." : "Людьми здесь не торгуют. Пока."}</p>`}
     ${byRegion.length ? `<p class="muted small comp-ahead">Ещё встретятся: ${byRegion.map(([name, n]) => `${name} — ${n}`).join(", ")}.</p>` : ""}
     ${hero.companionLog.forgottenCount ? `<p class="muted small comp-ahead">Есть пустота, которую ты не можешь назвать${hero.companionLog.forgottenCount > 1 ? ` — ${hero.companionLog.forgottenCount}` : ""}.</p>` : ""}`;
 }

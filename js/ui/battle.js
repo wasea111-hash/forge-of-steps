@@ -156,6 +156,7 @@ Actions.retreat = async () => {
 };
 
 function showExpeditionSummary(summary) {
+  if (summary.townRaised?.length) setTimeout(() => toast(`Достроено у лагеря: ${summary.townRaised.join(", ")}.`, "good"), 900);
   persist();
   App.eventState = null;
   App.tab = "trail";
@@ -198,6 +199,8 @@ function beginFight(enemy, fight) {
   const companion = getActiveCompanion(hero);
   const ally = companion ? { unit: makeAllyUnit(hero, companion), companion, front: hero.party.allyFront } : null;
   App.battle = createBattle(hero, enemy, { damageBonus, ally });
+  // The school of the last tempering: the first fight of a trip starts behind a small shield.
+  if (exp && exp.path.length === 0 && townBuilt(hero, "temper_school")) applyEffect(App.battle, hero, { id: "shield", duration: 3, value: Math.round(hero.maxHp * 0.04) }, hero);
   setScreen("battle");
   App.stage = null;
   if (Stage3D.supports(App.battle, App.fight.regionId)) {
@@ -986,6 +989,7 @@ function onBattleOver() {
   SFX.play("win");
   const rewards = calculateEncounterRewards(hero, battle.foes, fight.zoneKey, fight.regionId);
   battle.foes.filter((foe) => foe.share > 0).forEach((foe) => recordKill(hero, foe));
+  rewards.exp = Math.round(rewards.exp * townExpBonus(hero));
   const levelUp = awardExperience(hero, rewards.exp);
   let finishedTrail = false;
   if (fight.mode === "guardian") {

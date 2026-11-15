@@ -320,7 +320,7 @@ function refreshShopStock(hero) {
   const zoneByLevel = level < 8 ? "green" : level < 16 ? "orange" : "purple";
   const weights = ZONES[zoneByLevel].rarityWeights;
   hero.shop = {
-    stock: Array.from({ length: 8 }, () => {
+    stock: Array.from({ length: townBuilt(hero, "free_stalls") ? 10 : 8 }, () => {
       const rarity = weightedPick(RARITY_KEYS.map((key, i) => ({ key, weight: i === 4 ? 0 : weights[i] }))).key;
       return generateItem({ level: Math.max(1, level + randomInt(-1, 1)), rarity, classKey: hero.classKey });
     }),
@@ -403,7 +403,7 @@ function enhanceItem(hero, item) {
   if (Number(hero.resources[cost.resource] || 0) < cost.amount) return { ok: false, reason: "Не хватает материала." };
   hero.gold -= cost.gold;
   hero.resources[cost.resource] -= cost.amount;
-  const success = roll(cost.chance);
+  const success = roll(cost.chance + (townBuilt(hero, "craft_yard") ? 0.05 : 0));
   if (success) {
     item.enhanceLevel += 1;
     applyDerivedStats(hero);

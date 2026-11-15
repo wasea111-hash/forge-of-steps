@@ -85,3 +85,92 @@ const JOINT_PERSONAL = {
   iva: "Ива получает 5% запаса.",
   fena: "Добычей становится поражённая цель, +1 азарт."
 };
+
+// ---------- Stage 2.6: the other eight, two branches of three each ----------
+Object.assign(COMPANION_RESOURCES, {
+  yara: { id: "stitches", name: "Стежки", max: 3, start: 1, hint: "+1, когда удар врага попадает по тебе." },
+  ella: { id: "edits", name: "Поправки", max: 3, start: 0, hint: "+1 за каждый удар Эллы, попавший в цель." },
+  savel: { id: "lights", name: "Огоньки", max: 3, start: 1, hint: "+1 в начале каждого хода Савела." },
+  ner: { id: "echoes", name: "Отголоски", max: 4, start: 0, hint: "+1, когда ты бьёшь цель, которую слушает Нэр." },
+  gron: { id: "bounds", name: "Границы", max: 3, start: 1, hint: "+1, когда удар врага попадает по Грону." },
+  lissa: { id: "timedebt", name: "Долг времени", max: 4, start: 1, hint: "+1 в начале каждого хода Лиссы." },
+  ort: { id: "forms", name: "Формы", max: 3, start: 0, hint: "Готовит их сам: каждая форма усиливает следующую заливку." },
+  dei: { id: "syllables", name: "Слоги", max: 3, start: 0, hint: "+1, когда ты меняешь тип действия: удар, навык, стойка." }
+});
+Object.assign(COMPANION_DEEDS, {
+  stitchHeal: "зашить тебя после удара",
+  lowHeal: "вылечить тебя ниже 30% здоровья",
+  delayIntent: "отложить ход врага",
+  cleanse: "снять с тебя беду",
+  listenHit: "дать тебе попасть по услышанной цели",
+  coverHit: "принять удар вместо тебя",
+  formSpent: "вылить полную форму",
+  alternated: "собрать слово из твоих действий"
+});
+COMPANION_SKILLS.push(
+  // Яра — Пепельная швея
+  { id: "yara_baste", who: "yara", branch: "Сшить живое", name: "Намётка", base: true, cost: 0, cd: 1, target: "hero", text: "Шов на тебе: после следующего удара по тебе лечит на 10% здоровья. Не пригодился до хода Яры — щит 8%.", ai: ["protect", "heal"] },
+  { id: "yara_seam", who: "yara", branch: "Сшить живое", name: "Крепкий шов", cost: 1, cd: 3, target: "hero", text: "Лечит тебя на 12% и даёт регенерацию 4% на 2 хода.", unlock: { trust: 20, deed: { kind: "stitchHeal", count: 3 } }, ai: ["heal"] },
+  { id: "yara_edges", who: "yara", branch: "Сшить живое", name: "Держать края", cost: 2, cd: 4, target: "hero", text: "Тебе укрепление 25% на 2 хода и лечение 8%.", unlock: { trust: 50, memory: 1 }, ai: ["protect", "heal"] },
+  { id: "yara_needle", who: "yara", branch: "Перекроить боль", name: "Вынуть иглу", base: true, cost: 0, cd: 2, target: "foe", text: "0,6А и снимает с тебя одну беду.", ai: ["attack", "cleanse"] },
+  { id: "yara_red", who: "yara", branch: "Перекроить боль", name: "Красная нить", cost: 1, cd: 2, target: "foe", text: "0,8А и слабость 20% на 2 хода.", unlock: { trust: 35, deed: { kind: "cleanse", count: 3 } }, ai: ["attack", "debuff"] },
+  { id: "yara_close", who: "yara", branch: "Перекроить боль", name: "Зашить разрыв", cost: 3, cd: 5, target: "hero", text: "Лечит тебя на 25% здоровья.", unlock: { trust: 80, memory: 2 }, ai: ["heal"] },
+  // Элла — Межстрочник
+  { id: "ella_underline", who: "ella", branch: "Чужая строка", name: "Подчеркнуть", base: true, cost: 0, cd: 2, target: "foe", text: "0,7А, ход врага откладывается на 15%.", ai: ["attack", "control"] },
+  { id: "ella_pause", who: "ella", branch: "Чужая строка", name: "Вставить паузу", cost: 1, cd: 3, target: "foe", text: "Откладывает ход врага на 35% и ослабляет его на 15% на 2 хода.", unlock: { trust: 25, deed: { kind: "delayIntent", count: 3 } }, ai: ["control", "debuff"] },
+  { id: "ella_strike", who: "ella", branch: "Чужая строка", name: "Снять утверждение", cost: 2, cd: 4, target: "foe", text: "Срывает объявленный тяжёлый удар или заряд врага, немота 1 ход.", unlock: { trust: 60, memory: 1 }, ai: ["control"] },
+  { id: "ella_margin", who: "ella", branch: "Свой текст", name: "Замечание на полях", base: true, cost: 0, cd: 0, target: "foe", text: "0,8А и метка 10% на 2 хода.", ai: ["attack", "debuff"] },
+  { id: "ella_reply", who: "ella", branch: "Свой текст", name: "Право ответа", cost: 1, cd: 3, target: "foe", text: "1,2А; если враг готовит удар по вам — 1,55А.", unlock: { trust: 40, deed: { kind: "delayIntent", count: 6 } }, ai: ["attack"] },
+  { id: "ella_final", who: "ella", branch: "Свой текст", name: "Последняя редакция", cost: 3, cd: 5, target: "foe", text: "1,5А и 50% шанс оглушить на 1 ход.", unlock: { trust: 80, memory: 2 }, ai: ["attack", "control", "burst"] },
+  // Савел — Лампадник
+  { id: "savel_wick", who: "savel", branch: "Беречь пламя", name: "Зажечь фитиль", base: true, cost: 0, cd: 2, target: "hero", text: "Тебе регенерация 5% на 3 хода.", ai: ["heal"] },
+  { id: "savel_pass", who: "savel", branch: "Беречь пламя", name: "Передать лампаду", cost: 1, cd: 2, target: "hero", text: "Снимает с тебя одну беду и даёт щит 6% на 2 хода.", unlock: { trust: 25, deed: { kind: "cleanse", count: 3 } }, ai: ["cleanse", "protect"] },
+  { id: "savel_circle", who: "savel", branch: "Беречь пламя", name: "Круг света", cost: 3, cd: 5, target: "self", text: "Вам обоим укрепление 20% и регенерация 4% на 3 хода.", unlock: { trust: 70, memory: 2 }, ai: ["protect", "heal"] },
+  { id: "savel_mourn", who: "savel", branch: "Проводить ночь", name: "Отпеть беду", base: true, cost: 0, cd: 0, target: "foe", text: "0,7А светом и слабость 10% на 1 ход.", ai: ["attack", "debuff"] },
+  { id: "savel_quiet", who: "savel", branch: "Проводить ночь", name: "Тихий огонь", cost: 1, cd: 3, target: "foe", text: "1,0А светом и слабость 20% на 2 хода.", unlock: { trust: 40, memory: 0 }, ai: ["attack", "debuff"] },
+  { id: "savel_dawn", who: "savel", branch: "Проводить ночь", name: "До рассвета", cost: 2, cd: 5, target: "ally", text: "Самого раненого из вас лечит на 15% здоровья.", unlock: { trust: 55, deed: { kind: "lowHeal", count: 2 } }, ai: ["heal"] },
+  // Нэр — Слухач
+  { id: "ner_step", who: "ner", branch: "Услышать", name: "Поймать шаг", base: true, cost: 0, cd: 0, target: "foe", text: "1,0А; Нэр начинает слушать эту цель.", ai: ["attack"] },
+  { id: "ner_breath", who: "ner", branch: "Услышать", name: "Чужое дыхание", cost: 1, cd: 2, target: "foe", text: "0,8А и метка 20% на 2 хода.", unlock: { trust: 25, deed: { kind: "listenHit", count: 3 } }, ai: ["attack", "debuff"] },
+  { id: "ner_wall", who: "ner", branch: "Услышать", name: "За стеной", cost: 2, cd: 4, target: "foe", text: "1,4А, пробивая половину защиты.", unlock: { trust: 50, memory: 1 }, ai: ["attack", "burst"] },
+  { id: "ner_knock", who: "ner", branch: "Ответить", name: "Второй стук", base: true, cost: 0, cd: 2, target: "foe", text: "Два удара по 0,6А.", ai: ["attack"] },
+  { id: "ner_echo", who: "ner", branch: "Ответить", name: "Вернуть эхо", cost: 1, cd: 3, target: "foe", text: "Тратит все отголоски: 0,7А за каждый по услышанной цели.", unlock: { trust: 40, deed: { kind: "listenHit", count: 8 } }, ai: ["attack", "spend", "burst"] },
+  { id: "ner_last", who: "ner", branch: "Ответить", name: "Последний звук", cost: 3, cd: 5, target: "foe", text: "2,2А; по цели ниже 35% здоровья — 2,8А.", unlock: { trust: 80, memory: 2 }, ai: ["attack", "burst", "execute"] },
+  // Грон — Межевик
+  { id: "gron_stone", who: "gron", branch: "Провести черту", name: "Межевой камень", base: true, cost: 0, cd: 1, target: "self", text: "Укрепление 25% до своего хода.", ai: ["defense", "front"] },
+  { id: "gron_second", who: "gron", branch: "Провести черту", name: "Второй удар", cost: 1, cd: 3, target: "self", text: "Щит Грону 15% здоровья; следующий удар по тебе он принимает сам.", unlock: { trust: 25, deed: { kind: "coverHit", count: 3 } }, ai: ["protect", "defense"] },
+  { id: "gron_line", who: "gron", branch: "Провести черту", name: "Общий рубеж", cost: 3, cd: 5, target: "self", text: "Вам обоим укрепление 30% на 2 хода.", unlock: { trust: 70, memory: 2 }, ai: ["protect", "defense"] },
+  { id: "gron_pass", who: "gron", branch: "Впустить", name: "Открыть проход", base: true, cost: 0, cd: 0, target: "foe", text: "0,9А и слабость 10% на 1 ход.", ai: ["attack", "debuff"] },
+  { id: "gron_guard", who: "gron", branch: "Впустить", name: "Сменить караул", cost: 1, cd: 3, target: "self", text: "Вы меняетесь местами без траты хода, тебе щит 10%.", unlock: { trust: 40, memory: 0 }, ai: ["protect"] },
+  { id: "gron_word", who: "gron", branch: "Впустить", name: "По взаимному слову", cost: 2, cd: 4, target: "all", text: "1,3А всем врагам и метка 10% на 2 хода.", unlock: { trust: 55, deed: { kind: "interceptHeavy", count: 4 } }, ai: ["attack", "aoe"] },
+  // Лисса — Шагомер
+  { id: "lissa_half", who: "lissa", branch: "Отдать шаг", name: "Полшага", base: true, cost: 0, cd: 0, target: "foe", text: "0,8А, ход врага откладывается на 15%.", ai: ["attack", "control"] },
+  { id: "lissa_pause", who: "lissa", branch: "Отдать шаг", name: "Длинная пауза", cost: 2, cd: 3, target: "foe", text: "Откладывает ход врага на 40%.", unlock: { trust: 30, deed: { kind: "delayIntent", count: 3 } }, ai: ["control"] },
+  { id: "lissa_hold", who: "lissa", branch: "Отдать шаг", name: "Придержать миг", cost: 3, cd: 5, target: "all", text: "Откладывает ходы всех врагов на 25%.", unlock: { trust: 70, memory: 2 }, ai: ["control", "aoe"] },
+  { id: "lissa_out", who: "lissa", branch: "Вернуть время", name: "Выйти из круга", base: true, cost: 0, cd: 2, target: "self", text: "+1 долг времени, следующий ход Лиссы наступит раньше.", ai: ["build"] },
+  { id: "lissa_catch", who: "lissa", branch: "Вернуть время", name: "Догнать очередь", cost: 1, cd: 3, target: "hero", text: "Тебе ускорение 20% на 2 хода.", unlock: { trust: 40, memory: 0 }, ai: ["protect"] },
+  { id: "lissa_tempo", who: "lissa", branch: "Вернуть время", name: "Свой темп", cost: 3, cd: 5, target: "foe", text: "1,8А, и твой следующий ход наступает заметно раньше.", unlock: { trust: 55, deed: { kind: "delayIntent", count: 8 } }, ai: ["attack", "burst"] },
+  // Орт — Отливщик
+  { id: "ort_flask", who: "ort", branch: "Подготовить форму", name: "Опока", base: true, cost: 0, cd: 0, target: "foe", text: "0,45А и +1 форма.", ai: ["build", "attack"] },
+  { id: "ort_gate", who: "ort", branch: "Подготовить форму", name: "Точный литник", cost: 0, cd: 3, target: "self", text: "+2 формы и укрепление 15% до своего хода.", unlock: { trust: 25, deed: { kind: "formSpent", count: 3 } }, ai: ["build", "defense"] },
+  { id: "ort_double", who: "ort", branch: "Подготовить форму", name: "Двойная форма", cost: 1, cd: 4, target: "hero", text: "Твой следующий удар сильнее на 20% (ярость на 1 ход), +1 форма.", unlock: { trust: 50, memory: 1 }, ai: ["build", "protect"] },
+  { id: "ort_pour", who: "ort", branch: "Отлить", name: "Заливка", base: true, cost: 0, cd: 0, target: "foe", text: "1,0А + 0,6А за каждую форму; тратит все формы.", ai: ["attack", "spend"] },
+  { id: "ort_flash", who: "ort", branch: "Отлить", name: "Снять облой", cost: 1, cd: 2, target: "foe", text: "0,9А и пробитая броня 20% на 2 хода.", unlock: { trust: 35, memory: 0 }, ai: ["attack", "debuff"] },
+  { id: "ort_clean", who: "ort", branch: "Отлить", name: "Чистый отлив", cost: 3, cd: 5, target: "foe", text: "2,8А одной цели.", unlock: { trust: 80, memory: 2 }, ai: ["attack", "burst"] },
+  // Дей — Имяносец
+  { id: "dei_first", who: "dei", branch: "Собрать имя", name: "Первый слог", base: true, cost: 0, cd: 0, target: "foe", text: "0,7А и +1 слог.", ai: ["attack", "build"] },
+  { id: "dei_known", who: "dei", branch: "Собрать имя", name: "Знакомое имя", cost: 1, cd: 3, target: "hero", text: "Возвращает тебе 10% ресурса (мана, напор, дыхание).", unlock: { trust: 25, deed: { kind: "alternated", count: 3 } }, ai: ["protect"] },
+  { id: "dei_aloud", who: "dei", branch: "Собрать имя", name: "Назвать вслух", cost: 3, cd: 5, target: "hero", text: "Твой следующий навык ничего не стоит.", unlock: { trust: 70, memory: 2 }, ai: ["protect"] },
+  { id: "dei_sign", who: "dei", branch: "Отдать имя", name: "Чужая подпись", base: true, cost: 0, cd: 2, target: "foe", text: "0,8А и метка 15% на 2 хода.", ai: ["attack", "debuff"] },
+  { id: "dei_nick", who: "dei", branch: "Отдать имя", name: "Снять прозвище", cost: 1, cd: 3, target: "foe", text: "Снимает с врага щит, ярость или укрепление и бьёт на 0,6А.", unlock: { trust: 40, memory: 0 }, ai: ["attack", "control"] },
+  { id: "dei_own", who: "dei", branch: "Отдать имя", name: "Собственное имя", cost: 2, cd: 4, target: "foe", text: "1,6А и тебе щит 8% на 2 хода.", unlock: { trust: 55, deed: { kind: "alternated", count: 8 } }, ai: ["attack", "protect"] }
+);
+Object.assign(COMPANION_SKILL_BY_ID, Object.fromEntries(COMPANION_SKILLS.map((skill) => [skill.id, skill])));
+Object.assign(RARITY_PREP_SKILLS, {
+  yara: ["yara_seam", "yara_red"], ella: ["ella_pause", "ella_reply"], savel: ["savel_pass", "savel_quiet"], ner: ["ner_breath", "ner_echo"],
+  gron: ["gron_second", "gron_guard"], lissa: ["lissa_pause", "lissa_catch"], ort: ["ort_gate", "ort_flash"], dei: ["dei_known", "dei_nick"]
+});
+Object.assign(JOINT_PERSONAL, {
+  yara: "На тебе остаётся шов: лечит после следующего удара.", ella: "Ход цели откладывается на 20%.", savel: "Тебе регенерация 4% на 2 хода.", ner: "Нэр слушает поражённую цель, +1 отголосок.",
+  gron: "Следующий удар по тебе Грон примет сам.", lissa: "+1 долг времени.", ort: "+1 форма.", dei: "+1 слог."
+});

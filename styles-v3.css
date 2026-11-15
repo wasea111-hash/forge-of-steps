@@ -878,3 +878,12 @@ button.build-summary { cursor: pointer; }
 .camp-place.edge-right .place-label { left: auto; right: 0; transform: translate(0, 6px); }
 .camp-place.edge-left .place-label { left: 0; transform: translate(0, 6px); }
 .camp-place.edge-right:hover .place-label, .camp-place.edge-right:focus-visible .place-label, .camp-place.edge-left:hover .place-label, .camp-place.edge-left:focus-visible .place-label { transform: none; }
+
+/* The town around the camp */
+.camp-building { position: absolute; z-index: 1; height: calc(var(--h) * 1%); transform: translate(-50%, -100%); filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .5)) saturate(calc(1 - var(--lost, 0) * .06)); transition: opacity .6s; cursor: help; animation: townRise .8s ease-out; }
+.camp-building.rising { opacity: .9; }
+.camp-building.dark { filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .5)) drop-shadow(0 0 10px rgba(160, 30, 30, .35)); }
+.hour-night .camp-building { filter: brightness(.65) saturate(.8) drop-shadow(0 6px 6px rgba(0, 0, 0, .5)); }
+@keyframes townRise { from { opacity: 0; transform: translate(-50%, -96%); } to { opacity: 1; transform: translate(-50%, -100%); } }
+.town-offer { max-width: 640px; }
+.town-btn { margin-right: 10px; flex: none; animation: campFlicker 2s infinite; }

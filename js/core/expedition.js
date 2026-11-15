@@ -295,6 +295,8 @@ function finishExpedition(hero, exp, outcome) {
   [...hero.inventory, ...Object.values(hero.equipment)].forEach((item) => { if (item) item.fromTrail = false; });
   noteCampTrip(hero, { outcome, kind: exp.lairId ? "lair" : "trail", regionId: exp.regionId, zoneKey: exp.zoneKey, lairId: exp.lairId });
   settleCompanionTrip(hero, outcome);
+  applyTownToTrip(hero, summary);
+  summary.townRaised = advanceTown(hero);
   hero.expedition = null;
   restoreHero(hero);
   if (!hero.shop || Number(hero.records.expeditions) - Number(hero.shop.expeditionsAtRefresh || 0) >= 2) refreshShopStock(hero);

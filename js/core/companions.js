@@ -51,6 +51,8 @@ function recruitCompanion(hero, defId, { rarity = null, legal = "free", source =
     hpRatio: 1, fallStreak: 0, recent: [], habits: [], memories: [], metAt: hero.level
   };
   ensureCompanionSkills(companion);
+  // People from the shelter come trusting a little more.
+  if (legal === "free" && townBuilt(hero, "shelter")) companion.trust += 10;
   hero.companions.push(companion);
   hero.companionLog.met.push(defId);
   if (!hero.party.activeId) hero.party.activeId = companion.id;
@@ -140,7 +142,7 @@ const KARMA_FLAGS = { mot_freed: 8, mot_bound: -6 };
 
 // ---------- the market (Ashlands onwards) ----------
 function isMarketOpen(hero) {
-  return Number(hero.unlockedRegion || 0) >= 1;
+  return townBuilt(hero, "slave_market");
 }
 
 function getMarketOffers(hero) {
@@ -180,6 +182,8 @@ function tearContract(hero, id) {
 // ---------- road rescues ----------
 function getRescueFor(hero, regionId) {
   ensureCompanionState(hero);
+  // Under the overseers' charter nobody comes to you of their own will.
+  if (townBuilt(hero, "overseers")) return null;
   const def = Object.values(COMPANIONS).find((entry) => entry.ready && entry.region === regionId && COMPANION_RESCUES[entry.id] && !companionTaken(hero, entry.id));
   return def ? { def, rescue: COMPANION_RESCUES[def.id] } : null;
 }
@@ -237,7 +241,7 @@ function forgetCompanion(hero, id) {
 // Between steps the companion mends like you do; in camp fully.
 function mendCompanionStep(hero) {
   const companion = getActiveCompanion(hero);
-  if (companion) companion.hpRatio = Math.min(1, Number(companion.hpRatio ?? 1) + 0.08);
+  if (companion) companion.hpRatio = Math.min(1, Number(companion.hpRatio ?? 1) + (townBuilt(hero, "infirmary") ? 0.23 : 0.08));
 }
 
 function settleCompanionTrip(hero, outcome) {
@@ -253,7 +257,7 @@ function buildRescueEvent(hero, exp) {
   const found = getRescueFor(hero, exp.regionId);
   if (!found || exp.step < 1 || exp.lairId) return null;
   const id = `rescue_${found.def.id}`;
-  if (exp.seenEvents.includes(id) || !roll(0.45)) return null;
+  if (exp.seenEvents.includes(id) || !roll(townBuilt(hero, "shelter") ? 0.7 : 0.45)) return null;
   const { def, rescue } = found;
   return {
     id, title: rescue.title, text: def.meet, companionId: def.id,

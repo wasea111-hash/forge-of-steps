@@ -1,0 +1,1 @@
+window.FORGE_CAMP_ART = new Set(["camp_panorama","camp_panorama_b","npc_kern","npc_mot","npc_nima","npc_sota","npc_veya","town_craft_yard","town_crossing","town_scaffold","town_shelter_seed","town_slave_market","town_temper_school"]);

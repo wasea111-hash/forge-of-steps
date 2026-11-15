@@ -9,7 +9,7 @@ const SAVED_HERO_FIELDS = [
   "id", "name", "classKey", "className", "subclass", "profession", "level", "experience", "statPoints", "skillPoints", "gold", "mutationShards",
   "resources", "potions", "stats", "startingStats", "inventory", "equipment", "knownSkillIds", "passiveIds", "activeSkillSlots", "skillProgress", "shopPassiveIds", "shopActive", "talents", "talentVersion", "talentsExchanged",
   "skillForms", "skillPicks", "styleId", "ultimateId", "ultimateSeen", "buildVersion", "freeRespec", "story", "unlockedRegion", "trailClears", "lairTokens", "lairClears", "lairBest", "defeatedGuardians", "won", "records", "expedition", "shop", "createdAt", "updatedAt", "currentHp", "currentMana",
-  "companions", "party", "karma", "companionLog"
+  "companions", "party", "karma", "companionLog", "town"
 ];
 
 function getStorage() {
@@ -149,7 +149,8 @@ function normalizeHero(raw) {
     effects: [], summonedUnits: [], cooldowns: {},
     currentHp: raw.currentHp, currentMana: raw.currentMana,
     companions: normalizeCompanions(raw.companions),
-    party: safeObject(raw.party), karma: clamp(safeNumber(raw.karma), -KARMA_LIMIT, KARMA_LIMIT), companionLog: safeObject(raw.companionLog)
+    party: safeObject(raw.party), karma: clamp(safeNumber(raw.karma), -KARMA_LIMIT, KARMA_LIMIT), companionLog: safeObject(raw.companionLog),
+    town: normalizeTown(raw.town)
   };
   ensureCompanionState(hero);
   // Old talents stay only if they fit the new board and the new budget; otherwise the board starts clean.
