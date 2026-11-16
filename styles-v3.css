@@ -1231,3 +1231,6 @@ body { -webkit-touch-callout: none; }
 .key-btn.waiting { color: var(--text); border-color: var(--gold); animation: keyWait 1s ease-in-out infinite; }
 @keyframes keyWait { 50% { box-shadow: 0 0 12px rgba(240, 138, 53, 0.55); } }
 @media (max-width: 560px) { .controls-table small { display: block; } }
+.tab.fresh { position: relative; }
+.tab.fresh::after { content: ""; position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.guide-more { margin-top: 14px; font-style: italic; }

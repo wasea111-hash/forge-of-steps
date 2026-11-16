@@ -39,7 +39,8 @@ function normalizeProgress(raw) {
     v: PROGRESS_VERSION, legacy: Boolean(raw.legacy),
     open: Array.isArray(raw.open) ? raw.open.filter((id) => FEATURES[id]) : [],
     told: Array.isArray(raw.told) ? raw.told.filter((id) => FEATURES[id]) : [],
-    events: raw.events && typeof raw.events === "object" ? { ...raw.events } : {}
+    events: raw.events && typeof raw.events === "object" ? { ...raw.events } : {},
+    guideSeen: Array.isArray(raw.guideSeen) ? raw.guideSeen.filter((id) => typeof id === "string") : []
   };
 }
 

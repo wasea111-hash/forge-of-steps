@@ -1070,34 +1070,57 @@ Actions.shopToggle = (el) => { if (notifyResult(toggleShopPassive(App.hero, el.d
 Actions.shopGroup = (el) => { App.shopGroup = el.dataset.id; refreshKeepScroll(); };
 
 // --- Journal ---
+// Sections of «Как играть» open when they start to matter; a fresh one is marked until it is read.
+const GUIDE_SECTIONS = [
+  { id: "trip", title: "Поход", open: () => true, text: () => `Выбери тропу: цвет показывает риск. На каждом шаге выбирай развилку. Здоровье и мана переносятся между шагами. Вещи сразу попадают в рюкзак, а золото и материалы становятся твоими в конце похода. Отступить можно между шагами без потерь. При гибели пропадут ненадетые находки и половина золота и материалов, опыт останется.` },
+  { id: "fight", title: "Бой", open: () => true, text: () => `Шкала сверху показывает очередь ходов: чем выше скорость, тем чаще ты ходишь. Над врагом видно его следующее действие и примерный урон. Тяжёлый удар отмечен красным: прими <b>стойку</b>, чтобы снизить урон вдвое, или <b>оглуши</b> врага и сорви удар. <b>Выждать</b> восстанавливает ману и приближает следующий ход.` },
+  { id: "dots", title: "Яд и кровь", open: (h) => h.level >= 5, text: () => `Яд медленный: идёт мимо щитов, растёт с каждым тиком и работает даже на оглушённой цели. Кровь быстрая: срабатывает, только когда цель действует, вдвое сильнее на тяжёлом ударе, затухает, а твой крит вскрывает её сразу.` },
+  { id: "talents", title: "Таланты", open: (h) => featureOpen(h, "talents"), text: () => `За каждый уровень даётся очко таланта. Круги открываются только по уровню героя. Школы открываются по классу, подклассу и профессии. Талант может усиливать эффект, менять его правила, создавать новый эффект или связывать два эффекта. Ключевые таланты дают огромную силу за настоящую плату.` },
+  { id: "learn", title: "Враги учатся", open: (h) => h.level >= 4 || Number(h.records.kills || 0) >= 10, text: () => `Один и тот же навык подряд слабеет: враг привыкает. У каждого врага есть повадки, они видны ещё на развилке. Заряд можно сорвать уроном или оглушением.` },
+  { id: "boons", title: "Дары тропы", open: (h) => Number(h.records.elites || 0) > 0 || Number(h.records.completed || 0) >= 3, text: () => `Элита, привал и алтари дают дар до конца похода. Проклятые дары сильнее, но требуют платы.` },
+  { id: "growth", title: "Рост", open: (h) => h.level >= 3, text: () => `За уровень даётся 3 очка характеристик, очко развития за каждые 2 уровня и ещё по 2 за первых четырёх стражей. Очки развития идут на формы навыков и таланты, всё взять нельзя. Сами навыки открываются по уровню. Путь открывается по шагам: подкласс на ${SUBCLASS_UNLOCK_LEVEL} уровне, профессия на ${PROFESSION_UNLOCK_LEVEL}, у каждого шага свои навыки. Навык растёт от применения, на V уровне даёт постоянный бонус, а затем может мутировать в кузнице.` },
+  { id: "goal", title: "Цель", open: () => true, text: () => `Твоя деревня исчезла с карт и из памяти людей. Дорога к ответу идёт через четыре региона: победа над стражем открывает следующий. Текущая цель всегда видна в лагере, а записи лежат во вкладке «История».` },
+  { id: "keys", title: "Клавиши в бою", open: () => true, text: () => `${kbd("skill1")}–${kbd("skill5")} навыки, ${kbd("attack")} удар, ${kbd("guard")} стойка, ${kbd("wait")} выждать, ${kbd("hp")} зелье лечения, ${kbd("mp")} зелье маны, ${kbd("ult")} ультимейт, ${kbd("auto")} авто-бой. Правая кнопка мыши осматривает и надевает вещи.` }
+];
+
+function guideOpen(hero) {
+  if (!hero.progress || hero.progress.legacy) return GUIDE_SECTIONS;
+  return GUIDE_SECTIONS.filter((sec) => sec.open(hero));
+}
+
+function guideFresh(hero) {
+  if (!hero.progress || hero.progress.legacy) return 0;
+  const seen = new Set(hero.progress.guideSeen || []);
+  return guideOpen(hero).filter((sec) => !seen.has(sec.id)).length;
+}
+
 function viewJournal() {
   const hero = App.hero;
-  const tabs = [{ id: "story", name: "История" }, { id: "bestiary", name: "Бестиарий" }, { id: "records", name: "Достижения" }, { id: "guide", name: "Как играть" }];
+  const legacyJ = !hero.progress || hero.progress.legacy;
+  const tabs = [{ id: "story", name: "История" }, { id: "bestiary", name: "Бестиарий", open: legacyJ || Number(hero.records.kills || 0) > 0 }, { id: "records", name: "Достижения", open: legacyJ || Number(hero.records.expeditions || 0) >= 3 }, { id: "guide", name: "Как играть", fresh: guideFresh(hero) }].filter((tab) => tab.open !== false);
+  if (!tabs.some((tab) => tab.id === App.journalTab)) App.journalTab = "story";
   let body = "";
   if (App.journalTab === "story") {
     body = viewStoryJournal();
   } else if (App.journalTab === "bestiary") {
-    body = REGIONS.map((region) => `<section class="panel"><h3>${esc(region.name)}</h3><div class="bestiary">${[...region.enemies, region.guardian].map((id) => {
+    const reached = legacyJ ? REGIONS.length : Number(hero.unlockedRegion || 0) + 1;
+    body = REGIONS.slice(0, reached).map((region) => `<section class="panel"><h3>${esc(region.name)}</h3><div class="bestiary">${[...region.enemies, region.guardian].map((id) => {
       const def = ENEMY_DEFINITIONS[id];
       const kills = Number(hero.records.bestiary[id] || 0);
       return `<article class="beast-card${kills ? "" : " unknown"}" ${kills ? `data-tip="enemy|${id}"` : ""}><div class="beast-art">${paintedPose(id) || enemySprite(def.art, def.tint)}</div><strong>${kills ? esc(def.name) : "Неизвестно"}</strong><small>${kills ? `Побед: ${kills}` : "Ещё не встречен"}</small></article>`;
-    }).join("")}</div></section>`).join("");
+    }).join("")}</div></section>`).join("") + (reached < REGIONS.length ? `<p class="muted small guide-more">Дальние края откроются в бестиарии, когда дорога туда приведёт.</p>` : "");
   } else if (App.journalTab === "records") {
     const rec = hero.records;
     body = `<section class="panel"><div class="derived-grid">${[["Побед в боях", rec.kills], ["Элиты", rec.elites], ["Вожаки", rec.bosses], ["Походов начато", rec.expeditions], ["Походов завершено", rec.completed], ["Гибелей", rec.deaths], ["Лучший удар", rec.maxHit], ["Стражей повержено", hero.defeatedGuardians.length]].map(([label, value]) => `<div class="derived"><span>${label}</span><b>${value}</b></div>`).join("")}</div></section>`;
   } else {
-    body = `<section class="panel guide">
-      <h3>Поход</h3><p>Выбери тропу: цвет показывает риск. На каждом шаге выбирай развилку. Здоровье и мана переносятся между шагами. Вещи сразу попадают в рюкзак, а золото и материалы становятся твоими в конце похода. Отступить можно между шагами без потерь. При гибели пропадут ненадетые находки и половина золота и материалов, опыт останется.</p>
-      <h3>Бой</h3><p>Шкала сверху показывает очередь ходов: чем выше скорость, тем чаще ты ходишь. Над врагом видно его следующее действие и примерный урон. Тяжёлый удар отмечен красным: прими <b>стойку</b>, чтобы снизить урон вдвое, или <b>оглуши</b> врага и сорви удар. <b>Выждать</b> восстанавливает ману и приближает следующий ход.</p>
-      <h3>Яд и кровь</h3><p>Яд медленный: идёт мимо щитов, растёт с каждым тиком и работает даже на оглушённой цели. Кровь быстрая: срабатывает, только когда цель действует, вдвое сильнее на тяжёлом ударе, затухает, а твой крит вскрывает её сразу.</p>
-      <h3>Таланты</h3><p>За каждый уровень даётся очко таланта. Круги открываются только по уровню героя. Школы открываются по классу, подклассу и профессии. Талант может усиливать эффект, менять его правила, создавать новый эффект или связывать два эффекта. Ключевые таланты дают огромную силу за настоящую плату.</p>
-      <h3>Враги учатся</h3><p>Один и тот же навык подряд слабеет: враг привыкает. У каждого врага есть повадки, они видны ещё на развилке. Заряд можно сорвать уроном или оглушением.</p>
-      <h3>Дары тропы</h3><p>Элита, привал и алтари дают дар до конца похода. Проклятые дары сильнее, но требуют платы.</p>
-      <h3>Рост</h3><p>За уровень даётся 3 очка характеристик, очко развития за каждые 2 уровня и ещё по 2 за первых четырёх стражей. Очки развития идут на формы навыков и таланты, всё взять нельзя. Сами навыки открываются по уровню. Путь открывается по шагам: подкласс на ${SUBCLASS_UNLOCK_LEVEL} уровне, профессия на ${PROFESSION_UNLOCK_LEVEL}, у каждого шага свои навыки. Навык растёт от применения, на V уровне даёт постоянный бонус, а затем может мутировать в кузнице.</p>
-      <h3>Цель</h3><p>Твоя деревня исчезла с карт и из памяти людей. Дорога к ответу идёт через четыре региона: победа над стражем открывает следующий. Текущая цель всегда видна в лагере, а записи лежат во вкладке «История».</p>
-      <h3>Клавиши в бою</h3><p>${kbd("skill1")}–${kbd("skill5")} навыки, ${kbd("attack")} удар, ${kbd("guard")} стойка, ${kbd("wait")} выждать, ${kbd("hp")} зелье лечения, ${kbd("mp")} зелье маны, ${kbd("ult")} ультимейт, ${kbd("auto")} авто-бой. Правая кнопка мыши осматривает и надевает вещи.</p><button class="btn small" data-action="openControls">Управление и клавиши</button></section>`;
+    const open = guideOpen(hero);
+    const seen = new Set(hero.progress?.guideSeen || []);
+    const legacy = !hero.progress || hero.progress.legacy;
+    const waiting = GUIDE_SECTIONS.length - open.length;
+    body = `<section class="panel guide">${open.map((sec) => `<h3>${esc(sec.title)}${!legacy && !seen.has(sec.id) ? ` <span class="tag on">новое</span>` : ""}</h3><p>${sec.text()}</p>${sec.id === "keys" ? `<button class="btn small" data-action="openControls">Управление и клавиши</button>` : ""}`).join("")}${waiting ? `<p class="muted small guide-more">Ещё ${waiting} ${waiting === 1 ? "раздел откроется" : waiting < 5 ? "раздела откроются" : "разделов откроются"} по ходу дороги.</p>` : ""}</section>`;
+    if (hero.progress && !legacy) hero.progress.guideSeen = open.map((sec) => sec.id);
   }
-  return `<div class="tab-row" role="tablist">${tabs.map((tab) => `<button role="tab" aria-selected="${tab.id === App.journalTab}" class="tab${tab.id === App.journalTab ? " active" : ""}" data-action="journalTab" data-id="${tab.id}">${tab.name}</button>`).join("")}</div>${body}`;
+  return `<div class="tab-row" role="tablist">${tabs.map((tab) => `<button role="tab" aria-selected="${tab.id === App.journalTab}" class="tab${tab.id === App.journalTab ? " active" : ""}${tab.fresh && tab.id !== App.journalTab ? " fresh" : ""}" data-action="journalTab" data-id="${tab.id}">${tab.name}</button>`).join("")}</div>${body}`;
 }
 Actions.journalTab = (el) => { App.journalTab = el.dataset.id; render(); };
 
