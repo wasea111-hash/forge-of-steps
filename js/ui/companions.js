@@ -226,9 +226,9 @@ Actions.compBuy = async (el) => {
   commit();
 };
 
-const MEETING_TITLES = { infirmary: "У нового лазарета", crossing: "У общего перехода", asya: "У ворот приюта", til: "У ворот приюта", overseers: "У квартала надзирателей" };
+const MEETING_TITLES = { first: "На дороге через чащу", infirmary: "У нового лазарета", crossing: "У общего перехода", asya: "У ворот приюта", til: "У ворот приюта", overseers: "У квартала надзирателей" };
 
-// The first companion: after the Thicket's guardian, once the story has had its say.
+// A meeting in camp: the first road companion after two trips, Tessa after the Thicket's guardian, the others with the town.
 function maybeMeetCompanion() {
   const hero = App.hero;
   // A meeting waits while a place is open, and after a death until the player does something.

@@ -192,8 +192,14 @@ function getRescueFor(hero, regionId) {
   ensureCompanionState(hero);
   // Under the overseers' charter nobody comes to you of their own will.
   if (townBuilt(hero, "overseers") && !forgeShared(hero)) return null;
-  const def = Object.values(COMPANIONS).find((entry) => entry.ready && !entry.marketOnly && entry.region === regionId && COMPANION_RESCUES[entry.id] && !companionTaken(hero, entry.id));
-  return def ? { def, rescue: COMPANION_RESCUES[def.id] } : null;
+  const list = Object.values(COMPANIONS).filter((entry) => entry.ready && !entry.marketOnly && entry.region === regionId && COMPANION_RESCUES[entry.id] && !companionTaken(hero, entry.id));
+  if (!list.length) return null;
+  // Who is met is not fixed: luck, leaning toward a role the party still lacks.
+  const roles = new Set(hero.companions.map((c) => getCompanionClass(c)?.role));
+  const weight = (entry) => (roles.has(COMPANION_CLASSES[entry.classId]?.role) ? 1 : 1.8);
+  let left = rand() * list.reduce((sum, entry) => sum + weight(entry), 0);
+  const def = list.find((entry) => (left -= weight(entry)) <= 0) || list[list.length - 1];
+  return { def, rescue: COMPANION_RESCUES[def.id] };
 }
 
 // People who come to the camp themselves: Tessa after the Thicket's guardian, the others when the town is ready for them.
@@ -206,8 +212,56 @@ const COMPANION_ARRIVALS = {
   skar: (hero) => townBuilt(hero, "overseers") && !forgeShared(hero)
 };
 
+// --- The first road companion: early, and not always the same person. ---
+const FIRST_COMPANIONS = Object.keys(FIRST_MEETINGS);
+const BACKLINE_CLASSES = ["mage", "archer", "bard"];
+
+// How likely each of the four is, from the hero's class and the player's own choices so far.
+function firstCompanionWeights(hero) {
+  const has = (flag) => storyHasFlag(hero, flag);
+  const rec = hero.records || {};
+  const w = { tessa: 1, yara: 1, savel: 1, ner: 1 };
+  // Who stands behind needs someone in front; who stands in front needs someone to mend them.
+  if (BACKLINE_CLASSES.includes(hero.classKey)) w.tessa += 1.5;
+  else { w.yara += 0.8; w.savel += 0.5; w.ner += 0.4; }
+  // The key: a door opened to others draws carers; a door kept shut draws the quiet and the steady.
+  if (has("journal_open")) { w.yara += 0.7; w.savel += 0.7; }
+  if (has("journal_sealed")) { w.tessa += 0.7; w.ner += 0.7; }
+  // How the road has gone: falls draw a healer, a hunter follows the one who goes after elites.
+  if (Number(rec.deaths || 0) > 0) { w.yara += 0.6; w.savel += 0.4; }
+  if (Number(rec.elites || 0) > 0 || Number(rec.kills || 0) >= 15) w.ner += 0.6;
+  if (has("nima_rescue")) w.savel += 0.5;
+  if (has("nima_witness")) w.ner += 0.3;
+  if (Number(hero.karma || 0) >= 10) { w.yara += 0.3; w.savel += 0.3; }
+  return w;
+}
+
+function pickFirstCompanion(hero) {
+  ensureCompanionState(hero);
+  if (hero.companionLog.firstPick && FIRST_MEETINGS[hero.companionLog.firstPick]) return hero.companionLog.firstPick;
+  const weights = firstCompanionWeights(hero);
+  const ids = FIRST_COMPANIONS.filter((id) => COMPANIONS[id]?.ready && !companionTaken(hero, id));
+  if (!ids.length) return null;
+  let left = rand() * ids.reduce((sum, id) => sum + weights[id], 0);
+  const id = ids.find((each) => (left -= weights[each]) <= 0) || ids[ids.length - 1];
+  // Decided once: a reload does not reroll the meeting.
+  hero.companionLog.firstPick = id;
+  return id;
+}
+
+// After two finished trips the first companion is met on the Thicket road.
+function firstMeetingDue(hero) {
+  ensureCompanionState(hero);
+  if (hero.companions.length || hero.companionLog.met.length) return false;
+  return (hero.trailClears?.thicket || []).includes("white") && Number(hero.records?.completed || 0) >= 2;
+}
+
 function getPendingMeeting(hero) {
   ensureCompanionState(hero);
+  if (firstMeetingDue(hero)) {
+    const firstId = pickFirstCompanion(hero);
+    if (firstId) return { ...COMPANIONS[firstId], ...FIRST_MEETINGS[firstId], arrive: "first" };
+  }
   const id = Object.keys(COMPANION_ARRIVALS).find((defId) => !companionTaken(hero, defId) && COMPANIONS[defId]?.ready && COMPANION_ARRIVALS[defId](hero));
   return id ? COMPANIONS[id] : null;
 }
@@ -272,7 +326,7 @@ function settleCompanionTrip(hero, outcome) {
 // A road meeting built from the companion's own story. Freeing costs part of what the bag holds.
 function buildRescueEvent(hero, exp) {
   const found = getRescueFor(hero, exp.regionId);
-  if (!found || exp.step < 1 || exp.lairId) return null;
+  if (!found || exp.step < 1 || exp.lairId || exp.seenEvents.some((id) => String(id).startsWith("rescue_"))) return null;
   const id = `rescue_${found.def.id}`;
   if (exp.seenEvents.includes(id) || !roll(townBuilt(hero, "shelter") ? 0.7 : 0.45)) return null;
   const { def, rescue } = found;

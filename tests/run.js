@@ -1480,6 +1480,45 @@ const report = run(`(function () {
     assert(featureOpen(again, "lairs") && !again.progress.legacy, "openings survive a save");
   });
 
+  test("the first companion comes early, by luck and by the player's choices", () => {
+    const ready = (classKey, flags = [], deaths = 0) => {
+      const hero = newHero(classKey);
+      markTrailCleared(hero, "thicket", "white");
+      hero.records.completed = 2; hero.records.deaths = deaths;
+      hero.story.flags = [...(hero.story.flags || []), ...flags];
+      return hero;
+    };
+    const fresh = newHero("warrior");
+    assert(!getPendingMeeting(fresh), "nobody comes before the first trips");
+    const hero = ready("warrior");
+    const meet = getPendingMeeting(hero);
+    assert(meet && FIRST_MEETINGS[meet.id] && meet.arrive === "first", "one of the four comes on the Thicket road");
+    eq(meet.meet, FIRST_MEETINGS[meet.id].meet, "with the Thicket meeting, not the later region one");
+    for (let i = 0; i < 5; i += 1) eq(getPendingMeeting(hero).id, meet.id, "the pick does not change on reload");
+    const again = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    eq(getPendingMeeting(again).id, meet.id, "and survives a save");
+    // Choices move the odds: a mage who kept the journal shut meets Tessa far more often than a warrior who opened it after a fall.
+    const share = (make) => { let t = 0; for (let i = 0; i < 1500; i += 1) if (pickFirstCompanion(make()) === "tessa") t += 1; return t / 1500; };
+    const guarded = share(() => ready("mage", ["journal_sealed"]));
+    const open = share(() => ready("warrior", ["journal_open"], 1));
+    assert(guarded > open + 0.2, "odds follow choices (" + guarded.toFixed(2) + " vs " + open.toFixed(2) + ")");
+    assert(open > 0.03, "but luck still leaves every road open");
+    const seen = new Set(); for (let i = 0; i < 400; i += 1) seen.add(pickFirstCompanion(ready("bard")));
+    eq(seen.size, 4, "all four can come");
+    // After the first, Tessa still comes after the Thicket's guardian unless she was the first.
+    const other = ready("archer"); ensureCompanionState(other); other.companionLog.firstPick = "yara";
+    recruitCompanion(other, "yara");
+    assert(!getPendingMeeting(other), "no second meeting yet");
+    other.defeatedGuardians.push("greyfang");
+    eq(getPendingMeeting(other)?.id, "tessa", "Tessa comes after the guardian");
+  });
+
+  test("road rescues in a region are not met in a fixed order", () => {
+    const firsts = new Set();
+    for (let i = 0; i < 200; i += 1) { const hero = newHero("mage"); firsts.add(getRescueFor(hero, "ruins")?.def.id); }
+    assert(firsts.size >= 3, "different people can be met first in the Ruins: " + [...firsts].join(","));
+  });
+
   test("the first green trail of the thicket gives an orange weapon if the road never did", () => {
     const hero = newHero("warrior"); hero.level = 7; syncProgression(hero);
     markTrailCleared(hero, "thicket", "white");
