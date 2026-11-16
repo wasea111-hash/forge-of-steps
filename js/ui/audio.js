@@ -186,7 +186,10 @@ const GameAudio = (() => {
     const screen = App.screen;
     let music = "music_camp";
     let ambience = ["amb_fire", null];
-    if (screen === "title" || screen === "create" || screen === "roster") {
+    if (screen === "intro") {
+      music = "music_cave";
+      ambience = ["amb_wind", null];
+    } else if (screen === "title" || screen === "create" || screen === "roster") {
       music = "music_cave";
       ambience = [null, null];
     } else if (screen === "battle" && App.fight) {

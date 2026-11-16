@@ -2091,7 +2091,7 @@ const report = run(`(function () {
     assert(before(), "Veya names Tessa before the meeting");
     recruitCompanion(hero, "tessa");
     assert(storyHasFlag(hero, "met_tessa") && !before(), "and not after it");
-    assert(/засов/.test(STORY_SCENES["trail:thicket:white"].lines[0].text), "the white trail explains the credit by the bolt");
+    assert(STORY_SCENES["trail:thicket:white"].lines.some((line) => /проход закрыт/.test(line.text) && /Серого Клыка/.test(line.text)), "the white trail explains why early returns are free: the passage is shut until Greyfang");
   });
 
   test("camp: people answer the last return and the save keeps it", () => {

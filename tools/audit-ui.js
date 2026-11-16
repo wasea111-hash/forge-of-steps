@@ -294,8 +294,15 @@
     App.creation = null;
     setScreen("title");
     scanDom(where);
+    // The first new hero opens with the cinematic: it must show, be skippable and lead to the class choice.
+    App.save.settings.introSeen = false;
     document.querySelector("[data-action=newHero]").click();
-    await sleep(40);
+    await sleep(60);
+    if (!document.querySelector(".cine-layer")) note("state", where + ": the first new hero did not open the cinematic");
+    document.querySelector(".cine-skip")?.click();
+    await sleep(900);
+    if (document.querySelector(".cine-layer") || App.screen !== "create") note("state", where + ": skipping the cinematic did not lead to the class choice (screen=" + App.screen + ")");
+    scanDom(where + " create");
     for (const key of Object.keys(classDefinitions)) {
       document.querySelector(`[data-action=pickClass][data-class=${key}]`).click();
       await sleep(15);
