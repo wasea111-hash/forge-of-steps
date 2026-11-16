@@ -8,8 +8,7 @@ const HUB_TABS = [
   { id: "talents", name: "Таланты", icon: "talents" },
   { id: "forge", name: "Кузница", icon: "anvil" },
   { id: "shop", name: "Лавка", icon: "shop" },
-  { id: "journal", name: "Журнал", icon: "book" },
-  { id: "news", name: "Новости", icon: "star" }
+  { id: "journal", name: "Журнал", icon: "book" }
 ];
 
 // The camp is a painted scene; every section opens as a panel over it (js/ui/camp-scene.js).
@@ -18,11 +17,12 @@ Screens.hub = () => {
   const onTrail = Boolean(hero.expedition);
   if (App.tab === "gear") App.tab = "hero";
   if (syncProgression(hero).length) persist();
-  const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal", "news"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)) && hubTabOpen(hero, tab.id));
+  const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)) && hubTabOpen(hero, tab.id));
   if (App.tab && App.tab !== "camp" && !(App.tab === "town" && !onTrail && storyHasFlag(hero, "bridge_decided")) && !tabs.some((tab) => tab.id === App.tab)) App.tab = "camp";
   const need = getExperienceForNextLevel(hero.level);
-  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews, companions: viewCompanions, town: viewTown };
+  const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, companions: viewCompanions, town: viewTown };
   const drawer = campDrawer(views);
+  tellNewsOnce();
   const fire = !drawer && App.fireOpen !== false && hero.records.expeditions > 0 ? campFire() : "";
   return `
   <div class="hub camp-mode${drawer ? " has-drawer" : ""}${drawer && WIDE_PLACES.has(App.tab) ? " has-wide" : ""}" style="--lost:${getLostMemories(hero).length}">
@@ -45,7 +45,7 @@ Screens.hub = () => {
       <div class="hub-tools">
         ${memoryKey(hero)}
         ${onTrail ? `<button class="btn primary small" data-action="backToTrail">В поход</button>` : `<button class="btn small" data-action="toTitle">Сменить героя</button>`}
-        <button class="icon-btn" data-action="openSettings" aria-label="Настройки">${icon("settings")}</button>
+        <button class="icon-btn${newsUnread() ? " has-news" : ""}" data-action="openSettings" aria-label="Настройки${newsUnread() ? " · есть новости" : ""}">${icon("settings")}</button>
         ${App.dev ? `<button class="btn small" data-action="openDev">Dev</button>` : ""}
       </div>
     </header>
@@ -78,12 +78,24 @@ Actions.hubTab = (el) => {
     persist();
   }
   App.tab = el.dataset.tab;
-  // Opening the news marks this version as read.
-  if (App.tab === "news" && App.save.settings.newsSeen !== GAME_VERSION) { App.save.settings.newsSeen = GAME_VERSION; persist(); }
   render();
 };
 
-// --- News: what changed in each update ---
+// --- News: what changed in each update. They live in the settings; a new version is told once with a toast. ---
+function newsUnread() {
+  return App.save?.settings?.newsSeen !== GAME_VERSION;
+}
+Actions.openNews = () => {
+  openModal(`<div class="news-modal">${viewNews()}</div><div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>Закрыть</button></div>`, { wide: true });
+  if (newsUnread()) { App.save.settings.newsSeen = GAME_VERSION; writeSave(App.save); }
+  document.querySelector(".hub-tools .has-news")?.classList.remove("has-news");
+  document.querySelector(".news-dot")?.remove();
+};
+function tellNewsOnce() {
+  if (App.newsTold || !newsUnread() || !NEWS[0]) return;
+  App.newsTold = true;
+  setTimeout(() => toast(`Вышла версия ${NEWS[0].version}: «${NEWS[0].title}». Новости — в настройках.`, "good"), 1500);
+}
 const NEWS_TONES = { new: "Новое", fix: "Исправлено", tune: "Баланс" };
 function viewNews() {
   return `<h2 class="section-title">${icon("star")}Новости</h2>

@@ -6,7 +6,6 @@ const CAMP_AR = 2560 / 1441;
 const CAMP_PLACES = [
   { id: "shop", tab: "shop", name: "Лавка Мота", hint: "Снаряжение, зелья, материалы, умения", x: 9, y: 52, w: 18, h: 34, sx: 6, sy: 73 },
   { id: "journal", tab: "journal", name: "Палатка Соты", hint: "Журнал, главы, свидетельства", x: 25, y: 45, w: 12, h: 26, sx: 23, sy: 38 },
-  { id: "news", tab: "news", name: "Доска объявлений", hint: "Новости обновлений", x: 34, y: 47, w: 6, h: 15, sx: 38.5, sy: 52 },
   { id: "fire", tab: null, name: "Костёр", hint: "Поговорить с лагерем", x: 44, y: 69, w: 13, h: 15, sx: 44, sy: 79 },
   { id: "trail", tab: "trail", name: "Стол Веи", hint: "Карта, регионы и тропы", x: 52, y: 49, w: 11, h: 14, sx: 50, sy: 56 },
   { id: "lairs", tab: "lairs", name: "Камень логов", hint: "Логова и их хозяева", x: 71, y: 28, w: 8, h: 16, sx: 71.5, sy: 33 },
@@ -65,13 +64,13 @@ function campScene(hero) {
       ${campPanorama(hero) === "camp_panorama" ? townLayer(hero) : ""}
       <canvas class="fx-canvas camp-sparks" data-fx="campfire" data-origin="0.44,0.66"></canvas>
       ${campPlaces(hero).map((place) => {
-        const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
+        const locked = onTrail && !["hero", "skills", "journal", "companions"].includes(place.id);
         const count = place.id === "town" ? (getTownOffer(hero) ? "!" : 0) : place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
         return `<button class="camp-place${place.x > 80 ? " edge-right" : place.x < 18 ? " edge-left" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.x}%;top:${place.y}%;width:${place.w}%;height:${place.h}%" aria-label="${esc(place.name)}" ${locked ? 'aria-disabled="true"' : ""}>
         </button>`;
       }).join("")}
       <div class="camp-signs">${campPlaces(hero).map((place) => {
-        const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
+        const locked = onTrail && !["hero", "skills", "journal", "companions"].includes(place.id);
         const fresh = freshPlace(hero)?.place === place.id ? freshPlace(hero) : null;
         const count = place.id === "town" ? (getTownOffer(hero) ? "!" : 0) : place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
         return `<button class="camp-sign${count ? " waiting" : ""}${fresh ? " fresh" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.sx}%;top:${place.sy}%" ${locked ? 'aria-disabled="true"' : ""} tabindex="-1"><b>${esc(fresh && fresh.mode ? `${place.name}: ${fresh.name.toLowerCase()}` : fresh && fresh.shopTab ? `${place.name}: ${fresh.name.toLowerCase()}` : fresh && fresh.id === "talents" ? `${place.name}: таланты` : place.name)}${count ? `<i class="dot">${count}</i>` : ""}</b><small>${esc(locked ? "Недоступно в походе" : fresh ? `${fresh.who}: «${fresh.line}»` : place.hint)}</small></button>`;

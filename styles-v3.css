@@ -1234,3 +1234,7 @@ body { -webkit-touch-callout: none; }
 .tab.fresh { position: relative; }
 .tab.fresh::after { content: ""; position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 .guide-more { margin-top: 14px; font-style: italic; }
+.icon-btn.has-news { position: relative; }
+.icon-btn.has-news::after, .news-dot { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); vertical-align: middle; }
+.icon-btn.has-news::after { position: absolute; top: 3px; right: 3px; }
+.news-modal { max-height: 70vh; overflow-y: auto; padding-right: 6px; }
