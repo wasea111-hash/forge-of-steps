@@ -108,7 +108,7 @@ const result = run(`(function () {
   function gain(hero, exp, best) {
     const before = hero.level;
     awardExperience(hero, exp);
-    while (levels.length < hero.level) { L = { level: levels.length + 1, fights: 0, turns: 0, trips: 0, nodes: 0, deaths: 0, retreats: 0, news: [] }; levels.push(L); }
+    while (levels.length < hero.level) { L = { level: levels.length + 1, gold: hero.gold, power: Math.round(hero.maxHp), fights: 0, turns: 0, trips: 0, nodes: 0, deaths: 0, retreats: 0, news: [] }; levels.push(L); }
     if (hero.level > before) spendPoints(hero);
   }
 
@@ -180,6 +180,8 @@ for (const { c, runs: careers, deaths } of result) {
     out(`${String(lv).padStart(3)} ${avg("min").toFixed(1).padStart(5)} ${avg("fights").toFixed(1).padStart(5)} ${avg("deaths").toFixed(1).padStart(8)} ${avg("retreats").toFixed(1).padStart(9)}  ${news.join("; ")}`);
   }
   out(`Всего ≈ ${Math.round(total)} мин до ${maxL} ур.`);
+  out("Золото на руках / здоровье: " + [10, 20, 30, 40, 50].map((lv) => { const rows = careers.map((r) => r[lv - 1]).filter(Boolean); return rows.length ? `L${lv} ${Math.round(rows.reduce((a, r) => a + r.gold, 0) / rows.length)}з ${Math.round(rows.reduce((a, r) => a + r.power, 0) / rows.length)}hp` : ""; }).join(" · "));
+  out("Смертей всего: " + (careers.reduce((a, r) => a + r.reduce((b, x) => b + x.deaths, 0), 0) / careers.length).toFixed(1) + ", боёв всего: " + Math.round(careers.reduce((a, r) => a + r.reduce((b, x) => b + x.fights, 0), 0) / careers.length));
   // Long stretches without anything new: where a player is most likely to get bored.
   const quiet = [];
   let start = null, mins = 0;

@@ -19,8 +19,16 @@ function deriveStats(stats, level = 1, isBoss = false) {
   };
 }
 
+// The first levels stay quick for learning; from level 10 a level costs 2.4 times the old curve,
+// so a region is lived through within its own levels instead of rushed past (about twice the fights:
+// a growing hero also moves to richer trails).
+const LEVEL_PACE_MAX = 2.4;
+function levelPace(level) {
+  return 1 + (LEVEL_PACE_MAX - 1) * Math.min(1, Math.max(0, (level - 2) / 8));
+}
+
 function getExperienceForNextLevel(level) {
-  return 80 + level * 30 + level * level * 6;
+  return Math.round((80 + level * 30 + level * level * 6) * levelPace(level));
 }
 
 function createEmptyEquipment() {

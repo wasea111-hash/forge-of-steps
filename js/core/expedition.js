@@ -214,7 +214,7 @@ function calculateBattleRewards(hero, enemy, zoneKey, regionId) {
   if (enemy.isBoss) bossMult = rollBossExpMultiplier(Number(hero.totalStats?.luck || 0));
   else if (enemy.isElite) bossMult = 1.5;
   expGain = Math.round(expGain * bossMult);
-  const gold = Math.round((10 + enemy.level * 5) * zone.rewardFactor * (enemy.isBoss ? 2.3 : enemy.isElite ? 1.6 : 1) * (1 + rand() * 0.4) * GOLD_GAIN_FACTOR * (1 + tm(hero, "gold")) * fade.gold);
+  const gold = Math.round((10 + enemy.level * 5) * zone.rewardFactor * (enemy.isBoss ? 2.3 : enemy.isElite ? 1.6 : 1) * (1 + rand() * 0.4) * GOLD_GAIN_FACTOR * (1 + tm(hero, "gold")) * fade.gold / Math.sqrt(levelPace(enemy.level)));
 
   const dropBonus = (1 + Math.min(DROP_CHANCE_BONUS_CAP, Number(hero.dropChance || 0) / 100)) * (1 + tm(hero, "drop")) * DROP_GAIN_FACTOR;
   const itemChance = (enemy.isBoss ? 1 : enemy.isElite ? 0.75 : clamp(0.22 * dropBonus, 0, 0.6)) * (enemy.isGuardian ? 1 : fade.drop);
