@@ -52,7 +52,10 @@ function normalizeItem(source) {
     enhanceLevel: clamp(Number(raw.enhanceLevel || 0), 0, MAX_ENHANCE),
     fromTrail: Boolean(raw.fromTrail),
     value: Math.max(1, Number(raw.value || 10)),
-    blueprint: raw.blueprint || null
+    blueprint: raw.blueprint || null,
+    // A raised relic remembers what it was before the first rise and the levels already paid for.
+    ascAnchor: raw.ascAnchor && typeof raw.ascAnchor === "object" ? raw.ascAnchor : null,
+    ascCredit: Math.max(0, Number(raw.ascCredit || 0))
   };
 }
 
@@ -498,6 +501,7 @@ function reforgeItem(hero, item) {
   hero.mutationShards -= cost.shards;
   hero.gold -= cost.gold;
   item.affixes = rollAffixes(item.affixes.length, item.itemLevel, item.rarity, hero.classKey);
+  if (typeof reanchorRelicAffixes === "function") reanchorRelicAffixes(item);
   item.name = `${item.blueprint || item.name.split(" ").slice(0, -1).join(" ") || item.name} ${item.affixes[0].suffix}`;
   applyDerivedStats(hero);
   return { ok: true };

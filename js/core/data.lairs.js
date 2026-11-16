@@ -204,41 +204,91 @@ function exchangeLairTokens(hero, lairId, setId, slotType) {
 }
 
 // --- Raising a relic: a set found early grows with its owner ---
-function getRelicLair(item) {
-  return Object.values(LAIR_CATALOG).find((lair) => lair.sets.includes(item?.setId)) || null;
+
+// A relic rises up to the hero's own level. Gold for every level, and lair tokens of any lair:
+// one token pays for ten levels of growth of this item; what is paid but not yet used stays on the item.
+const ASCEND_LEVELS_PER_TOKEN = 10;
+function ascendGold(from, to) {
+  let gold = 0;
+  for (let k = from + 1; k <= to; k += 1) gold += 20 + 4 * k;
+  return gold;
 }
 
-function getRelicAscension(hero, item) {
-  const lair = getRelicLair(item);
-  if (!lair || item.rarity !== "relic") return { ok: false, reason: "Возвысить можно только реликвию комплекта." };
-  const best = Number(hero.lairBest?.[lair.id] || 0);
-  const target = Math.min(hero.level, best);
-  if (best <= item.itemLevel) return { ok: false, lair, target: item.itemLevel, reason: `Победи хозяина «${lair.name}» на ступени выше ${item.itemLevel} уровня.` };
-  if (target <= item.itemLevel) return { ok: false, lair, target: item.itemLevel, reason: "Реликвия уже на уровне героя." };
-  const gap = target - item.itemLevel;
-  return { ok: true, lair, target, gold: Math.round(gap * (40 + target * 6)), tokens: Math.max(1, Math.ceil(gap / 20)) };
+function totalLairTokens(hero) {
+  return Object.keys(LAIR_CATALOG).reduce((sum, id) => sum + Number(hero.lairTokens?.[id] || 0), 0);
 }
 
-function ascendRelic(hero, item) {
-  const plan = getRelicAscension(hero, item);
-  if (!plan.ok) return plan;
-  if (hero.gold < plan.gold) return { ok: false, reason: "Не хватает золота." };
-  if (Number(hero.lairTokens?.[plan.lair.id] || 0) < plan.tokens) return { ok: false, reason: `Нужно жетонов логова: ${plan.tokens}.` };
-  hero.gold -= plan.gold;
-  spendLairTokens(hero, plan.lair.id, plan.tokens, false);
-  const ratio = itemScale(plan.target, "relic") / itemScale(item.itemLevel, "relic");
-  const grow = (block) => { Object.keys(block).forEach((key) => { if (block[key]) block[key] = Math.round(block[key] * ratio); }); };
-  grow(item.bonuses);
-  grow(item.flatBonuses);
-  item.affixes.forEach((affix) => {
+// Picks the weakest tokens across all lairs: the strong ones are worth more in an exchange.
+function pickAscensionTokens(hero, count) {
+  const pool = [];
+  Object.keys(LAIR_CATALOG).forEach((id) => lairTokenLevels(hero, id).forEach((level) => pool.push({ id, level })));
+  return pool.sort((a, b) => a.level - b.level).slice(0, count);
+}
+
+function getRelicAscension(hero, item, wanted = null) {
+  if (!item || item.rarity !== "relic") return { ok: false, reason: "Возвысить можно только реликвию комплекта." };
+  const from = Number(item.itemLevel || 1);
+  const max = Number(hero.level || 1);
+  if (from >= max) return { ok: false, from, target: from, max, reason: `Реликвия уже на твоём уровне, ${max}. Она поднимется дальше, когда вырастешь ты.` };
+  const target = clamp(Math.round(Number(wanted || max)), from + 1, max);
+  const gap = target - from;
+  const credit = Number(item.ascCredit || 0);
+  const tokens = Math.ceil(Math.max(0, gap - credit) / ASCEND_LEVELS_PER_TOKEN);
+  const gold = ascendGold(from, target);
+  const haveTokens = totalLairTokens(hero);
+  const lack = [];
+  if (hero.gold < gold) lack.push(`золота: ещё ${gold - hero.gold}`);
+  if (haveTokens < tokens) lack.push(`жетонов: ещё ${tokens - haveTokens}`);
+  return { ok: true, from, target, max, gap, gold, tokens, credit, newCredit: credit + tokens * ASCEND_LEVELS_PER_TOKEN - gap, haveTokens, lack, afford: !lack.length };
+}
+
+// The values the item had before its first rise; every later rise scales from them, so many small rises equal one big one.
+function relicAnchor(item) {
+  if (!item.ascAnchor) {
+    item.ascAnchor = {
+      level: Number(item.itemLevel || 1), bonuses: { ...item.bonuses }, flatBonuses: { ...item.flatBonuses },
+      affixes: item.affixes.map((affix) => affix.amount), value: item.value
+    };
+  }
+  return item.ascAnchor;
+}
+
+function scaleRelicTo(item, level) {
+  const anchor = relicAnchor(item);
+  const ratio = itemScale(level, "relic") / itemScale(anchor.level, "relic");
+  const grow = (from, to) => { Object.keys(to).forEach((key) => { if (from[key]) to[key] = Math.round(from[key] * ratio); }); };
+  grow(anchor.bonuses, item.bonuses);
+  grow(anchor.flatBonuses, item.flatBonuses);
+  item.affixes.forEach((affix, index) => {
     const def = ITEM_AFFIXES.find((entry) => entry.id === affix.id);
-    if (!def?.fixed) affix.amount = Math.round(affix.amount * ratio);
+    if (!def?.fixed && anchor.affixes[index] !== undefined) affix.amount = Math.round(anchor.affixes[index] * ratio);
   });
-  item.itemLevel = plan.target;
-  item.requiredLevel = Math.max(1, plan.target - 2);
-  item.value = Math.round(item.value * ratio);
+  item.value = Math.round(anchor.value * ratio);
+  item.itemLevel = level;
+  item.requiredLevel = Math.max(1, level - 2);
+}
+
+// After a reforge the new properties belong to the current level: store them at the anchor's level.
+function reanchorRelicAffixes(item) {
+  if (!item?.ascAnchor) return;
+  const ratio = itemScale(item.ascAnchor.level, "relic") / itemScale(item.itemLevel, "relic");
+  item.ascAnchor.affixes = item.affixes.map((affix) => affix.amount * ratio);
+}
+
+function ascendRelic(hero, item, wanted = null) {
+  const plan = getRelicAscension(hero, item, wanted);
+  if (!plan.ok) return plan;
+  if (!plan.afford) return { ok: false, reason: `Не хватает ${plan.lack.join(", ")}.` };
+  hero.gold -= plan.gold;
+  pickAscensionTokens(hero, plan.tokens).forEach(({ id, level }) => {
+    const list = lairTokenLevels(hero, id);
+    list.splice(list.indexOf(level), 1);
+    hero.lairTokens[id] = list.length;
+  });
+  item.ascCredit = plan.newCredit;
+  scaleRelicTo(item, plan.target);
   applyDerivedStats(hero);
-  return { ok: true, level: plan.target };
+  return { ok: true, level: plan.target, tokens: plan.tokens, gold: plan.gold };
 }
 
 // --- Six pieces of a set change how the class plays ---

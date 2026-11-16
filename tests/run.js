@@ -1390,19 +1390,32 @@ const report = run(`(function () {
     assert(makeLairBoss(hero, LAIR_CATALOG.wolf_den, 40).maxHp > makeLairBoss(hero, LAIR_CATALOG.wolf_den, 10).maxHp, "stronger at a higher rank");
   });
 
-  test("a relic found early can be raised, but not above the rank beaten", () => {
-    const hero = newHero("warrior"); hero.level = 50; hero.gold = 1e7;
-    const relic = generateRelic(hero, "alpha_hide", 10, "chest");
+  test("a relic rises to the hero's level with gold and tokens of any lair", () => {
+    const hero = newHero("warrior"); hero.level = 49; hero.gold = 1e7;
+    const relic = generateRelic(hero, "alpha_hide", 30, "chest");
     const before = Object.values(relic.bonuses).reduce((sum, value) => sum + value, 0);
-    assert(!getRelicAscension(hero, relic).ok, "nothing beaten yet");
-    hero.lairBest = { wolf_den: 40 }; hero.lairTokens = { wolf_den: 5 };
-    const plan = getRelicAscension(hero, relic);
-    assert(plan.ok, "allowed now"); eq(plan.target, 40, "as high as the rank");
-    assert(ascendRelic(hero, relic).ok, "raised");
-    eq(relic.itemLevel, 40);
+    hero.lairTokens = {};
+    let plan = getRelicAscension(hero, relic);
+    assert(plan.ok && !plan.afford, "the plan is shown even without tokens");
+    eq(plan.target, 49, "up to the hero's level"); eq(plan.tokens, 2, "19 levels take two tokens"); eq(plan.gold, 3420, "gold for each level");
+    assert(plan.lack.some((line) => line.includes("жетон")), "says what is missing");
+    assert(!ascendRelic(hero, relic).ok, "cannot pay");
+    addLairToken(hero, "viper_hollow", 14); addLairToken(hero, "ash_court", 40); addLairToken(hero, "ash_court", 24);
+    assert(ascendRelic(hero, relic, 31).ok, "one level at a time");
+    eq(relic.itemLevel, 31); eq(relic.ascCredit, 9, "the token paid for ten, nine are left");
+    eq(hero.lairTokens.viper_hollow, 0, "the weakest token goes first, from any lair");
+    eq(getRelicAscension(hero, relic, 40).tokens, 0, "credit covers the next nine levels");
+    assert(ascendRelic(hero, relic).ok, "the rest at once");
+    eq(relic.itemLevel, 49); eq(hero.lairTokens.ash_court, 1, "one more token spent, the strong one kept"); eq(lairTokenLevels(hero, "ash_court")[0], 40);
     assert(Object.values(relic.bonuses).reduce((sum, value) => sum + value, 0) > before, "stronger");
-    assert(hero.lairTokens.wolf_den < 5, "paid in tokens");
-    assert(!getRelicAscension(hero, relic).ok, "no second raise at the same rank");
+    assert(!getRelicAscension(hero, relic).ok, "not above the hero");
+    const twin = generateRelic(hero, "alpha_hide", 30, "chest");
+    const copy = normalizeItem(JSON.parse(JSON.stringify(twin)));
+    hero.lairTokens = { wolf_den: 10 }; hero.lairTokenLevels = { wolf_den: Array(10).fill(10) };
+    for (let level = 31; level <= 49; level += 1) assert(ascendRelic(hero, twin, level).ok, "step " + level);
+    assert(ascendRelic(hero, copy, 49).ok, "all at once");
+    eq(JSON.stringify(twin.bonuses), JSON.stringify(copy.bonuses), "step by step equals one big rise");
+    eq(normalizeItem(JSON.parse(JSON.stringify(twin))).ascAnchor.level, 30, "the anchor survives a save");
     assert(!getRelicAscension(hero, generateItem({ level: 10, rarity: "purple", classKey: "warrior", slotType: "chest" })).ok, "only relics");
   });
 

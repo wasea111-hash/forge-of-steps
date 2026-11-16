@@ -591,7 +591,7 @@ function viewLairs() {
         }).join("")}</div>
         <div class="lair-actions">
           <button class="btn ${state.ok ? "primary" : ""}" data-action="startLair" data-id="${lair.id}" data-set="${target}" data-level="${level}" ${state.ok ? "" : "disabled"} data-sound="anvil">${state.ok ? "Бросить вызов" : esc(state.reason)}</button>
-          <button class="btn small" data-action="openLairExchange" data-id="${lair.id}" data-set="${target}" ${tokens >= LAIR_TOKENS_FOR_EXCHANGE ? "" : "disabled"} data-tip="text|Жетоны логова|За каждую победу жетон. ${LAIR_TOKENS_FOR_EXCHANGE} жетона меняются на нужную часть комплекта. Жетоны идут и на возвышение реликвий в кузнице.">Жетоны: ${tokens} / ${LAIR_TOKENS_FOR_EXCHANGE}</button>
+          <button class="btn small" data-action="openLairExchange" data-id="${lair.id}" data-set="${target}" ${tokens >= LAIR_TOKENS_FOR_EXCHANGE ? "" : "disabled"} data-tip="text|Жетоны логова|За каждую победу жетон. ${LAIR_TOKENS_FOR_EXCHANGE} жетона меняются на нужную часть комплекта. Жетоны любого логова идут и на возвышение реликвий в кузнице: один жетон оплачивает 10 уровней роста.">Жетоны: ${tokens} / ${LAIR_TOKENS_FOR_EXCHANGE}</button>
         </div>
       </div>
     </article>`;
@@ -847,7 +847,7 @@ Actions.talentReset = async () => {
 const FORGE_MODES = [
   { id: "enhance", name: "Заточка", hint: "Усиливает все свойства вещи на 7% за уровень. При неудаче материалы теряются, а вещь остаётся целой." },
   { id: "reforge", name: "Перековка", hint: "Заново определяет дополнительные свойства вещи." },
-  { id: "ascend", name: "Возвышение", hint: "Поднимает реликвию комплекта до твоего уровня. Выше ступени, взятой в её логове, поднять нельзя." },
+  { id: "ascend", name: "Возвышение", hint: "Поднимает реликвию комплекта до твоего уровня. Платишь золотом за каждый уровень и жетонами любых логов: один жетон оплачивает 10 уровней роста." },
   { id: "dismantle", name: "Разбор", hint: "Превращает вещи из рюкзака в материалы. Отмечай сразу несколько или целыми группами." },
   { id: "mutate", name: "Мутации", hint: "Навык с V уровнем мастерства получает новое свойство. Мутация необратима." }
 ];
@@ -902,19 +902,42 @@ function forgeWork(mode, item) {
     const afford = hero.gold >= cost.gold && Number(hero.resources[cost.resource] || 0) >= cost.amount;
     return `${head}<div class="cost-box">${max ? `<p class="muted">Предел заточки достигнут.</p>` : `<div><span>Шанс успеха</span><b>${Math.round(cost.chance * 100)}%</b></div><div><span>Золото</span><b class="${hero.gold >= cost.gold ? "" : "lack"}">${cost.gold}</b></div><div><span>${esc(resource.name)}</span><b class="${Number(hero.resources[cost.resource] || 0) >= cost.amount ? "" : "lack"}">${cost.amount} (есть ${Number(hero.resources[cost.resource] || 0)})</b></div>`}</div><button class="btn primary big" data-action="forgeEnhance" data-sound="anvil" ${max || !afford ? "disabled" : ""}>Заточить до +${item.enhanceLevel + 1}</button>`;
   }
-  if (mode === "ascend") {
-    const plan = getRelicAscension(hero, item);
-    if (!plan.ok) return `${head}<div class="cost-box"><p class="muted">${esc(plan.reason)}</p></div>`;
-    const owned = Number(hero.lairTokens?.[plan.lair.id] || 0);
-    const afford = hero.gold >= plan.gold && owned >= plan.tokens;
-    return `${head}<div class="cost-box"><div><span>Новый уровень вещи</span><b>${plan.target}</b></div><div><span>Золото</span><b class="${hero.gold >= plan.gold ? "" : "lack"}">${plan.gold}</b></div><div><span>Жетоны «${esc(plan.lair.name)}»</span><b class="${owned >= plan.tokens ? "" : "lack"}">${plan.tokens} (есть ${owned})</b></div></div><button class="btn primary big" data-action="forgeAscend" data-sound="anvil" ${afford ? "" : "disabled"}>Возвысить</button>`;
-  }
+  if (mode === "ascend") return ascendWork(hero, item, head);
   if (mode === "reforge") {
     const cost = getReforgeCost(item);
     const afford = hero.gold >= cost.gold && hero.mutationShards >= cost.shards;
     return `${head}<div class="cost-box"><div><span>Золото</span><b class="${hero.gold >= cost.gold ? "" : "lack"}">${cost.gold}</b></div><div><span>Осколки мутации</span><b class="${hero.mutationShards >= cost.shards ? "" : "lack"}">${cost.shards} (есть ${hero.mutationShards})</b></div></div><button class="btn primary big" data-action="forgeReforge" data-sound="anvil" ${afford ? "" : "disabled"}>Перековать</button>`;
   }
   return head;
+}
+
+// The rise of a relic: where it is, how far it can go, what it costs and what is still missing.
+function ascendWork(hero, item, head) {
+  const full = getRelicAscension(hero, item);
+  if (!full.ok) return `${head}<div class="cost-box"><p class="muted">${esc(full.reason)}</p></div>`;
+  const wanted = clamp(Number(App.forge.ascTo || full.max), full.from + 1, full.max);
+  const plan = getRelicAscension(hero, item, wanted);
+  const preview = JSON.parse(JSON.stringify(item));
+  scaleRelicTo(preview, plan.target);
+  const now = getItemBonuses(item);
+  const then = getItemBonuses(preview);
+  const changes = [
+    ...STAT_KEYS.filter((key) => now.stats[key]).map((key) => [statLabel(key), now.stats[key], then.stats[key]]),
+    ...FLAT_BONUS_KEYS.filter((key) => now.flats[key]).map((key) => [flatBonusLabel(key), now.flats[key], then.flats[key]])
+  ].filter(([, a, b]) => a !== b);
+  const missing = plan.tokens > plan.haveTokens ? plan.tokens - plan.haveTokens : 0;
+  const step = (to, label) => `<button class="btn small" data-action="ascendTo" data-level="${to}" ${to === plan.target ? "aria-pressed=\"true\"" : ""}>${label}</button>`;
+  return `${head}<div class="cost-box asc-box">
+      <h4 class="asc-title">Уровень реликвии ${plan.from} → ${plan.target}</h4>
+      <p class="muted small">Предел возвышения — твой уровень, ${plan.max}.</p>
+      <div class="asc-steps">${step(plan.from + 1, "Поднять на 1")}${plan.max - plan.from > 10 ? step(Math.min(plan.max, plan.from + 10), `На 10 (до ${Math.min(plan.max, plan.from + 10)})`) : ""}${step(plan.max, `До моего уровня (${plan.max})`)}</div>
+      ${changes.length ? `<div class="asc-changes">${changes.map(([label, a, b]) => `<span>${esc(label)} <b>${a} → ${b}</b></span>`).join("")}</div>` : ""}
+      <div><span>Золото</span><b class="${hero.gold >= plan.gold ? "" : "lack"}">${plan.gold.toLocaleString("ru-RU")} / ${hero.gold.toLocaleString("ru-RU")}</b></div>
+      <div><span>Жетоны любых логов</span><b class="${missing ? "lack" : ""}">${plan.tokens} / ${plan.haveTokens}</b></div>
+      <p class="muted small">Один жетон оплачивает 10 уровней роста этой вещи.${plan.credit ? ` Уже оплачено вперёд: ${plan.credit} ур.` : ""}${plan.newCredit && plan.tokens ? ` После возвышения останется оплаченных: ${plan.newCredit} ур.` : ""}</p>
+      ${missing ? `<p class="asc-need">Получи ещё ${missing} ${missing === 1 ? "жетон" : missing < 5 ? "жетона" : "жетонов"} за победу в любом открытом логове.</p>` : ""}
+      ${hero.gold < plan.gold ? `<p class="asc-need">Не хватает ${(plan.gold - hero.gold).toLocaleString("ru-RU")} золота.</p>` : ""}
+    </div><button class="btn primary big" data-action="forgeAscend" data-sound="anvil" ${plan.afford ? "" : "disabled"}>Возвысить до ${plan.target}</button>`;
 }
 
 function forgeMutations() {
@@ -933,7 +956,7 @@ function forgeMutations() {
 }
 
 Actions.forgeMode = (el) => { App.forge.mode = el.dataset.mode; App.forge.ref = null; render(); };
-Actions.forgeSelect = (el) => { App.forge.ref = { source: el.dataset.source, key: el.dataset.key }; refreshKeepScroll(); };
+Actions.forgeSelect = (el) => { App.forge.ref = { source: el.dataset.source, key: el.dataset.key }; App.forge.ascTo = null; refreshKeepScroll(); };
 Actions.forgeEnhance = () => {
   const item = getItemByRef(App.forge.ref.source, App.forge.ref.key);
   const res = enhanceItem(App.hero, item);
@@ -941,9 +964,12 @@ Actions.forgeEnhance = () => {
   toast(res.success ? `Успех! ${getItemDisplayName(item)}.` : "Металл не выдержал: заточка не удалась.", res.success ? "good" : "bad");
   commit();
 };
+Actions.ascendTo = (el) => { App.forge.ascTo = Number(el.dataset.level); refreshKeepScroll(); };
 Actions.forgeAscend = () => {
   const item = getItemByRef(App.forge.ref.source, App.forge.ref.key);
-  if (notifyResult(ascendRelic(App.hero, item), "Реликвия возвышена.")) commit();
+  const res = ascendRelic(App.hero, item, App.forge.ascTo || null);
+  App.forge.ascTo = null;
+  if (notifyResult(res, res.ok ? `Реликвия возвышена до ${res.level} уровня.` : "")) commit();
 };
 Actions.forgeReforge = () => {
   const item = getItemByRef(App.forge.ref.source, App.forge.ref.key);

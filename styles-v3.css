@@ -1154,3 +1154,13 @@ body { background: var(--iron-0); }
 /* 4.2: softened dodge on the hero sheet */
 .vs-derived .vs-soft { font-size: .72em; font-weight: 500; opacity: .62; margin-left: 4px; cursor: help; }
 .skill-btn.ally-skill .skill-name { max-width: 100%; hyphens: auto; overflow-wrap: anywhere; }
+/* 4.3: relic ascension card */
+.asc-box { display: grid; gap: 8px; }
+.asc-box .asc-title { margin: 0; font-size: 1.05rem; color: var(--gold, #e8c477); }
+.asc-box p { margin: 0; }
+.asc-steps { display: flex; flex-wrap: wrap; gap: 6px; }
+.asc-steps .btn[aria-pressed="true"] { filter: brightness(1.35) saturate(1.3); outline: 2px solid var(--gold, #e8c477); outline-offset: 1px; }
+.cost-box.asc-box .asc-changes, .cost-box.asc-box .asc-steps { justify-content: flex-start; }
+.asc-changes { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .86rem; opacity: .9; }
+.asc-changes b { color: #9fe0a0; font-weight: 600; }
+.asc-need { color: #f0b46a; font-size: .86rem; }
