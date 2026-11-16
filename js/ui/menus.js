@@ -221,7 +221,7 @@ Actions.openSettings = () => {
     <label class="field-label">Музыка<input type="range" min="0" max="1" step="0.05" value="${s.music ?? 0.5}" data-input="setMusic"></label>
     <label class="field-label">Окружение<input type="range" min="0" max="1" step="0.05" value="${s.ambience ?? 0.3}" data-input="setAmbience"></label>
     <label class="check-row"><input type="checkbox" data-input="setMotion" ${s.reducedMotion ? "checked" : ""}> Меньше анимации и тряски экрана</label>
-    <div class="modal-actions wrap"><button class="btn small" data-action="replayIntro">Посмотреть вступление</button><button class="btn small" data-action="resetTips">Показать подсказки снова</button><button class="btn small" data-action="exportSave">Экспорт сохранения</button><button class="btn small" data-action="importSave">Импорт</button></div>
+    <div class="modal-actions wrap"><button class="btn small" data-action="openControls">Управление и клавиши</button><button class="btn small" data-action="replayIntro">Посмотреть вступление</button><button class="btn small" data-action="resetTips">Показать подсказки снова</button><button class="btn small" data-action="exportSave">Экспорт сохранения</button><button class="btn small" data-action="importSave">Импорт</button></div>
     <div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>Готово</button></div>`);
 };
 Actions.setSound = (el) => { App.save.settings.sound = el.checked; applySettings(); writeSave(App.save); };

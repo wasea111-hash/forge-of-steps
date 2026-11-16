@@ -268,7 +268,7 @@ Screens.battle = () => {
       <div class="skill-actions" id="skillActions"></div>
       <div class="basic-actions" id="basicActions"></div>
       <div class="battle-tools">
-        <button class="tool-btn" id="autoBtn" data-action="toggleAuto" aria-pressed="false">${icon("auto")}<span>Авто</span><kbd>A</kbd></button>
+        <button class="tool-btn" id="autoBtn" data-action="toggleAuto" aria-pressed="false">${icon("auto")}<span>Авто</span>${kbd("auto")}</button>
         <button class="tool-btn" id="speedBtn" data-action="toggleSpeed"><b id="speedLabel">×${App.save.settings.battleSpeed || 1}</b><span>Скорость</span></button>
         <button class="tool-btn" data-action="toggleLog" aria-expanded="false">${icon("log")}<span>Журнал</span></button>
         ${App.dev ? `<button class="tool-btn" data-action="openDev"><b>Dev</b></button>` : ""}
@@ -494,16 +494,16 @@ function renderAllyControls() {
   const res = allyResource(battle);
   document.querySelector(".command-bar")?.classList.add("ally-turn");
   basic.innerHTML = `
-    <button class="cmd-btn" data-action="allyAct" data-type="brace" data-tip="text|Закрыться|Укрепление 40% до следующего хода спутника." ${ready ? "" : "disabled"}>${icon("guard")}<span>Закрыться</span><kbd>W</kbd></button>
-    <button class="cmd-btn" data-action="allyAct" data-type="wait" data-tip="text|Выждать|Следующий ход спутника наступит раньше." ${ready ? "" : "disabled"}>${icon("wait")}<span>Выждать</span><kbd>E</kbd></button>
-    <button class="cmd-btn" data-action="allyControl" data-tip="text|Сам решает|Спутник будет выбирать приёмы сам, пока ты не вернёшь управление в его карточке." ${ready ? "" : "disabled"}>${icon("auto")}<span>Сам решает</span><kbd>C</kbd></button>`;
+    <button class="cmd-btn" data-action="allyAct" data-type="brace" data-tip="text|Закрыться|Укрепление 40% до следующего хода спутника." ${ready ? "" : "disabled"}>${icon("guard")}<span>Закрыться</span>${kbd("guard")}</button>
+    <button class="cmd-btn" data-action="allyAct" data-type="wait" data-tip="text|Выждать|Следующий ход спутника наступит раньше." ${ready ? "" : "disabled"}>${icon("wait")}<span>Выждать</span>${kbd("wait")}</button>
+    <button class="cmd-btn" data-action="allyControl" data-tip="text|Сам решает|Спутник будет выбирать приёмы сам, пока ты не вернёшь управление в его карточке." ${ready ? "" : "disabled"}>${icon("auto")}<span>Сам решает</span>${kbd("allyAuto")}</button>`;
   document.getElementById("skillActions").innerHTML = st.learned.map((id, index) => {
     const skill = COMPANION_SKILL_BY_ID[id];
     const check = allySkillCheck(battle, id);
     const cd = Number(st.cd[id] || 0);
     const cost = res?.percent ? (["iva_transfer", "iva_splash"].includes(id) ? "все" : `${skill.cost}%`) : skill.cost;
     return `<button class="skill-btn ally-skill${check.ok ? "" : " unavailable"}" data-action="allyAct" data-type="skill" data-skill="${id}" data-tip="text|${esc(skill.name)}|${esc(skill.text)}${skill.cd ? ` Перезарядка ${skill.cd}.` : ""}${check.ok ? "" : ` ${esc(check.reason)}`}" ${ready && check.ok ? "" : "disabled"} aria-label="${esc(skill.name)}">
-      <span class="ally-skill-face">${companionSkillIcon(skill)}</span><span class="skill-name${longWord(skill.name) ? " long" : ""}">${esc(skill.name)}</span>${skill.cost ? `<span class="skill-cost ally">${cost}</span>` : ""}<kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
+      <span class="ally-skill-face">${companionSkillIcon(skill)}</span><span class="skill-name${longWord(skill.name) ? " long" : ""}">${esc(skill.name)}</span>${skill.cost ? `<span class="skill-cost ally">${cost}</span>` : ""}${index < 5 ? kbd("skill" + (index + 1)) : `<kbd>${index + 1}</kbd>`}${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
   }).join("");
 }
 
@@ -519,21 +519,21 @@ function renderControls() {
   const dis = ready ? "" : "disabled";
   const attackLabel = getBasicAttackLabel(hero);
   basic.innerHTML = `
-    <button class="cmd-btn" data-action="battleAct" data-type="attack" data-tip="action|attack" ${dis}>${icon("attack")}<span>${attackLabel}</span><kbd>Q</kbd></button>
-    <button class="cmd-btn${describeIntent(battle)?.heavy ? " suggest" : ""}" data-action="battleAct" data-type="guard" data-tip="action|guard" ${dis}>${icon("guard")}<span>Стойка</span><kbd>W</kbd></button>
-    <button class="cmd-btn" data-action="battleAct" data-type="wait" data-tip="action|wait" ${dis}>${icon("wait")}<span>${esc(getWaitLabel(battle))}</span><kbd>E</kbd></button>
-    ${hero.level >= ULTIMATE_LEVEL ? `<button class="cmd-btn ult${canUseUltimate(battle) ? " ready" : ""}" data-action="battleAct" data-type="ult" data-tip="ult|1" ${ready && canUseUltimate(battle) ? "" : "disabled"} style="--ult:${battle.ult}%">${ultIcon(getHeroUltimate(hero), hero)}<span>${canUseUltimate(battle) ? esc(getHeroUltimate(hero).name) : `${Math.round(battle.ult)}%`}</span><kbd>F</kbd></button>` : ""}
-    <button class="cmd-btn potion hp" data-action="battleAct" data-type="potion" data-kind="hp" data-tip="action|hp" ${ready && hero.potions.hp > 0 && hero.currentHp < hero.maxHp ? "" : "disabled"}>${icon("potionHp")}<span>${hero.potions.hp}</span><kbd>R</kbd></button>
-    <button class="cmd-btn potion mp" data-action="battleAct" data-type="potion" data-kind="mp" data-tip="action|mp" ${ready && hero.potions.mp > 0 && hero.currentMana < hero.maxMana ? "" : "disabled"}>${icon("potionMp")}<span>${hero.potions.mp}</span><kbd>T</kbd></button>`;
+    <button class="cmd-btn" data-action="battleAct" data-type="attack" data-tip="action|attack" ${dis}>${icon("attack")}<span>${attackLabel}</span>${kbd("attack")}</button>
+    <button class="cmd-btn${describeIntent(battle)?.heavy ? " suggest" : ""}" data-action="battleAct" data-type="guard" data-tip="action|guard" ${dis}>${icon("guard")}<span>Стойка</span>${kbd("guard")}</button>
+    <button class="cmd-btn" data-action="battleAct" data-type="wait" data-tip="action|wait" ${dis}>${icon("wait")}<span>${esc(getWaitLabel(battle))}</span>${kbd("wait")}</button>
+    ${hero.level >= ULTIMATE_LEVEL ? `<button class="cmd-btn ult${canUseUltimate(battle) ? " ready" : ""}" data-action="battleAct" data-type="ult" data-tip="ult|1" ${ready && canUseUltimate(battle) ? "" : "disabled"} style="--ult:${battle.ult}%">${ultIcon(getHeroUltimate(hero), hero)}<span>${canUseUltimate(battle) ? esc(getHeroUltimate(hero).name) : `${Math.round(battle.ult)}%`}</span>${kbd("ult")}</button>` : ""}
+    <button class="cmd-btn potion hp" data-action="battleAct" data-type="potion" data-kind="hp" data-tip="action|hp" ${ready && hero.potions.hp > 0 && hero.currentHp < hero.maxHp ? "" : "disabled"}>${icon("potionHp")}<span>${hero.potions.hp}</span>${kbd("hp")}</button>
+    <button class="cmd-btn potion mp" data-action="battleAct" data-type="potion" data-kind="mp" data-tip="action|mp" ${ready && hero.potions.mp > 0 && hero.currentMana < hero.maxMana ? "" : "disabled"}>${icon("potionMp")}<span>${hero.potions.mp}</span>${kbd("mp")}</button>`;
   document.getElementById("skillActions").innerHTML = hero.activeSkillSlots.map((_, index) => {
     const skill = getActiveSkillFromSlot(hero, index);
-    if (!skill) return `<button class="skill-btn empty" disabled aria-label="Пустой слот ${index + 1}"><kbd>${index + 1}</kbd></button>`;
+    if (!skill) return `<button class="skill-btn empty" disabled aria-label="Пустой слот ${index + 1}">${kbd("skill" + (index + 1))}</button>`;
     const check = canUseSkill(battle, index);
     const cd = Number(hero.cooldowns?.[skill.id] || 0);
     const cost = getSkillResourceCost(skill, hero);
     const isHp = getHeroResourceType(skill, hero) === "hp";
     return `<button class="skill-btn${check.ok ? "" : " unavailable"}" data-action="battleAct" data-type="skill" data-slot="${index}" data-tip="slot|${index}" ${ready && check.ok ? "" : "disabled"} aria-label="${esc(skill.name)}">
-      ${skillIcon(skill)}${skillEffectBadges(skill)}<span class="skill-name${longWord(skill.name) ? " long" : ""}">${esc(skill.name)}</span><span class="skill-cost ${isHp ? "hp" : "mp"}">${cost}</span><kbd>${index + 1}</kbd>${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
+      ${skillIcon(skill)}${skillEffectBadges(skill)}<span class="skill-name${longWord(skill.name) ? " long" : ""}">${esc(skill.name)}</span><span class="skill-cost ${isHp ? "hp" : "mp"}">${cost}</span>${kbd("skill" + (index + 1))}${cd > 0 ? `<span class="cd">${cd}</span>` : ""}</button>`;
   }).join("");
 }
 
@@ -930,41 +930,44 @@ Actions.battleAct = (el) => {
 };
 
 function battleHotkey(event) {
-  const key = event.key.toLowerCase();
-  if (key === "tab" && App.battle?.awaiting && !App.fight.playing) {
+  const act = keyAction(event);
+  const free = App.battle?.awaiting && !App.fight.playing;
+  if (act === "target" && free) {
     event.preventDefault();
     const alive = livingFoes(App.battle);
     const next = alive[(alive.indexOf(App.battle.enemy) + 1) % alive.length];
     if (next) Actions.setTarget({ dataset: { slot: next.slot } });
     return;
   }
+  if (act === "auto") { event.preventDefault(); Actions.toggleAuto(); return; }
   // On the companion's turn the keys belong to the companion.
   if (App.battle?.awaitingActor === "ally" && !App.fight.playing) {
     const learned = App.battle.allyState.learned;
-    if (key >= "1" && key <= "9") { event.preventDefault(); const id = learned[Number(key) - 1]; if (id) performAllyAction({ type: "skill", skillId: id }); return; }
-    if (key === "q" || key === "й") { event.preventDefault(); performAllyAction({ type: "skill", skillId: companionBaseAttack(App.battle) }); return; }
-    if (key === "w" || key === "ц") { event.preventDefault(); performAllyAction({ type: "brace" }); return; }
-    if (key === "e" || key === "у") { event.preventDefault(); performAllyAction({ type: "wait" }); return; }
-    if (key === "c" || key === "с") { event.preventDefault(); Actions.allyControl(); return; }
-    if (key === "a" || key === "ф") { Actions.toggleAuto(); return; }
+    const digit = /^Digit[6-9]$/.test(event.code) ? Number(event.code.slice(5)) : 0;
+    const skillNo = act && act.startsWith("skill") ? Number(act.slice(5)) : digit;
+    if (skillNo) { event.preventDefault(); const id = learned[skillNo - 1]; if (id) performAllyAction({ type: "skill", skillId: id }); return; }
+    if (act === "attack") { event.preventDefault(); performAllyAction({ type: "skill", skillId: companionBaseAttack(App.battle) }); return; }
+    if (act === "guard") { event.preventDefault(); performAllyAction({ type: "brace" }); return; }
+    if (act === "wait") { event.preventDefault(); performAllyAction({ type: "wait" }); return; }
+    if (act === "allyAuto") { event.preventDefault(); Actions.allyControl(); return; }
     return;
   }
-  if ((key === "f" || key === "а") && App.battle && canUseUltimate(App.battle)) { event.preventDefault(); performHeroAction({ type: "ult" }); return; }
-  const map = { q: { type: "attack" }, й: { type: "attack" }, w: { type: "guard" }, ц: { type: "guard" }, e: { type: "wait" }, у: { type: "wait" }, r: { type: "potion", kind: "hp" }, к: { type: "potion", kind: "hp" }, t: { type: "potion", kind: "mp" }, е: { type: "potion", kind: "mp" } };
-  if (key === "a" || key === "ф") { Actions.toggleAuto(); return; }
-  if (key >= "1" && key <= "5") {
+  if (!act) return;
+  if (act === "ult") { event.preventDefault(); if (App.battle && canUseUltimate(App.battle)) performHeroAction({ type: "ult" }); return; }
+  if (act.startsWith("skill")) {
     event.preventDefault();
-    const slotIndex = Number(key) - 1;
-    if (App.battle?.awaiting && !App.fight.playing) {
+    const slotIndex = Number(act.slice(5)) - 1;
+    if (free) {
       const check = canUseSkill(App.battle, slotIndex);
       if (check.ok) performHeroAction({ type: "skill", slotIndex });
       else notifyResult(check);
     }
     return;
   }
-  if (map[key]) {
+  const map = { attack: { type: "attack" }, guard: { type: "guard" }, wait: { type: "wait" }, hp: { type: "potion", kind: "hp" }, mp: { type: "potion", kind: "mp" } };
+  if (map[act]) {
     event.preventDefault();
-    performHeroAction(map[key]);
+    performHeroAction(map[act]);
   }
 }
 
