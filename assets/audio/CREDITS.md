@@ -30,3 +30,7 @@
 | Fast Fight Battle Music | Ville Nousiainen | https://opengameart.org/content/fast-fight-battle-music |
 | Heartfelt Battle | request | https://opengameart.org/content/heartfelt-battle-loopable-fantasy-stringspianohorn |
 | Determined Pursuit | Emma_MA | https://opengameart.org/content/determined-pursuit-epic-orchestra-loop |
+
+## Голос рассказчика (assets/voice)
+
+Вступление озвучено синтезатором Piper (MIT), голос ru_RU-denis-medium (CC0). Файлы создаёт `node tools/voice-cine.js`.

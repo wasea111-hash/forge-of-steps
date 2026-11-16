@@ -2,6 +2,14 @@
 // Frames come from STORY_CINEMATIC (js/core/data.story.js). Plays once before the first hero; replay from the settings.
 const Cinematic = { active: false, timer: null };
 
+// The narrator's voice (Piper, CC0 voice "denis", made by tools/voice-cine.js). Off by default.
+function cinematicVoiceOn() {
+  return Boolean(App.save?.settings?.voice);
+}
+function cinematicVoiceSrc(id) {
+  return `assets/voice/${id}.wav`;
+}
+
 function cinematicSrc(id) {
   return `assets/story/${id}.webp`;
 }
@@ -24,7 +32,7 @@ function playCinematic(onDone) {
   layer.setAttribute("aria-label", "Вступление");
   layer.innerHTML = `<div class="cine-stage"></div><div class="cine-bars" aria-hidden="true"></div>
     <p class="cine-text" aria-live="polite"></p>
-    <div class="cine-tools"><button class="cine-btn cine-next" type="button">Дальше</button><button class="cine-btn cine-skip" type="button">Пропустить</button></div>
+    <div class="cine-tools"><button class="cine-btn cine-voice" type="button" aria-pressed="${cinematicVoiceOn()}">${cinematicVoiceOn() ? "Голос: вкл" : "Голос: выкл"}</button><button class="cine-btn cine-next" type="button">Дальше</button><button class="cine-btn cine-skip" type="button">Пропустить</button></div>
     <div class="cine-dots" aria-hidden="true">${frames.map(() => "<i></i>").join("")}</div>`;
   document.body.appendChild(layer);
   Cinematic.active = true;
@@ -40,6 +48,7 @@ function playCinematic(onDone) {
     if (closing) return;
     closing = true;
     clearTimeout(Cinematic.timer);
+    GameAudio.stopVoice?.();
     document.removeEventListener("keydown", onKey, true);
     layer.classList.add("closing");
     setTimeout(() => { layer.remove(); Cinematic.active = false; onDone?.(); }, 700);
@@ -60,6 +69,9 @@ function playCinematic(onDone) {
     setTimeout(() => { text.textContent = frame.text; text.classList.add("on"); }, 500);
     dots.forEach((dot, i) => dot.classList.toggle("on", i <= index));
     if (frame.sfx && SFX.play) SFX.play(frame.sfx);
+    GameAudio.stopVoice?.();
+    clearTimeout(Cinematic.voiceTimer);
+    if (cinematicVoiceOn()) Cinematic.voiceTimer = setTimeout(() => { if (!closing && index === next) GameAudio.voice?.(cinematicVoiceSrc(frame.id)); }, 700);
     clearTimeout(Cinematic.timer);
     Cinematic.timer = setTimeout(() => show(index + 1), frame.seconds * 1000);
   };
@@ -69,6 +81,15 @@ function playCinematic(onDone) {
   };
   document.addEventListener("keydown", onKey, true);
   layer.querySelector(".cine-skip").addEventListener("click", (event) => { event.stopPropagation(); close(); });
+  layer.querySelector(".cine-voice").addEventListener("click", (event) => {
+    event.stopPropagation();
+    const on = !cinematicVoiceOn();
+    App.save.settings.voice = on;
+    writeSave(App.save);
+    event.currentTarget.textContent = on ? "Голос: вкл" : "Голос: выкл";
+    event.currentTarget.setAttribute("aria-pressed", String(on));
+    if (on) GameAudio.voice?.(cinematicVoiceSrc(frames[index].id)); else GameAudio.stopVoice?.();
+  });
   layer.querySelector(".cine-next").addEventListener("click", (event) => { event.stopPropagation(); show(index + 1); });
   stage.addEventListener("click", () => show(index + 1));
   show(0);
