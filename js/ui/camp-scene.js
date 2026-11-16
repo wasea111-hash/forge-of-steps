@@ -18,8 +18,16 @@ const CAMP_PLACES = [
 ];
 // The town is a place too: its sign stands on the slope where the settlement grows.
 const TOWN_PLACE = { id: "town", tab: "town", hint: "Постройки и решения города", x: 62, y: 17, w: 30, h: 15, sx: 61, sy: 9 };
+// Places appear as they start to matter (js/core/progression.js); a closed one is not drawn at all.
 function campPlaces(hero) {
-  return storyHasFlag(hero, "bridge_decided") ? [...CAMP_PLACES, { ...TOWN_PLACE, name: townStage(hero).name }] : CAMP_PLACES;
+  const places = CAMP_PLACES.filter((place) => campPlaceOpen(hero, place.id) && (place.id !== "companions" || companionsVisible(hero)));
+  return storyHasFlag(hero, "bridge_decided") ? [...places, { ...TOWN_PLACE, name: townStage(hero).name }] : places;
+}
+
+// The place that has just opened and has something to say: its sign glows with one line.
+function freshPlace(hero) {
+  if (hero.expedition) return null;
+  return featureToTell(hero);
 }
 
 // Every place has its own sign point (sx, sy): on the thing itself, never over a face.
@@ -57,8 +65,9 @@ function campScene(hero) {
       }).join("")}
       <div class="camp-signs">${campPlaces(hero).map((place) => {
         const locked = onTrail && !["hero", "skills", "journal", "news", "companions"].includes(place.id);
+        const fresh = freshPlace(hero)?.place === place.id ? freshPlace(hero) : null;
         const count = place.id === "town" ? (getTownOffer(hero) ? "!" : 0) : place.tab ? pendingBadgeCount(place.tab) : place.id === "fire" && getTownOffer(hero) ? "!" : 0;
-        return `<button class="camp-sign${count ? " waiting" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.sx}%;top:${place.sy}%" ${locked ? 'aria-disabled="true"' : ""} tabindex="-1"><b>${esc(place.name)}${count ? `<i class="dot">${count}</i>` : ""}</b><small>${esc(locked ? "Недоступно в походе" : place.hint)}</small></button>`;
+        return `<button class="camp-sign${count ? " waiting" : ""}${fresh ? " fresh" : ""}${locked ? " locked" : ""}${campPlaceOf(App.tab)?.id === place.id ? " open" : ""}" data-action="campPlace" data-place="${place.id}" style="left:${place.sx}%;top:${place.sy}%" ${locked ? 'aria-disabled="true"' : ""} tabindex="-1"><b>${esc(fresh && fresh.mode ? `${place.name}: ${fresh.name.toLowerCase()}` : fresh && fresh.shopTab ? `${place.name}: ${fresh.name.toLowerCase()}` : fresh && fresh.id === "talents" ? `${place.name}: таланты` : place.name)}${count ? `<i class="dot">${count}</i>` : ""}</b><small>${esc(locked ? "Недоступно в походе" : fresh ? `${fresh.who}: «${fresh.line}»` : place.hint)}</small></button>`;
       }).join("")}</div>
     </div>
   </div>`;
@@ -130,7 +139,7 @@ function campDrawer(views) {
   const trainer = tab === "skills" || tab === "talents";
   return `<aside class="camp-drawer${WIDE_PLACES.has(tab) ? " wide" : ""}" data-place="${esc(campPlaceOf(tab)?.id || "")}" aria-label="${esc(title)}">
     <header class="drawer-head"><h2>${esc(title)}</h2>
-      ${trainer ? `<div class="tab-row" role="tablist"><button role="tab" class="tab${tab === "skills" ? " active" : ""}" aria-selected="${tab === "skills"}" data-action="hubTab" data-tab="skills">Навыки</button><button role="tab" class="tab${tab === "talents" ? " active" : ""}" aria-selected="${tab === "talents"}" data-action="hubTab" data-tab="talents">Таланты</button></div>` : ""}
+      ${trainer && hubTabOpen(App.hero, "talents") ? `<div class="tab-row" role="tablist"><button role="tab" class="tab${tab === "skills" ? " active" : ""}" aria-selected="${tab === "skills"}" data-action="hubTab" data-tab="skills">Навыки</button><button role="tab" class="tab${tab === "talents" ? " active" : ""}" aria-selected="${tab === "talents"}" data-action="hubTab" data-tab="talents">Таланты</button></div>` : ""}
       <button class="icon-btn drawer-close" data-action="closePlace" aria-label="Вернуться в лагерь">✕</button></header>
     <div class="hub-view drawer-body">${views[tab]()}</div>
   </aside>`;
@@ -142,7 +151,16 @@ Actions.campPlace = (el) => {
   if (el.getAttribute("aria-disabled") === "true") { toast("Это место откроется, когда вернёшься из похода.", "warn"); return; }
   if (!place.tab) { Actions.fireTalk(); return; }
   if (place.shopTab) App.shopTab = place.shopTab;
-  Actions.hubTab({ dataset: { tab: place.tab } });
+  // The glowing sign leads straight to what has just opened, and the camp stops talking about it.
+  const fresh = freshPlace(App.hero);
+  if (fresh?.place === place.id) {
+    acknowledgeFeature(App.hero, fresh.id);
+    persist();
+    if (fresh.mode) App.forge.mode = fresh.mode;
+    if (fresh.shopTab) App.shopTab = fresh.shopTab;
+    if (fresh.id === "talents") { Actions.hubTab({ dataset: { tab: "talents", told: "1" } }); return; }
+  }
+  Actions.hubTab({ dataset: { tab: place.tab, told: fresh?.place === place.id ? "1" : "" } });
 };
 
 Actions.closePlace = () => { App.tab = "camp"; render(); };

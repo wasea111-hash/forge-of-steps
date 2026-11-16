@@ -17,7 +17,8 @@ Screens.hub = () => {
   const hero = App.hero;
   const onTrail = Boolean(hero.expedition);
   if (App.tab === "gear") App.tab = "hero";
-  const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal", "news"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)));
+  if (syncProgression(hero).length) persist();
+  const tabs = HUB_TABS.filter((tab) => (!onTrail || ["hero", "companions", "skills", "talents", "journal", "news"].includes(tab.id)) && (tab.id !== "companions" || companionsVisible(hero)) && hubTabOpen(hero, tab.id));
   if (App.tab && App.tab !== "camp" && !(App.tab === "town" && !onTrail && storyHasFlag(hero, "bridge_decided")) && !tabs.some((tab) => tab.id === App.tab)) App.tab = "camp";
   const need = getExperienceForNextLevel(hero.level);
   const views = { lairs: viewLairs, trail: viewTrailPicker, hero: viewSheet, gear: viewSheet, skills: viewSkills, talents: viewTalents, forge: viewForge, shop: viewShop, journal: viewJournal, news: viewNews, companions: viewCompanions, town: viewTown };
@@ -52,14 +53,30 @@ Screens.hub = () => {
     <nav class="camp-dock" aria-label="Места лагеря">
       ${tabs.map((tab) => {
         const count = pendingBadgeCount(tab.id);
-        return `<button class="dock-btn${App.tab === tab.id ? " active" : ""}" data-action="hubTab" data-tab="${tab.id}" ${App.tab === tab.id ? 'aria-current="page"' : ""}>${icon(tab.icon)}<span>${tab.name}</span>${count ? `<i class="dot">${count}</i>` : ""}</button>`;
+        const fresh = !onTrail && freshTab(hero) === tab.id;
+        return `<button class="dock-btn${App.tab === tab.id ? " active" : ""}${fresh ? " fresh" : ""}" data-action="hubTab" data-tab="${tab.id}" ${App.tab === tab.id ? 'aria-current="page"' : ""}>${icon(tab.icon)}<span>${tab.name}</span>${count ? `<i class="dot">${count}</i>` : ""}</button>`;
       }).join("")}
     </nav>
     ${drawer}
   </div>`;
 };
 
+// The dock button of the place that has just opened glows too (on a phone its sign may be off screen).
+function freshTab(hero) {
+  const fresh = featureToTell(hero);
+  if (!fresh) return null;
+  return fresh.id === "talents" ? "talents" : { shop: "shop", healer: "shop", journal: "journal", forge: "forge", lairs: "lairs" }[fresh.place] || null;
+}
+
 Actions.hubTab = (el) => {
+  const fresh = !App.hero?.expedition && !el.dataset.told ? featureToTell(App.hero) : null;
+  if (fresh && freshTab(App.hero) === el.dataset.tab) {
+    acknowledgeFeature(App.hero, fresh.id);
+    if (fresh.mode) App.forge.mode = fresh.mode;
+    if (fresh.shopTab) App.shopTab = fresh.shopTab;
+    if (fresh.place === "healer") App.shopTab = "potions";
+    persist();
+  }
   App.tab = el.dataset.tab;
   // Opening the news marks this version as read.
   if (App.tab === "news" && App.save.settings.newsSeen !== GAME_VERSION) { App.save.settings.newsSeen = GAME_VERSION; persist(); }
@@ -863,9 +880,11 @@ function forgeCandidates(mode) {
 }
 
 function viewForge() {
+  const modes = FORGE_MODES.filter((entry) => featureOpen(App.hero, FORGE_MODE_FEATURE[entry.id]));
+  if (!modes.some((entry) => entry.id === App.forge.mode)) App.forge.mode = modes[0].id;
   const mode = App.forge.mode;
   const info = FORGE_MODES.find((entry) => entry.id === mode);
-  return `${campVoice("forge")}<div class="tab-row" role="tablist">${FORGE_MODES.map((entry) => `<button role="tab" aria-selected="${entry.id === mode}" class="tab${entry.id === mode ? " active" : ""}" data-action="forgeMode" data-mode="${entry.id}">${entry.name}</button>`).join("")}</div>
+  return `${campVoice("forge")}<div class="tab-row" role="tablist">${modes.map((entry) => `<button role="tab" aria-selected="${entry.id === mode}" class="tab${entry.id === mode ? " active" : ""}" data-action="forgeMode" data-mode="${entry.id}">${entry.name}</button>`).join("")}</div>
     <p class="muted forge-hint">${esc(info.hint)}</p>
     ${mode === "mutate" ? forgeMutations() : forgeItems(mode)}`;
 }
@@ -985,8 +1004,10 @@ const SHOP_TABS = [{ id: "gear", name: "Снаряжение" }, { id: "potions"
 function viewShop() {
   const hero = App.hero;
   if (!hero.shop) refreshShopStock(hero);
+  const open = SHOP_TABS.filter((tab) => featureOpen(hero, SHOP_TAB_FEATURE[tab.id]));
+  if (!open.some((tab) => tab.id === App.shopTab)) App.shopTab = open[0]?.id || "gear";
   const content = { gear: shopGear, potions: shopPotions, materials: shopMaterials, passives: shopPassives }[App.shopTab]();
-  return `${campVoice("shop")}<div class="tab-row" role="tablist">${SHOP_TABS.map((tab) => `<button role="tab" aria-selected="${tab.id === App.shopTab}" class="tab${tab.id === App.shopTab ? " active" : ""}" data-action="shopTab" data-id="${tab.id}">${tab.name}</button>`).join("")}</div>${content}`;
+  return `${campVoice("shop")}<div class="tab-row" role="tablist">${open.map((tab) => `<button role="tab" aria-selected="${tab.id === App.shopTab}" class="tab${tab.id === App.shopTab ? " active" : ""}" data-action="shopTab" data-id="${tab.id}">${tab.name}</button>`).join("")}</div>${content}`;
 }
 
 function shopGear() {

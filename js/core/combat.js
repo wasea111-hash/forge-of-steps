@@ -863,6 +863,7 @@ function heroAction(battle, action) {
     if (action.kind === "hp" && hero.currentHp >= hero.maxHp) return { ok: false, reason: "Здоровье уже полное." };
     if (action.kind === "mp" && hero.currentMana >= hero.maxMana) return { ok: false, reason: "Мана уже полная." };
     hero.potions[action.kind] -= 1;
+    markProgressEvent(hero, "potionUsed");
     tempo = potion.tempo;
     emit(battle, "action", { who: "hero", anim: "cast", name: potion.name, element: action.kind === "hp" ? "holy" : "water" });
     if (action.kind === "hp") {

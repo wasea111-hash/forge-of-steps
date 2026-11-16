@@ -3,7 +3,7 @@ const vm = require("vm");
 const fs = require("fs");
 const path = require("path");
 
-const CORE_FILES = ["constants", "data.news", "data.skills", "data.branches", "data.world", "util", "skills", "passives", "mechanics", "build", "talents", "data.talents", "data.run", "data.classes", "data.shop", "items", "hero", "combat", "expedition", "data.build.warrior", "data.build.mage", "data.build.archer", "data.build.bard", "data.build.assassin", "data.tree.warrior", "data.tree.mage", "data.tree.archer", "data.tree.bard", "data.tree.assassin", "data.lairtune", "data.lairbosses", "data.lairs", "data.story", "story", "camp", "data.companions", "data.companion-skills", "data.companion-quests", "companions", "companion-battle", "data.town", "town", "save"];
+const CORE_FILES = ["constants", "data.news", "data.skills", "data.branches", "data.world", "util", "skills", "passives", "mechanics", "build", "talents", "data.talents", "data.run", "data.classes", "data.shop", "items", "hero", "combat", "expedition", "data.build.warrior", "data.build.mage", "data.build.archer", "data.build.bard", "data.build.assassin", "data.tree.warrior", "data.tree.mage", "data.tree.archer", "data.tree.bard", "data.tree.assassin", "data.lairtune", "data.lairbosses", "data.lairs", "data.story", "story", "camp", "data.companions", "data.companion-skills", "data.companion-quests", "companions", "companion-battle", "data.town", "town", "progression", "save"];
 
 function loadCore() {
   const context = vm.createContext({ console, Date, Math, JSON });

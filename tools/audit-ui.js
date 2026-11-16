@@ -25,6 +25,8 @@
 
   function makeHero(classKey, level) {
     const hero = createHero({ name: "Аудит", classKey });
+    // The audit walks every screen, so its heroes see all places (gradual opening is checked by tests and shots).
+    hero.progress.legacy = true;
     for (let i = 1; i < level; i += 1) awardExperience(hero, getExperienceForNextLevel(hero.level));
     while (hero.statPoints > 0) addStatPoint(hero, randomFrom(PLAN[classKey]), 1);
     const cat = getBranchCatalog(classKey);

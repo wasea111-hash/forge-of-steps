@@ -1390,6 +1390,35 @@ const report = run(`(function () {
     assert(makeLairBoss(hero, LAIR_CATALOG.wolf_den, 40).maxHp > makeLairBoss(hero, LAIR_CATALOG.wolf_den, 10).maxHp, "stronger at a higher rank");
   });
 
+  test("progression: the camp opens step by step, and an old hero keeps everything", () => {
+    const hero = newHero("warrior");
+    syncProgression(hero);
+    ["shop", "journal", "forge", "talents", "lairs", "ascend"].forEach((id) => assert(!featureOpen(hero, id), id + " is closed at the start"));
+    assert(!campPlaceOpen(hero, "forge") && campPlaceOpen(hero, "trail") && campPlaceOpen(hero, "hero"), "only the first places stand");
+    markTrailCleared(hero, "thicket", "white");
+    const opened = syncProgression(hero);
+    assert(opened.includes("shop") && opened.includes("journal") && opened.includes("potions"), "the white trail opens the shop, the journal and Nima");
+    eq(featureToTell(hero).id, "shop", "one opening is told at a time");
+    acknowledgeFeature(hero, "shop");
+    eq(featureToTell(hero).id, "potions", "then the next one");
+    hero.level = 6; markTrailCleared(hero, "thicket", "green"); syncProgression(hero);
+    assert(featureOpen(hero, "talents"), "talents at 6 after the green trail");
+    assert(!featureOpen(hero, "forge"), "the forge waits for a thing worth sharpening");
+    hero.inventory[0] = generateItem({ level: 6, rarity: "orange", classKey: "warrior" });
+    syncProgression(hero);
+    hero.inventory[0] = null; syncProgression(hero);
+    assert(featureOpen(hero, "forge") && featureOpen(hero, "materials"), "the forge opened and stays open after the item is sold");
+    assert(!featureOpen(hero, "ascend") && !featureOpen(hero, "reforge"), "its later modes wait");
+    hero.defeatedGuardians.push("greyfang"); syncProgression(hero);
+    assert(!featureOpen(hero, "lairs"), "lairs open after the next trip");
+    hero.records.expeditions += 1; syncProgression(hero);
+    assert(featureOpen(hero, "lairs"), "and then they do");
+    const old = normalizeHero(JSON.parse(JSON.stringify({ ...serializeHero(newHero("mage")), progress: undefined })));
+    assert(old.progress.legacy && featureOpen(old, "ascend") && campPlaceOpen(old, "lairs"), "a hero from before keeps every place");
+    const again = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
+    assert(featureOpen(again, "lairs") && !again.progress.legacy, "openings survive a save");
+  });
+
   test("a relic rises to the hero's level with gold and tokens of any lair", () => {
     const hero = newHero("warrior"); hero.level = 49; hero.gold = 1e7;
     const relic = generateRelic(hero, "alpha_hide", 30, "chest");

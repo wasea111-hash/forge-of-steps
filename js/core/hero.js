@@ -50,6 +50,7 @@ function createHero({ name, classKey, allocated = {} }) {
     skillProgress: {}, shopPassiveIds: [], shopActive: [], talents: [], talentVersion: TALENT_VERSION, talentsExchanged: 0,
     skillForms: {}, skillPicks: {}, styleId: null, ultimateId: null, ultimateSeen: [], buildVersion: BUILD_VERSION, story: (() => { const story = newStoryState(); queueStoryOpening(story, classKey); return story; })(), unlockedRegion: 0, trailClears: {}, lairTokens: {}, lairClears: {}, defeatedGuardians: [], won: false,
     records: { kills: 0, bosses: 0, elites: 0, expeditions: 0, completed: 0, deaths: 0, maxHit: 0, bestiary: {} },
+    progress: newProgress(),
     expedition: null, shop: null,
     createdAt: Date.now(), updatedAt: Date.now(),
     effects: [], summonedUnits: [], cooldowns: {}

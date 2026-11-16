@@ -1164,3 +1164,10 @@ body { background: var(--iron-0); }
 .asc-changes { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .86rem; opacity: .9; }
 .asc-changes b { color: #9fe0a0; font-weight: 600; }
 .asc-need { color: #f0b46a; font-size: .86rem; }
+/* 4.4: a place that has just opened: its sign glows and says one line */
+.camp-sign.fresh { z-index: 3; box-shadow: 0 0 0 2px rgba(255, 210, 120, .85), 0 0 18px 4px rgba(255, 190, 90, .55); animation: sign-fresh 2.4s ease-in-out infinite; }
+.camp-sign.fresh small { display: block; opacity: 1; max-height: 6em; max-width: 260px; white-space: normal; font-style: italic; }
+@keyframes sign-fresh { 50% { box-shadow: 0 0 0 2px rgba(255, 220, 140, 1), 0 0 26px 8px rgba(255, 190, 90, .7); } }
+@media (prefers-reduced-motion: reduce) { .camp-sign.fresh { animation: none; } }
+.dock-btn.fresh { box-shadow: 0 0 0 2px rgba(255, 210, 120, .8), 0 0 16px 3px rgba(255, 190, 90, .5); border-radius: 10px; animation: sign-fresh 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .dock-btn.fresh { animation: none; } }
