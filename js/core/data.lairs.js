@@ -65,7 +65,7 @@ const LAIR_CATALOG = {
   sealed_stacks: { id: "sealed_stacks", name: "Запечатанные хранилища", regionId: "ruins", opens: "green", level: 42, master: "lair_first_scribe", sets: ["archive_pages", "choir_mask"], lore: "Книги, которые нельзя читать, охраняют те, кто прочёл." },
   veil_crypt: { id: "veil_crypt", name: "Склеп Вуали", regionId: "ruins", opens: "purple", level: 50, master: "lair_widow", sets: ["phantom_veil"], lore: "Здесь учились убивать те, кого никто никогда не видел." },
   overheat_rift: { id: "overheat_rift", name: "Раскалённый разлом", regionId: "limit", opens: "green", level: 62, master: "lair_rift_heart", sets: ["overheated"], lore: "Трещина в мире, из которой тянет жаром кузни." },
-  first_forge: { id: "first_forge", name: "Первая Кузница", regionId: "limit", opens: "purple", level: 72, master: "lair_forge_titan", sets: ["smith_hammer"], lore: "Здесь Кузнец Шагов учился. Его ученики всё ещё работают." }
+  first_forge: { id: "first_forge", name: "Старый ученический цех", regionId: "limit", opens: "purple", level: 72, master: "lair_forge_titan", sets: ["smith_hammer"], lore: "Боковой цех комплекса Первой Кузницы. Здесь остались ученические горны и работа Струга; главная наковальня Кузнеца находится выше." }
 };
 Object.values(LAIR_CATALOG).forEach((lair) => { lair.masterName = LAIR_BOSSES[lair.master].name; });
 const LAIR_TOKENS_FOR_EXCHANGE = 3;

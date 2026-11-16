@@ -1390,6 +1390,20 @@ const report = run(`(function () {
     assert(makeLairBoss(hero, LAIR_CATALOG.wolf_den, 40).maxHp > makeLairBoss(hero, LAIR_CATALOG.wolf_den, 10).maxHp, "stronger at a higher rank");
   });
 
+  test("story: the ninth paid death empties the key, then returns cost the Forge's reserve", () => {
+    const hero = newHero("mage");
+    hero.story.deaths = 8; hero.story.laterShown = 8; syncStoryEvents(hero);
+    assert(!hero.story.queue.includes("camp:empty_key"), "not before the ninth");
+    hero.story.deaths = 9; syncStoryEvents(hero);
+    assert(hero.story.queue.includes("camp:empty_key") && !hero.story.queue.includes("death:later"), "the ninth brings the empty key instead of the usual scene");
+    hero.story.seen.push(...hero.story.queue); hero.story.queue = [];
+    hero.story.deaths = 10; syncStoryEvents(hero);
+    assert(!hero.story.queue.includes("camp:empty_key"), "once");
+    hero.story.lastTrip = { outcome: "death" };
+    const talk = (getCampLines ? getCampLines(hero, "nima") : null);
+    if (talk) assert(talk.answers.every((line) => !/{memory}/.test(line.text)), "no line about a new loss after the key is empty");
+  });
+
   test("story: the camp council comes right after the Archive, before the Limit", () => {
     const hero = newHero("warrior");
     hero.story.queue = ["region:limit"];

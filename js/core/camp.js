@@ -28,9 +28,11 @@ const CAMP_TALK = {
   nima: [
     { contract: true, text: "Я лечу всех, кто ко мне приходит. Тех, кто пришёл не по своей воле, — первыми." },
     { on: "death", credit: true, text: "Тихо, ты дома. Это возвращение оплачено лагерным жаром, и память цела: пока засов Серого Клыка закрыт, Кузнец не дотягивается до платы. После победы над ним плата начнётся со следующего возвращения, а прежние смерти её не увеличат." },
-    { on: "death", text: "Тихо, ты дома. Клеймо взяло своё: «{memory}». Сядь ближе к огню, тепло пока работает." },
+    { on: "death", maxDeaths: 9, text: "Тихо, ты дома. Клеймо взяло своё: «{memory}». Сядь ближе к огню, тепло пока работает." },
+    { on: "death", minDeaths: 10, text: "Ты в лагере. Нового переживания Клеймо не забрало: возвращение оплачено резервом Кузницы." },
     { on: "death", minDeaths: 3, text: "Я больше не считаю раны. Я считаю то, что ты уже не можешь почувствовать. Список растёт." },
-    { on: "guardian_death", text: "Страж бьёт честно: тело я собрала, а вот «{memory}» назад не пришьёшь." },
+    { on: "guardian_death", maxDeaths: 9, text: "Страж бьёт честно: тело я собрала, а вот «{memory}» назад не пришьёшь." },
+    { on: "guardian_death", minDeaths: 10, text: "Страж бьёт честно. Тело я собрала на резерве Кузницы; памяти у ключа брать уже нечего." },
     { on: "complete", text: "Целиком и на своих ногах. Люблю такие возвращения: бинты остаются в коробке." },
     { on: "retreat", text: "Повернуть вовремя — тоже лечение. Самое дешёвое из всех, что я знаю." },
     { on: "lair", text: "В логове пахнет старой кровью, и ты тоже. Умойся, потом хвастайся." },
@@ -72,7 +74,8 @@ const CAMP_TALK = {
     { if: "kern_anchor", text: "Запись для учеников: жар не торопить. Человека тоже." }
   ],
   sota: [
-    { on: "death", text: "Запишу: «{memory}» — утрачено. Факт оставлю, ощущение вычеркну. Так честнее." },
+    { on: "death", maxDeaths: 9, text: "Запишу: «{memory}» — утрачено. Факт оставлю, ощущение вычеркну. Так честнее." },
+    { on: "death", minDeaths: 10, text: "Отмечу расход резерва. Новую утрату памяти записывать не буду: её не было." },
     { on: "lair", text: "{lair}: свидетельство записано. Чернила ещё не высохли, а читать уже страшно." },
     { on: "complete", text: "Ещё одна страница. Дорога сегодня ровная, почерк тоже." },
     { on: "retreat", text: "Пишу «отход», не «бегство». Слова тоже лечат, спроси Ниму." },
@@ -101,7 +104,7 @@ function getCampLines(hero, who) {
   const chapter = getStoryProgress(hero).currentIndex;
   const deaths = Number(hero.story?.deaths || 0);
   const contract = (hero.companions || []).some((c) => c.legal === "contract");
-  const fits = (line) => (!line.contract || contract) && (!line.freedom || Number(hero.karma || 0) >= 25) && (!line.if || storyHasFlag(hero, line.if)) && (!line.ifNot || !storyHasFlag(hero, line.ifNot)) && (!line.chapter || chapter >= line.chapter) && (!line.minDeaths || deaths >= line.minDeaths);
+  const fits = (line) => (!line.contract || contract) && (!line.freedom || Number(hero.karma || 0) >= 25) && (!line.if || storyHasFlag(hero, line.if)) && (!line.ifNot || !storyHasFlag(hero, line.ifNot)) && (!line.chapter || chapter >= line.chapter) && (!line.minDeaths || deaths >= line.minDeaths) && (!line.maxDeaths || deaths <= line.maxDeaths);
   const lines = (CAMP_TALK[who] || []).filter(fits);
   const urgent = lines.filter((line) => line.contract);
   if (urgent.length) return { answers: urgent, everyday: lines.filter((line) => !line.on && !line.contract) };

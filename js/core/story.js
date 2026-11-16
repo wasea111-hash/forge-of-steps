@@ -179,7 +179,12 @@ function syncStoryEvents(hero) {
   const deaths = Number(story.deaths || 0);
   if (deaths >= 1) storyEvent(hero, "death:first");
   if (deaths >= 3) storyEvent(hero, "death:third");
-  if (deaths >= 4 && !story.ending && Number(story.laterShown || 0) < deaths) {
+  // The ninth paid death empties the key: one scene says what that means instead of the usual one.
+  if (deaths >= STORY_MEMORIES.length && !story.ending && !story.seen.includes("camp:empty_key")) {
+    story.queue = story.queue.filter((id) => id !== "death:later");
+    storyEvent(hero, "camp:empty_key");
+    story.laterShown = deaths;
+  } else if (deaths >= 4 && !story.ending && Number(story.laterShown || 0) < deaths) {
     story.laterShown = deaths;
     storyEvent(hero, "death:later");
   }

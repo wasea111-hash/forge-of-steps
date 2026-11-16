@@ -55,7 +55,7 @@ function stakeLine(hero) {
   if (!hero.story || hero.story.ending) return "";
   if (memoryGraceActive(hero)) return `<p class="stake-line grace">${icon("key")}<span>Пока засов Серого Клыка закрыт, возвращения оплачивает лагерный жар: смерть стоит снаряжения из рюкзака и половины золота, но не памяти.</span></p>`;
   const next = memoryAtStake(hero);
-  if (!next) return `<p class="stake-line gone">${icon("key")}<span>Память о доме исчерпана: Клейму больше нечего забрать. Путь «Молот в твоей ладони» закрыт.</span></p>`;
+  if (!next) return `<p class="stake-line gone">${icon("key")}<span>Девять переживаний у ключа исчерпаны. Следующее возвращение расходует резерв Кузницы. Сведения, умения и новые воспоминания сохраняются. Путь «Молот в твоей ладони» закрыт.</span></p>`;
   const kept = keptMemories(hero);
   const edge = kept === MEMORIES_FOR_HEARTH ? " Ещё одна смерть — и путь «Молот в твоей ладони» закроется: им платят собственной памятью." : "";
   return `<p class="stake-line${edge ? " edge" : ""}">${icon("key")}<span>Если падёшь, Клеймо заберёт «${esc(next.label)}». Осталось ${kept} из ${STORY_MEMORIES.length}.${edge}</span></p>`;
