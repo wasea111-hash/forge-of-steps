@@ -14,7 +14,10 @@ function campFire() {
 
 function campFireHtml(hero, talk, companionLine) {
   const names = Object.fromEntries(STORY_CHARACTERS.map((character) => [character.id, character]));
-  const speaker = talk.speaker === "comp" ? { name: companionLine.name } : names[talk.speaker];
+  // Kern who stayed in the forge leaves records; Sota speaks from the book, Veya from the map.
+  const label = { kern: "kern_anchor", sota: "sota_index", veya: "bridge_home" }[talk.speaker];
+  const where = label && storyHasFlag(hero, label) ? { kern: " · запись", sota: " · из книги", veya: " · голос из карты" }[talk.speaker] : "";
+  const speaker = talk.speaker === "comp" ? { name: companionLine.name } : names[talk.speaker] ? { name: names[talk.speaker].name + where } : null;
   const face = talk.speaker === "comp" ? companionLine.id : talk.speaker;
   return `<section class="campfire${talk.answered ? " answered" : ""}" aria-label="У костра">
     <span class="campfire-glow" aria-hidden="true"></span>

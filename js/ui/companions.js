@@ -162,7 +162,7 @@ Actions.compQuest = (el) => {
   if (!state.available) { toast(state.reason || "Недоступно.", "warn"); return; }
   const def = getCompanionDef(c);
   openModal(`<div class="comp-scene">${companionPortrait(def.id, "big")}<div><h2>${esc(state.quest.title)}</h2><p>${esc(state.quest.text)}</p>
-    <div class="event-options">${state.quest.options.map((option, i) => `<button class="choice-card" data-action="compQuestPick" data-id="${esc(c.id)}" data-choice="${i}"><strong>${esc(option.label)}</strong></button>`).join("")}</div></div></div>`);
+    <div class="event-options">${state.quest.options.map((option, i) => { const gold = companionQuestCost(App.hero, option); const short = gold > App.hero.gold; return `<button class="choice-card" data-action="compQuestPick" data-id="${esc(c.id)}" data-choice="${i}" ${short ? "disabled" : ""}><strong>${esc(option.label)}</strong>${gold ? `<small class="cost-line">${icon("gold")} ${gold} золота${short ? ` · у тебя ${App.hero.gold}` : ""}</small>` : ""}</button>`; }).join("")}</div></div></div>`);
 };
 Actions.compQuestPick = (el) => {
   const result = settleCompanionQuest(App.hero, el.dataset.id, Number(el.dataset.choice));
@@ -170,7 +170,7 @@ Actions.compQuestPick = (el) => {
   persist();
   SFX.play("level");
   const c = App.hero.companions.find((entry) => entry.id === el.dataset.id);
-  openModal(`<div class="comp-scene">${companionPortrait(c.defId, "big")}<div><h2>Дело закрыто</h2><p>${esc(result.result)}</p><p class="muted small">Доверие +5. Теперь «Искра» ждёт только уровня, доверия и ранга.</p><div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>Дальше</button></div></div></div>`);
+  openModal(`<div class="comp-scene">${companionPortrait(c.defId, "big")}<div><h2>Дело закрыто</h2><p>${esc(result.result)}</p><p class="muted small">${result.gold ? `Потрачено ${result.gold} золота. ` : ""}Доверие +${result.trust}. Теперь «Искра» ждёт только уровня, доверия и ранга.</p><div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>Дальше</button></div></div></div>`);
   refreshKeepScroll();
 };
 Actions.compGift = (el) => {
@@ -274,6 +274,10 @@ function companionFireLine(hero) {
   if (!c) return null;
   const def = getCompanionDef(c);
   const trip = hero.story?.lastTrip;
+  // After a personal matter the companion speaks as the one who went through it.
+  const done = c.quest?.done ? COMPANION_DONE_LINES?.[c.defId]?.[c.quest.choice] : null;
+  // After the matter is settled the companion speaks about it first; the usual answers to the road wait.
+  if (done?.length && c.fallStreak === 0) return { id: c.defId, name: def.name, text: done[(Number(trip?.n || 0) + Number(App.campTurn || 0)) % done.length] };
   let text = def.lines[Number(trip?.n || 0) % def.lines.length];
   if (c.fallStreak > 0) text = def.after.fall;
   else if (trip?.outcome === "death") text = def.after.death;

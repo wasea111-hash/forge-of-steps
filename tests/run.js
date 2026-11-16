@@ -1404,6 +1404,21 @@ const report = run(`(function () {
     if (talk) assert(talk.answers.every((line) => !/{memory}/.test(line.text)), "no line about a new loss after the key is empty");
   });
 
+  test("companions: a personal matter that promises money takes it, and the companion speaks of it afterwards", () => {
+    const hero = newHero("warrior"); hero.level = 20;
+    const c = recruitCompanion(hero, "rud"); c.trust = 60;
+    const choice = COMPANION_QUESTS.rud.options.findIndex((option) => option.cost);
+    assert(choice >= 0, "Rud's buyout has a price");
+    const price = companionQuestCost(hero, COMPANION_QUESTS.rud.options[choice]);
+    assert(price > 0, "it is counted");
+    hero.gold = price - 1;
+    assert(!settleCompanionQuest(hero, c.id, choice).ok, "not without the money");
+    hero.gold = price + 10;
+    const res = settleCompanionQuest(hero, c.id, choice);
+    assert(res.ok && hero.gold === 10 && res.gold === price, "the money is paid");
+    assert(Object.keys(COMPANION_QUESTS).every((id) => COMPANION_DONE_LINES[id]?.length === 2 && COMPANION_DONE_LINES[id].every((list) => list.length >= 1)), "every companion has words after either answer");
+  });
+
   test("story: the finale shows every road with its reasons, and the freed forge changes the town", () => {
     const hero = newHero("warrior");
     hero.defeatedGuardians.push("smith");

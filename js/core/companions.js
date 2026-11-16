@@ -301,15 +301,27 @@ function companionQuestState(companion) {
   return { available: true, quest };
 }
 
+// What an answer to a personal matter really costs: base gold plus a part per hero level.
+function companionQuestCost(hero, option) {
+  const cost = option?.cost;
+  if (!cost) return 0;
+  return Math.round(Number(cost.gold || 0) + Number(cost.perLevel || 0) * Number(hero.level || 1));
+}
+
 function settleCompanionQuest(hero, id, choice) {
   const companion = hero.companions.find((c) => c.id === id);
   if (!companion) return { ok: false, reason: "Такого спутника нет." };
   const state = companionQuestState(companion);
   if (!state.available) return { ok: false, reason: state.reason || "Это дело уже закрыто." };
-  if (!state.quest.options[choice]) return { ok: false, reason: "Такого решения нет." };
+  const option = state.quest.options[choice];
+  if (!option) return { ok: false, reason: "Такого решения нет." };
+  const gold = companionQuestCost(hero, option);
+  if (hero.gold < gold) return { ok: false, reason: `Нужно ${gold} золота, у тебя ${hero.gold}.` };
+  hero.gold -= gold;
   companion.quest = { done: true, choice };
-  addCompanionTrust(companion, 5);
-  return { ok: true, result: state.quest.options[choice].result };
+  const trust = 5 + Number(option.trust || 0);
+  addCompanionTrust(companion, trust);
+  return { ok: true, result: option.result, gold, trust };
 }
 
 function companionGiftName(companion) {
