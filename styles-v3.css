@@ -1211,3 +1211,11 @@ body { background: var(--iron-0); }
 .story-choice.shut { flex-wrap: wrap; }
 .story-choice .story-why { display: block; flex-basis: 100%; padding-left: 22px; margin-top: 4px; font-style: normal; font-size: .82em; color: #f0b46a; opacity: 1; }
 .story-choice .story-label { flex: 1; min-width: 0; }
+
+/* Right-click close look: the tooltip as a window that stays. */
+.modal-layer.inspect .modal-card { max-width: 420px; }
+.inspect-card > .tip-title { color: var(--gold); font-size: 1.15rem; }
+.inspect-card > .tip-title ~ .tip-title { margin-top: 12px; font-size: 1rem; }
+.inspect-card .tip-text { line-height: 1.45; }
+.inspect-hint { font-size: 0.78rem; margin: 10px 0 0; }
+body { -webkit-touch-callout: none; }
