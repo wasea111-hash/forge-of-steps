@@ -1390,6 +1390,17 @@ const report = run(`(function () {
     assert(makeLairBoss(hero, LAIR_CATALOG.wolf_den, 40).maxHp > makeLairBoss(hero, LAIR_CATALOG.wolf_den, 10).maxHp, "stronger at a higher rank");
   });
 
+  test("story: the camp council comes right after the Archive, before the Limit", () => {
+    const hero = newHero("warrior");
+    hero.story.queue = ["region:limit"];
+    hero.story.seen.push("boss_after:archivist");
+    syncStoryEvents(hero);
+    eq(hero.story.queue[0], "camp:road_council", "the council goes first");
+    assert(STORY_SCENES["camp:road_council"].setsFlags.includes("road_council_seen"), "and marks the chapter goal");
+    eq(STORY_CHAPTERS.find((c) => c.id === "c1").objectives.find((o) => o.done.boss === "greyfang").done.boss, "greyfang");
+    assert(!STORY_CHAPTERS.find((c) => c.id === "c1").objectives.find((o) => o.done.trail === "thicket:purple").done.boss && STORY_CHAPTERS.find((c) => c.id === "c1").objectives.find((o) => o.done.trail === "thicket:purple").optional, "the purple thicket trail is optional, as in the game");
+  });
+
   test("progression: the camp opens step by step, and an old hero keeps everything", () => {
     const hero = newHero("warrior");
     syncProgression(hero);

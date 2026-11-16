@@ -27,6 +27,9 @@ function storyPortrait(who) {
 function storySpeakerName(who) {
   if (!who || who === STORY_NARRATOR) return "";
   if (who === "hero") return App.hero?.name || "";
+  // Sota who went into the book and Veya who stayed in the bridge speak from where they are now.
+  if (who === "sota" && App.hero && storyHasFlag(App.hero, "sota_index")) return "Сота — из книги";
+  if (who === "veya" && App.hero && storyHasFlag(App.hero, "bridge_home")) return "Вея — голос из карты";
   return storyCharacter(who)?.name || ENEMY_DEFINITIONS[who]?.name || "";
 }
 

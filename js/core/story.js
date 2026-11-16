@@ -168,6 +168,8 @@ function syncStoryEvents(hero) {
   if (witnesses.every((flag) => storyHasFlag(hero, flag))) storyEvent(hero, "witness:complete");
   if (Object.values(getActiveSetCounts(hero)).some((count) => count >= SET_FULL)) storyEvent(hero, "set:full");
   if (storyHasFlag(hero, "bridge_decided")) storyEvent(hero, "town:settlers");
+  // After the Archive the camp talks first: the council comes before the Limit opens.
+  if (story.seen.includes("boss_after:archivist") && storyEvent(hero, "camp:road_council")) story.queue = ["camp:road_council", ...story.queue.filter((id) => id !== "camp:road_council")];
   // The first companion: Nima explains how the Brand ties you together, before the next trip.
   if (!hero.expedition && getActiveCompanion(hero)) storyEvent(hero, "camp:companion_thread");
   if (hero.subclass) storyEvent(hero, "path:subclass");

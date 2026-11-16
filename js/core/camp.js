@@ -77,7 +77,7 @@ const CAMP_TALK = {
     { on: "complete", text: "Ещё одна страница. Дорога сегодня ровная, почерк тоже." },
     { on: "retreat", text: "Пишу «отход», не «бегство». Слова тоже лечат, спроси Ниму." },
     { on: "guardian_win", text: "{boss}. Обвожу имя в рамку: так помечают то, что закончилось." },
-    { text: "Если я засну над книгой, переверни страницу. Только не закрывай." },
+    { text: "Если я засну над книгой, переверни страницу. Только не закрывай.", ifNot: "sota_index" },
     { text: "Ложкино записано в трёх местах. Если мир спорит, пусть спорит с тремя." },
     { if: "sota_index", text: "Читай мне вслух. Свою жизнь мелким шрифтом я уже не вижу." }
   ]
@@ -101,7 +101,7 @@ function getCampLines(hero, who) {
   const chapter = getStoryProgress(hero).currentIndex;
   const deaths = Number(hero.story?.deaths || 0);
   const contract = (hero.companions || []).some((c) => c.legal === "contract");
-  const fits = (line) => (!line.contract || contract) && (!line.freedom || Number(hero.karma || 0) >= 25) && (!line.if || storyHasFlag(hero, line.if)) && (!line.chapter || chapter >= line.chapter) && (!line.minDeaths || deaths >= line.minDeaths);
+  const fits = (line) => (!line.contract || contract) && (!line.freedom || Number(hero.karma || 0) >= 25) && (!line.if || storyHasFlag(hero, line.if)) && (!line.ifNot || !storyHasFlag(hero, line.ifNot)) && (!line.chapter || chapter >= line.chapter) && (!line.minDeaths || deaths >= line.minDeaths);
   const lines = (CAMP_TALK[who] || []).filter(fits);
   const urgent = lines.filter((line) => line.contract);
   if (urgent.length) return { answers: urgent, everyday: lines.filter((line) => !line.on && !line.contract) };
