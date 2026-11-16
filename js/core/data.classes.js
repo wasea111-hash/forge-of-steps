@@ -100,23 +100,31 @@ Object.assign(MECHANICS, {
     wait: { name: "Медитация", tempo: 0.6, run(b, s) { s.value = Math.max(0, s.value - 50); s.vented = true; b.hero.currentMana = Math.min(b.hero.maxMana, Math.round(b.hero.currentMana + b.hero.maxMana * 0.14)); return "Жар спадает, мана возвращается."; }, tip: "−50 перегрева и 14% маны, следующий ход раньше." }
   },
   core_archer: {
-    name: "Дистанция", core: true, description: "Бой начинается с небольшого расстояния. Пока враг не подошёл, его обычные физические удары уходят на сближение и не ранят. За каждую ступень дистанции выстрел сильнее на 10%, вплотную слабее на 20%. «Отойти» возвращает ступень раз в 4 хода. Тяжёлые удары и магия достают всегда.",
+    name: "Дистанция", core: true, description: "Бой начинается с небольшого расстояния. Пока враг не подошёл, его обычный физический удар идёт на бегу: дистанция падает на ступень, а удар ранит слабее, на 65% (удар стража на 80%). За каждую ступень дистанции выстрел сильнее на 10%, вплотную слабее на 20%. «Отойти» возвращает ступень и снова готово после 4 действий врагов. Тяжёлые удары и магия достают всегда.",
     max: 3, text: (b, s) => ["вплотную", "близко", "средне", "далеко"][s.value] || "",
     start(b, s) { s.value = clamp(1 + tm(b.hero, "startRange"), 0, 3); s.cd = 0; },
-    turnStart(b, s) { s.cd = Math.max(0, (s.cd || 0) - 1); },
+    // The retreat comes back with the enemy's pressure, not with your own speed.
+    enemyTurn(b, s) { s.cd = Math.max(0, (s.cd || 0) - 1); },
     beforeHit(b, s, c) { if (c.kind === "physical") c.mult *= s.value > 0 ? 1 + s.value * (0.1 + tm(b.hero, "rangeBonus")) : 0.8 + tm(b.hero, "closeBonus"); },
     enemyAttack(b, s, c) {
       if (c.move.heavy || c.kind !== "physical" || s.value <= 0) return;
       s.value -= 1;
       // A lair master is so huge that one stride covers the distance, and the blow still lands.
       if (b.enemy.lairMaster) { emit(b, "mech", { text: `${b.enemy.name}: один шаг, и ты рядом` }); fireMech(b, "approached"); return; }
-      c.cancel = true;
-      emit(b, "mech", { text: `${b.enemy.name} сближается` });
-      logEvent(b, `${b.enemy.name} сближается вместо удара. Дистанция: ${MECHANICS.core_archer.text(b, s)}.`, "Дистанция");
+      // The blow comes on the run: it closes a step and lands, but without full weight.
+      c.mult = (c.mult || 1) * (b.enemy.isGuardian ? 0.8 : 0.65);
+      emit(b, "mech", { text: `${b.enemy.name} бьёт на бегу` });
+      logEvent(b, `${b.enemy.name} сближается и бьёт на бегу, слабее обычного. Дистанция: ${MECHANICS.core_archer.text(b, s)}.`, "Дистанция");
       fireMech(b, "approached");
     },
+    // A blow on the companion in front still brings the enemy closer to you.
+    allyAttacked(b, s, c) {
+      if (c.move.heavy || c.kind !== "physical" || s.value <= 0 || b.enemy.lairMaster) return;
+      s.value -= 1;
+      logEvent(b, `${b.enemy.name} проходит к строю. Дистанция: ${MECHANICS.core_archer.text(b, s)}.`, "Дистанция");
+    },
     bot(b, s) { return s.value <= 0 && !s.cd ? { type: "wait" } : null; },
-    wait: { name: "Отойти", tempo: 0.8, can: (b, s) => !s.cd, run(b, s) { s.value = Math.min(3, s.value + 1); s.cd = 4 + tm(b.hero, "retreatCd"); fireMech(b, "retreated"); return "Лучник разрывает дистанцию."; }, fallback: "Выждать", tip: "+1 ступень дистанции раз в 4 хода, следующий ход раньше." }
+    wait: { name: "Отойти", tempo: 0.8, can: (b, s) => !s.cd, run(b, s) { s.value = Math.min(3, s.value + 1); s.cd = 4 + tm(b.hero, "retreatCd"); fireMech(b, "retreated"); return "Лучник разрывает дистанцию."; }, fallback: "Выждать", tip: "+1 ступень дистанции, следующий ход раньше. Снова готово после 4 действий врагов." }
   },
   core_bard: {
     name: "Мотив", core: true, description: "Каждое действие играет ноту: удар ♫, поддержка ♪, порча ☾. Три ноты складываются в мотив. Три удара: марш бьёт всех врагов. Три поддержки: гимн лечит и даёт щит. Три порчи: реквием ослабляет всех. Три разные ноты: аккорд усиливает и возвращает дыхание. Иначе короткий припев.",
@@ -235,7 +243,10 @@ Object.entries({ white: [0.55, 0.45], green: [0.85, 0.82], orange: [0.98, 0.95],
 function buildEncounter(hero, exp, node) {
   if (node.lairMaster) return [makeLairBoss(hero, LAIR_CATALOG[exp.lairId], exp.lairLevel)];
   const level = rollEnemyLevel(hero, exp.regionId, exp.zoneKey);
-  const power = ZONES[exp.zoneKey].power;
+  const reach = zoneOverreach(hero, exp.regionId, exp.zoneKey);
+  // Past level 30 heroes get sets, red gear and ranked companions; the hard trails grow with them.
+  const late = clamp((level - 30) / 42, 0, 1) * ({ orange: 0.25, purple: 0.5, red: 1 }[exp.zoneKey] || 0);
+  const power = { hp: ZONES[exp.zoneKey].power.hp * (1 + 0.03 * reach) * (1 + LATE_TRAIL_HP * late), dmg: ZONES[exp.zoneKey].power.dmg * (1 + 0.02 * reach) * (1 + LATE_TRAIL_DMG * late) };
   const pack = node.pack || [node.enemyId || pickRegionEnemy(getRegion(exp.regionId))];
   const scale = PACK_SCALE[pack.length] || PACK_SCALE[4];
   const affix = node.affixId ? ELITE_AFFIXES.find((entry) => entry.id === node.affixId) : null;
@@ -331,7 +342,7 @@ const SET_CATALOG = {
   viper_nest: { id: "viper_nest", name: "Гнездо гадюки", classes: ["archer", "assassin"], bonus2: { description: "Яд переходит с павшего врага на остальных.", on: { foeDown(b, s, c) { spreadEffect(b, c.foe, "poison", 1); } } }, bonus4: { description: "Новая доза яда расползается: все враги получают половину её силы.", on: { applied(b, s, c) { if (c.id === "poison") eachFoe(b, (foe) => { applyEffect(b, foe, { id: "poison", duration: 3, value: Math.max(1, c.value * 0.5) }, b.hero); }, false); } } } },
   crimson_trail: { id: "crimson_trail", name: "Багровый след", classes: PHYS_ALL, bonus2: { description: "Рана с павшего врага вскрывается на остальных.", on: { foeDown(b, s, c) { spreadEffect(b, c.foe, "bleed", 1); } } }, bonus4: { description: "Крит вскрывает раны сразу у всех врагов.", on: { afterHit(b, s, c) { if (isDirectHit(c) && c.crit) eachFoe(b, (foe) => { const wound = getEffect(foe, "bleed"); if (wound) tickDamageEffect(b, foe, wound, wound.value, "рана вскрылась"); }, false); } } } },
   phantom_veil: { id: "phantom_veil", name: "Вуаль Фантома", classes: ["assassin"], bonus2: { description: "Удар из тени ещё и оглушает на ход с шансом 40%.", mods: {}, on: { afterHit(b, s, c) { const core = b.mech?.core_assassin; if (core?.spent && isDirectHit(c) && roll(0.4)) applyStun(b, b.enemy, b.hero, 1); } } }, bonus4: { description: "«Скрыться» больше не имеет отката, но стоит 30 энергии.", on: { afterAction(b, s, c) { const core = b.mech?.core_assassin; if (c.type === "wait" && core && b.hero.currentMana >= 30) { core.cd = 0; b.hero.currentMana -= 30; } } } } },
-  hunter_camp: { id: "hunter_camp", name: "Лагерь ловчего", classes: ["archer"], bonus2: { description: "Сближение врага ставит у него под ногами капкан: замедление.", on: { approached(b) { applyEffect(b, b.enemy, { id: "slow", duration: 2, value: 0.25 }, b.hero); } } }, bonus4: { description: "«Отойти» также выпускает стрелу по всем врагам.", on: { retreated(b) { eachFoe(b, () => procHit(b, 0.7, "Отходя, стреляет", "steel", { kind: "physical" })); } } } },
+  hunter_camp: { id: "hunter_camp", name: "Лагерь ловчего", classes: ["archer"], bonus2: { description: "Первое сближение каждого врага ставит ему под ноги капкан: замедление на 15%.", on: { approached(b, s) { s.trapped = s.trapped || new Set(); if (s.trapped.has(b.enemy)) return; s.trapped.add(b.enemy); applyEffect(b, b.enemy, { id: "slow", duration: 1, value: 0.15 }, b.hero); } } }, bonus4: { description: "Отход выпускает стрелу по всем врагам, силой 0,45. Не чаще раза за твоё действие.", on: { afterAction(b, s) { s.shot = false; }, retreated(b, s) { if (s.shot) return; s.shot = true; eachFoe(b, () => procHit(b, 0.45, "Отходя, стреляет", "steel", { kind: "physical" })); } } } },
   choir_mask: { id: "choir_mask", name: "Маска хора", classes: ["bard"], bonus2: { description: "Мотив сильнее на 40%.", mods: { motifPower: 0.4 } }, bonus4: { description: "Каждый мотив даёт случайную ноту следующему.", on: { motif(b) { const s = b.mech?.core_bard; if (s) s.notes = [randomFrom(["blade", "life", "shade"])]; } } } },
   overheated: { id: "overheated", name: "Раскалённый посох", classes: ["mage"], bonus2: { description: "Предел перегрева выше на 30.", mods: { heatCap: 30 } }, bonus4: { description: "Срыв больше не лишает хода, а взрывает всех врагов.", on: { backfire(b) { removeFx(b.hero, "stun"); splash(b, heroAttack(b) * 1.5, "Срыв", "fire"); procHit(b, 1.5, "Срыв", "fire", { kind: "magic" }); } } } }
 };

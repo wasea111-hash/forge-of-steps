@@ -572,7 +572,7 @@ function endHeroTurn(battle, tempo) {
   const hero = battle.hero;
   processEffectsEndOfTurn(battle, hero);
   if (hero.currentHp > 0 && battle.enemy.currentHp > 0) processSummons(battle);
-  battle.ct.hero += (100 / getSpeed(hero)) * tempo;
+  battle.ct.hero += (100 / getSpeed(hero)) * Math.max(0.5, tempo);
   battle.awaiting = false;
 }
 
@@ -1151,11 +1151,14 @@ function performEnemyMove(battle, move) {
 
   if (allyAlive(battle) && battle.ally.defId === "mara" && hitKinds(move)) gainAllyResource(battle, 1);
   if ((move.target === "ally" || battle.allyState?.cover > 0) && allyAlive(battle)) {
+    fireMech(battle, "allyAttacked", { kind: move.kind === "magic" ? "magic" : "physical", move });
     enemyHitsAlly(battle, move);
     return;
   }
   const kind = move.kind === "magic" ? "magic" : "physical";
-  if (fireMech(battle, "enemyAttack", { kind, move, cancel: false }).cancel) return;
+  const attack = fireMech(battle, "enemyAttack", { kind, move, cancel: false, mult: 1 });
+  if (attack.cancel) return;
+  const distanceMult = Number(attack.mult || 1);
   const hits = Math.max(1, Number(move.hits || 1));
   let landed = false;
   for (let i = 0; i < hits && hero.currentHp > 0; i += 1) {
@@ -1166,7 +1169,7 @@ function performEnemyMove(battle, move) {
       fireMech(battle, "dodged");
       continue;
     }
-    const incoming = fireMech(battle, "incoming", { amount: hit.amount, kind, heavy: Boolean(move.heavy), parried: false });
+    const incoming = fireMech(battle, "incoming", { amount: hit.amount * distanceMult, kind, heavy: Boolean(move.heavy), parried: false });
     if (incoming.parried) { fireMech(battle, "parried"); continue; }
     if (battle.enemy.currentHp <= 0) return;
     let amount = Math.round(incoming.amount);

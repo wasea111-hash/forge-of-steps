@@ -298,7 +298,7 @@
   });
   const closeOnly = (b) => { const state = b.mech?.core_archer; if (state) state.value = 0; };
   // The old "Упор" changes only startRange, allowing retreat to erase its price.
-  const pointBlank = talent(4, "key", "Без пути назад", "Физические попадания вплотную сильнее: множитель дистанции 1,35 вместо 0,8. Цена: дистанция всегда нулевая, даже после отхода и ультимейта. Враг не тратит ходы на сближение.", {
+  const pointBlank = talent(4, "key", "Без пути назад", "Физические попадания вплотную сильнее: множитель дистанции 1,35 вместо 0,8. Цена: дистанция всегда нулевая, даже после отхода и ультимейта. Враг подходит сразу и бьёт в полную силу.", {
     mods: { closeBonus: 0.55 }, on: { start: closeOnly, turnStart: closeOnly, retreated: closeOnly, afterAction: closeOnly }
   });
   const pathKeys = {};

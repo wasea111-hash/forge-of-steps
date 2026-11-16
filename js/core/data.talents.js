@@ -142,7 +142,7 @@ T("evasion", 2, "make", "Горсть пыли", "Уклонившись, бро
 T("evasion", 2, "amp", "Танец", "Уклонение ускоряет тебя на следующий ход.", { on: { dodged(b) { fx(b, "haste", 1, 0.25, { self: true }); } } });
 T("evasion", 3, "shift", "Предчувствие", "Первый удар врага в каждом бою всегда мимо.", { on: { incoming(b, s, c) { if (!s.done) { s.done = true; c.parried = true; mechNote(b, "Предчувствие"); } } } });
 T("evasion", 3, "amp", "Призрачный след", "Пока здоровья больше 70%, уклонение выше на 10%.", { on: { turnStart(b) { if (hpRatio(b.hero) > 0.7) applyEffect(b, b.hero, { id: "evasion", duration: 1, value: 10 }, b.hero); } } });
-T("evasion", 4, "key", "Тень без тела", "Уклонение выше на 20%, но запас здоровья меньше на 25%.", { derived: { dodgeChance: 20 }, mods: { maxHpPct: -0.25 } });
+T("evasion", 4, "key", "Тень без тела", "Уклонение выше на 12%, но запас здоровья меньше на 15%.", { derived: { dodgeChance: 12 }, mods: { maxHpPct: -0.15 } });
 
 // ---------- PACK ----------
 T("pack", 1, "shift", "Кость к кости", "Каждый ход существа лечатся на 8%.", { on: { turnStart(b) { (b.hero.summonedUnits || []).forEach((u) => { u.hp = Math.min(u.maxHp, Math.round(u.hp + u.maxHp * 0.08)); }); } } });
@@ -219,7 +219,7 @@ T("c-mage", 4, "key", "Ледяной расчёт", "Срыва больше н
 
 T("c-archer", 1, "shift", "Длинные ноги", "Бой начинается на ступень дальше.", { mods: { startRange: 1 } });
 T("c-archer", 1, "amp", "Длинный выстрел", "Каждая ступень дистанции даёт ещё +5% урона.", { mods: { rangeBonus: 0.05 } });
-T("c-archer", 2, "shift", "Быстрый отход", "«Отойти» раз в 3 хода вместо 4.", { mods: { retreatCd: -1 } });
+T("c-archer", 2, "shift", "Быстрый отход", "«Отойти» снова готово после 3 действий врагов, а не 4.", { mods: { retreatCd: -1 } });
 T("c-archer", 2, "make", "Подножка", "Сближающийся враг спотыкается: он замедлен.", { on: { approached(b) { applyEffect(b, b.enemy, { id: "slow", duration: 2, value: 0.2 }, b.hero); announceProc(b); } } });
 T("c-archer", 3, "make", "Выстрел в упор", "Вплотную стрелы не слабеют и могут оглушить.", { mods: { closeBonus: 0.2 }, on: { afterHit(b, s, c) { if (isDirectHit(c) && coreState(b)?.value === 0 && roll(0.15)) applyStun(b, b.enemy, b.hero, 1); } } });
 T("c-archer", 3, "link", "Кольцевой бег", "После «Отойти» следующий выстрел всегда критический.", { on: { retreated(b, s) { s.ready = true; }, beforeHit(b, s, c) { if (s.ready && !c.proc) { c.forceCrit = true; s.ready = false; } } } });

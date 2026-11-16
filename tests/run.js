@@ -1192,20 +1192,40 @@ const report = run(`(function () {
     assert(core.value <= 30 + 20, "cooled");
   });
 
-  test("class core: archer's range turns melee hits into approach", () => {
+  test("class core: archer's range weakens a blow on the run and the retreat waits for enemy actions", () => {
     const { hero, battle, enemy } = talentBattle("archer", null, null);
     const core = battle.mech.core_archer;
     eq(core.value, 1, "starts at range");
-    const hp = hero.currentHp;
-    enemy.dodgeChance = 0;
-    performEnemyMove(battle, { id: "strike", ...ENEMY_MOVES.strike });
-    eq(core.value, 0); eq(hero.currentHp, hp, "no damage while closing");
-    core.value = 0;
     hero.dodgeChance = 0;
+    hero.effects = [];
     setRng(() => 0.5);
+    let hp = hero.currentHp;
     performEnemyMove(battle, { id: "strike", ...ENEMY_MOVES.strike });
+    const onRun = hp - hero.currentHp;
+    eq(core.value, 0, "the blow closes a step");
+    assert(onRun > 0, "a blow on the run still lands");
+    hp = hero.currentHp;
+    performEnemyMove(battle, { id: "strike", ...ENEMY_MOVES.strike });
+    const close = hp - hero.currentHp;
     seed(12345);
-    assert(hero.currentHp < hp, "melee reaches");
+    assert(Math.abs(onRun - close * 0.65) <= 2, "on the run it is 65%: " + onRun + " vs " + close);
+    core.cd = 4;
+    fireMech(battle, "turnStart");
+    eq(core.cd, 4, "your own turns do not bring the retreat back");
+    for (let i = 0; i < 4; i += 1) fireMech(battle, "enemyTurn");
+    eq(core.cd, 0, "four enemy actions do");
+  });
+
+  test("balance: permanent dodge softens past 35%, hard trails at a region's top grow stronger", () => {
+    eq(softDodge(20), 20, "small dodge counts in full");
+    eq(softDodge(35), 35, "up to the soft cap in full");
+    assert(softDodge(45) > 37 && softDodge(45) < 39, "45 raw is about 38: " + softDodge(45));
+    assert(softDodge(200) < 40, "never past 40");
+    const hero = newHero("warrior");
+    hero.level = 49;
+    eq(zoneOverreach(hero, "ruins", "green"), 0, "easy trails stay as they are");
+    eq(zoneOverreach(hero, "ruins", "red"), 4, "red at 49 in the ruins would go 4 levels past 52");
+    eq(zoneOverreach(hero, "limit", "red"), 0, "in a fitting region there is nothing to make up");
   });
 
   test("class core: bard's three notes make a motif", () => {
@@ -1792,6 +1812,10 @@ const report = run(`(function () {
     const { battle } = allyFight(hero, "tessa", true, [makeEnemy("wolf", hero.level)]);
     const wolf = battle.foes[0];
     wolf.moves = ["strike"];
+    let front = 0;
+    for (let i = 0; i < 400; i += 1) { battle.intent = null; pickEnemyIntent(battle); if (battle.intent.target === "ally") front += 1; }
+    assert(front > 260 && front < 340, "about three melee blows in four go to the front: " + front);
+    setRng(() => 0.5);
     battle.intent = null; pickEnemyIntent(battle);
     eq(battle.intent.target, "ally", "melee aims at the one in front");
     const heroHp = hero.currentHp; const allyHp = battle.ally.currentHp;
@@ -1801,6 +1825,7 @@ const report = run(`(function () {
     swapFormation(battle);
     battle.intent = null; pickEnemyIntent(battle);
     eq(battle.intent.target, "hero", "behind the hero now");
+    seed(78);
     let guard = 0;
     while (!battle.over && guard++ < 300) { const r = heroAction(battle, chooseBotAction(battle)); if (!r.ok) heroAction(battle, { type: "attack" }); }
     assert(battle.over, "the fight ends");

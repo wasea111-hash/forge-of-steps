@@ -185,6 +185,12 @@ Actions.startExpedition = (el) => {
 // The stats a class leans on: marked in the list, so a point is never spent blind.
 const CLASS_KEY_STATS = { warrior: ["strength", "endurance"], mage: ["intellect", "endurance"], archer: ["agility", "strength"], bard: ["intellect", "spirituality"], assassin: ["strength", "agility"] };
 
+// Past 35% each point of permanent dodge gives less; show where the raw sum went.
+function dodgeText(hero) {
+  const raw = Number(hero.dodgeRaw || 0);
+  return raw > hero.dodgeChance + 0.05 ? `${hero.dodgeChance}% <small class="vs-soft" title="После 35% каждое очко постоянного уклонения даёт меньше. Временные эффекты поднимают его до 45%.">из ${raw}</small>` : `${hero.dodgeChance}%`;
+}
+
 function viewHeroStats() {
   const hero = App.hero;
   const statHint = { intellect: `Мана ${hero.maxMana}, маг. урон ${hero.skillDamage}`, endurance: `Здоровье ${hero.maxHp}, защита ${hero.physicalDefense} / ${hero.magicDefense}`, strength: `Физ. урон ${hero.physicalDamage}`, luck: `Крит ${hero.critChance}%, добыча ${hero.dropChance}%`, agility: `Скорость ${hero.attackSpeed}, уклонение ${hero.dodgeChance}%`, spirituality: `Лечение ${hero.healingPower}, щиты ${hero.shieldPower}, мана за ход ${getManaRegen(hero)}` };
@@ -205,7 +211,7 @@ function viewHeroStats() {
           </div></div>`;
       }).join("")}
       <details class="vs-more"><summary>Все показатели</summary>
-        <div class="vs-derived">${[["Здоровье", hero.maxHp], [CLASS_RESOURCES[hero.classKey]?.name || "Мана", hero.maxMana], ["Физ. урон", hero.physicalDamage], ["Маг. урон", hero.skillDamage], ["Физ. защита", hero.physicalDefense], ["Маг. защита", hero.magicDefense], ["Крит", `${hero.critChance}%`], ["Уклонение", `${hero.dodgeChance}%`], ["Скорость", hero.attackSpeed], ["Лечение", hero.healingPower], ["Щиты", hero.shieldPower], ["Шанс добычи", `${hero.dropChance}%`]].map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join("")}</div>
+        <div class="vs-derived">${[["Здоровье", hero.maxHp], [CLASS_RESOURCES[hero.classKey]?.name || "Мана", hero.maxMana], ["Физ. урон", hero.physicalDamage], ["Маг. урон", hero.skillDamage], ["Физ. защита", hero.physicalDefense], ["Маг. защита", hero.magicDefense], ["Крит", `${hero.critChance}%`], ["Уклонение", dodgeText(hero)], ["Скорость", hero.attackSpeed], ["Лечение", hero.healingPower], ["Щиты", hero.shieldPower], ["Шанс добычи", `${hero.dropChance}%`]].map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join("")}</div>
         <p class="muted small">Скорость решает, как часто ты ходишь. Защита снижает урон по убывающей: чем сильнее враг, тем ниже её эффект.</p>
       </details>
     </section>`;

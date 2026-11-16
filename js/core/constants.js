@@ -371,6 +371,12 @@ const MAX_ENHANCE = 10;
 const ENHANCE_STEP = 0.07;
 const CRIT_CAP = 75;
 const DODGE_CAP = 45;
+// Permanent dodge counts in full up to 35%, then each point gives less and it creeps toward 40%. Temporary evasion can still reach DODGE_CAP.
+const DODGE_SOFT = 35;
+function softDodge(raw) {
+  const r = Number(raw || 0);
+  return r <= DODGE_SOFT ? r : DODGE_SOFT + (5 * (r - DODGE_SOFT)) / (5 + r - DODGE_SOFT);
+}
 const GUARD_REDUCTION = 0.5;
 const GUARD_TEMPO = 0.85;
 const WAIT_TEMPO = 0.6;
@@ -392,6 +398,9 @@ const POISON_RAMP_MAX = 10;
 const ENEMY_LEVEL_HP = 0.027;
 const ENEMY_LEVEL_DMG = 0.012;
 const SPEED_CURVE_BASE = 50;
+// Extra strength of orange/purple/red trail foes past level 30 (full at 72, red counts fully, purple half, orange a quarter).
+const LATE_TRAIL_HP = 0.4;
+const LATE_TRAIL_DMG = 0.3;
 const SPEED_CURVE_SLOPE = 0.4;
-const CLASS_DAMAGE_FACTOR = { warrior: 1.12, bard: 1.3, archer: 0.82, assassin: 0.88, mage: 1.22 };
+const CLASS_DAMAGE_FACTOR = { warrior: 1.12, bard: 1.3, archer: 1.35, assassin: 0.88, mage: 1.22 };
 const CLASS_HP_FACTOR = { mage: 1.42, bard: 1.18, assassin: 1, archer: 1, warrior: 1.05 };

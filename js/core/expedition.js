@@ -29,6 +29,15 @@ function getZoneLevelRange(hero, regionId, zoneKey) {
   return zone.levelOffset.map((offset) => Math.max(1, clamp(anchor + offset, low, high)));
 }
 
+// A hard trail near the top of its region cannot send stronger foes by level, so the region's best come out instead:
+// every level the trail would have gone past the band turns into strength (orange and up only, at most 8 levels).
+function zoneOverreach(hero, regionId, zoneKey) {
+  if (!["orange", "purple", "red"].includes(zoneKey)) return 0;
+  const [low, high] = regionBand(regionId);
+  const [a, b] = ZONES[zoneKey].levelOffset;
+  return clamp(Math.max(hero.level, low) + (a + b) / 2 - high, 0, 8);
+}
+
 // Rewards fade for foes far below you: farming an old region gives little.
 function outlevelFactor(hero, enemyLevel) {
   const gap = Math.max(0, Number(hero.level || 1) - Number(enemyLevel || 1) - 3);

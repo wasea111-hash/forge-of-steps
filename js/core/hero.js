@@ -105,7 +105,8 @@ function applyDerivedStats(unit, restore = false) {
   unit.maxHp = Math.max(1, Math.round(unit.maxHp * (1 + tm(unit, "maxHpPct"))));
   unit.critChance = Math.max(0, Math.min(CRIT_CAP, unit.critChance));
   if (CLASS_RESOURCES[unit.classKey]?.max) unit.maxMana = CLASS_RESOURCES[unit.classKey].max;
-  unit.dodgeChance = Math.min(DODGE_CAP, unit.dodgeChance);
+  unit.dodgeRaw = Number(unit.dodgeChance.toFixed(1));
+  unit.dodgeChance = Number(Math.min(DODGE_CAP, softDodge(unit.dodgeChance)).toFixed(1));
   unit.traits = Object.values(unit.equipment || {}).map((item) => item?.trait).filter(Boolean);
   if (restore) {
     unit.currentHp = unit.maxHp;

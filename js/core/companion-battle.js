@@ -116,7 +116,8 @@ function chooseFoeTarget(battle, move) {
   if (battle.allyState.cover > 0) return "ally";
   const allyFront = battle.allyState.front;
   if (move.kind === "magic" || move.ranged) return roll(0.6) === allyFront ? "ally" : "hero";
-  return allyFront ? "ally" : "hero";
+  // The front rank takes most melee blows, not all of them: some enemies slip past to the one behind.
+  return roll(0.75) === allyFront ? "ally" : "hero";
 }
 
 function hitKinds(move) {
@@ -526,7 +527,7 @@ function endAllyTurn(battle, tempo = 1) {
   if (battle.allyState.quick) { tempo *= battle.allyState.quick; battle.allyState.quick = 0; }
   if (allyAlive(battle)) processEffectsEndOfTurn(battle, ally);
   if (ally.currentHp <= 0) allyFalls(battle);
-  ally.ct += (100 / getSpeed(ally)) * tempo;
+  ally.ct += (100 / getSpeed(ally)) * Math.max(0.5, tempo);
   planAlly(battle);
 }
 
