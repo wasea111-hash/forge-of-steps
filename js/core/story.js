@@ -53,6 +53,9 @@ const STORY_DERIVED = {
   kern_decided: (has) => has("kern_release") || has("kern_anchor"),
   home_exact: (has) => has("bridge_home") && has("sota_index"),
   nima_default: (has) => !has("nima_witness") && !has("nima_rescue"),
+  companion_thread_contract: (has, hero) => getActiveCompanion(hero)?.legal === "contract",
+  // A town founded before the settlers scene set its flag still counts.
+  town_open: (has, hero) => has("town_founded") || Boolean(hero.story?.seen?.includes("town:settlers")),
   subclass_chosen: (has, hero) => Boolean(hero.subclass),
   profession_chosen: (has, hero) => Boolean(hero.profession),
   ending_resolved: (has, hero) => Boolean(hero.story?.ending),
@@ -165,6 +168,8 @@ function syncStoryEvents(hero) {
   if (witnesses.every((flag) => storyHasFlag(hero, flag))) storyEvent(hero, "witness:complete");
   if (Object.values(getActiveSetCounts(hero)).some((count) => count >= SET_FULL)) storyEvent(hero, "set:full");
   if (storyHasFlag(hero, "bridge_decided")) storyEvent(hero, "town:settlers");
+  // The first companion: Nima explains how the Brand ties you together, before the next trip.
+  if (!hero.expedition && getActiveCompanion(hero)) storyEvent(hero, "camp:companion_thread");
   if (hero.subclass) storyEvent(hero, "path:subclass");
   if (hero.profession) storyEvent(hero, "path:profession");
   if (Number(story.retreats || 0) > 0) storyEvent(hero, "retreat:first");

@@ -9,8 +9,11 @@ function storyArtSrc(id) {
   return `assets/img/${id}.webp`;
 }
 
+// Camp people first; a companion can speak in a scene too, with the portrait it already has.
 function storyCharacter(id) {
-  return STORY_CHARACTERS.find((entry) => entry.id === id) || null;
+  const person = STORY_CHARACTERS.find((entry) => entry.id === id);
+  if (person) return person;
+  return typeof COMPANIONS !== "undefined" && COMPANIONS[id] ? { id, name: COMPANIONS[id].name } : null;
 }
 
 function storyPortrait(who) {

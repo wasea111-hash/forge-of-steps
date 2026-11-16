@@ -1595,7 +1595,7 @@ const report = run(`(function () {
     });
     Object.values(LAIR_CATALOG).forEach((lair) => required.push("lair:" + lair.master));
     required.forEach((id) => assert(STORY_SCENES[id], "scene " + id));
-    const people = new Set(["narrator", ...STORY_CHARACTERS.map((character) => character.id), ...Object.keys(ENEMY_DEFINITIONS)]);
+    const people = new Set(["narrator", ...STORY_CHARACTERS.map((character) => character.id), ...Object.keys(ENEMY_DEFINITIONS), ...Object.keys(COMPANIONS)]);
     const gendered = /\bты\s+(прош[её]л|пришл[аи]?|устал|готов|сделал|нашёл|видел|вернулся|вернулась|должен|должна)\b/i;
     const check = (id, line) => {
       assert(people.has(line.who), id + " speaker " + line.who);
@@ -1969,6 +1969,8 @@ const report = run(`(function () {
     hero.unlockedRegion = 1; hero.records.expeditions = 2;
     eq(getTownOffer(hero), null, "no town before the people of the bridge");
     hero.story.flags.push("bridge_people");
+    eq(getTownOffer(hero), null, "the town decides nothing before the settlers' meeting");
+    hero.story.flags.push("town_founded");
     eq(getTownOffer(hero), "caravan", "the caravan comes to the Ashlands camp");
     assert(decideTown(hero, "caravan", "shelter_offer").ok, "the decision is taken");
     eq(decideTown(hero, "caravan", "market_permitted").ok, false, "once decided, decided");
@@ -2082,7 +2084,7 @@ const report = run(`(function () {
     syncStoryEvents(hero);
     assert(hero.story.queue.includes("town:settlers"), "the bridge brings the first neighbours");
     const settlers = getStoryLines(hero, STORY_SCENES["town:settlers"].lines).map((line) => line.text).join(" ");
-    assert(/успели только те/.test(settlers) && !/Идти им некуда/.test(settlers), "the settlers scene follows the bridge choice");
+    assert(/останусь у устоя/.test(settlers) && !/держится на железе/.test(settlers), "the settlers scene follows the bridge choice");
     assert(!TOWN_PROJECTS.witness_house.when(hero), "an open journal alone does not raise the witness house");
     hero.story.flags.push("witness_1");
     assert(TOWN_PROJECTS.witness_house.when(hero), "the first witness does");
@@ -2101,7 +2103,7 @@ const report = run(`(function () {
     const early = createExpedition(hero, REGIONS[0].id, "white");
     hero.expedition = early;
     finishExpedition(hero, early, "death");
-    assert(getCampTalk(hero).text.includes("Долг кончится"), "a death on credit is named as such");
+    assert(getCampTalk(hero).text.includes("оплачено лагерным жаром"), "a death on credit is named as such");
     hero.defeatedGuardians.push(REGIONS[0].guardian);
     const exp = createExpedition(hero, REGIONS[0].id, "white");
     hero.expedition = exp;
