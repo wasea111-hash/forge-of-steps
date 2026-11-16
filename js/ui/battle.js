@@ -171,6 +171,7 @@ function showExpeditionSummary(summary) {
     ${died ? `<p class="muted">${lost.length ? `На тропе осталось — ${lost.join(", ")}.` : "На тропе не осталось ничего ценного."}${summary.keptWorn ? ` Надетые находки остались с тобой: ${summary.keptWorn}.` : ""} Опыт остаётся с тобой.${summary.townRaised?.length ? ` Пока тебя не было, у лагеря достроили: ${summary.townRaised.join(", ")}.` : ""}</p>` : ""}
     ${chips ? `<div class="reward-line">${died ? `<small class="muted">Удалось сохранить:</small>` : ""}${chips}</div>` : ""}
     ${summary.items.length ? `<div class="reward-items">${summary.items.map((item) => `<div class="reward-item rarity-${item.rarity}">${itemIcon(item)}<span class="rarity-text-${item.rarity}">${esc(getItemDisplayName(item))}</span></div>`).join("")}</div>` : ""}
+    ${summary.firstOrange ? `<p class="muted small">В последнем тайнике тропы лежало оружие оранжевой работы. Такую вещь уже стоит нести Керну на заточку.</p>` : ""}
     ${summary.soldItems ? `<p class="muted small">Рюкзак был полон: ${summary.soldItems} предм. продано за ${summary.soldGold} золота.</p>` : ""}
     <div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>${died ? "К костру" : "К лагерю"}</button></div>`);
 }

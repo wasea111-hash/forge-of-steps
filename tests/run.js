@@ -348,7 +348,7 @@ const report = run(`(function () {
 
   test("loot: completion keeps everything, death keeps only what is worn", () => {
     const setup = () => {
-      const hero = newHero();
+      const hero = newHero(); hero.progress.events.orange = true; // no first-orange gift in this count
       const exp = createExpedition(hero, "thicket", "green");
       hero.expedition = exp;
       const worn = generateItem({ level: 1, rarity: "green", slotType: "chest", classKey: "warrior" });
@@ -1478,6 +1478,24 @@ const report = run(`(function () {
     assert(old.progress.legacy && featureOpen(old, "ascend") && campPlaceOpen(old, "lairs"), "a hero from before keeps every place");
     const again = normalizeHero(JSON.parse(JSON.stringify(serializeHero(hero))));
     assert(featureOpen(again, "lairs") && !again.progress.legacy, "openings survive a save");
+  });
+
+  test("the first green trail of the thicket gives an orange weapon if the road never did", () => {
+    const hero = newHero("warrior"); hero.level = 7; syncProgression(hero);
+    markTrailCleared(hero, "thicket", "white");
+    const exp = createExpedition(hero, "thicket", "green");
+    hero.expedition = exp;
+    const summary = finishExpedition(hero, exp, "complete");
+    assert(summary.firstOrange, "the gift is marked in the report");
+    assert(hero.inventory.some((item) => item?.rarity === "orange" && item.slotType === "weapon"), "an orange weapon is in the bag");
+    syncProgression(hero);
+    assert(featureOpen(hero, "forge"), "and the forge opens with it");
+    const again = createExpedition(hero, "thicket", "green"); hero.expedition = again;
+    assert(!finishExpedition(hero, again, "complete").firstOrange, "only the first clear gives it");
+    const lucky = newHero("mage"); lucky.level = 7; syncProgression(lucky);
+    lucky.inventory[0] = generateItem({ level: 7, rarity: "purple", classKey: "mage" });
+    const exp2 = createExpedition(lucky, "thicket", "green"); lucky.expedition = exp2;
+    assert(!finishExpedition(lucky, exp2, "complete").firstOrange, "a hero who already found one gets nothing extra");
   });
 
   test("a relic rises to the hero's level with gold and tokens of any lair", () => {

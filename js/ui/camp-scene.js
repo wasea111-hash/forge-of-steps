@@ -43,11 +43,18 @@ function campHour(hero) {
   return ["morning", "day", "dusk", "night"][Number(hero.records?.expeditions || 0) % 4];
 }
 
+// People whose story took them away from their place by the fire are not drawn there:
+// Sota answers from the book, Veya speaks through the map from the bridge, Kern burned at the anvil.
+const CAMP_PERSON_GONE = { sota: "sota_index", veya: "bridge_home", kern: "kern_anchor" };
+function campPersonGone(hero, id) {
+  return Boolean(CAMP_PERSON_GONE[id] && storyHasFlag(hero, CAMP_PERSON_GONE[id]));
+}
+
 function campScene(hero) {
   const onTrail = Boolean(hero.expedition);
   const companion = getActiveCompanion(hero);
   const sprite = companion && typeof FORGE_SPRITES !== "undefined" && FORGE_SPRITES[companion.defId] ? `assets/sprites/${companion.defId}/idle.webp` : null;
-  const people = Object.entries(CAMP_PEOPLE_AT).filter(([id]) => (hero.story?.seen || []).some((sceneId) => (STORY_SCENES[sceneId]?.lines || []).some((line) => line.who === id)));
+  const people = Object.entries(CAMP_PEOPLE_AT).filter(([id]) => (hero.story?.seen || []).some((sceneId) => (STORY_SCENES[sceneId]?.lines || []).some((line) => line.who === id)) && !campPersonGone(hero, id));
   return `<div class="camp-stage" id="campStage">
     <div class="camp-world camp-hour-${campHour(hero)}" style="--ar:${CAMP_AR}">
       <img class="camp-bg" src="assets/camp/${campPanorama(hero)}.webp" alt="" draggable="false">

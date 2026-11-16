@@ -282,6 +282,12 @@ function recordKill(hero, enemy) {
 }
 
 // outcome: "complete", "retreat" or "death". Death loses found items left in the pack and half of the gold and materials.
+function hasFoundOrange(hero, bag) {
+  if (hero.progress?.events?.orange || hero.progress?.legacy) return true;
+  const rank = { orange: 1, purple: 1, red: 1, relic: 1 };
+  return [...Object.values(hero.equipment || {}), ...(hero.inventory || []), ...(bag?.items || [])].some((item) => item && rank[item.rarity]);
+}
+
 function finishExpedition(hero, exp, outcome) {
   const bag = exp.bag;
   const zone = ZONES[exp.zoneKey];
@@ -291,6 +297,13 @@ function finishExpedition(hero, exp, outcome) {
   summary.lostGold = bag.gold - summary.gold;
   if (outcome === "retreat" && hero.story) hero.story.retreats = Number(hero.story.retreats || 0) + 1;
   if (outcome === "complete" && exp.lairId) finishLairRun(hero, exp, summary);
+  // The first green trail of the thicket is where the forge starts to matter: if the road has not given
+  // a single orange thing yet, the last chest of this trail does. Luck should not hold the forge shut.
+  if (outcome === "complete" && !exp.lairId && exp.regionId === REGIONS[0].id && exp.zoneKey === "green" && !getTrailClears(hero, exp.regionId).includes("green") && !hasFoundOrange(hero, bag)) {
+    const gift = generateItem({ level: hero.level, rarity: "orange", classKey: hero.classKey, slotType: "weapon" });
+    bag.items.push(gift);
+    summary.firstOrange = gift.id;
+  }
   if (outcome === "complete" && !exp.lairId) markTrailCleared(hero, exp.regionId, exp.zoneKey);
   if (outcome === "complete") {
     summary.completionBonus = Math.round(bag.gold * 0.25 * zone.rewardFactor);
