@@ -164,8 +164,12 @@ function syncStoryEvents(hero) {
     if (clears > 0) storyEvent(hero, `lair:${lair.master}`);
     if (clears > 1) storyEvent(hero, "lair:repeat");
   });
+  // Three witnesses make a trial forging possible; the full method is tested only after that trial.
+  const trialDone = storyHasFlag(hero, "trial_forge_tested");
+  if (!trialDone) story.queue = story.queue.filter((id) => id !== "witness:complete");
+  if (["witness_1", "witness_2", "witness_3"].every((flag) => storyHasFlag(hero, flag))) storyEvent(hero, "camp:trial_forge");
   const witnesses = Array.from({ length: 8 }, (_, index) => `witness_${index + 1}`);
-  if (witnesses.every((flag) => storyHasFlag(hero, flag))) storyEvent(hero, "witness:complete");
+  if ((trialDone || story.seen.includes("witness:complete")) && witnesses.every((flag) => storyHasFlag(hero, flag))) storyEvent(hero, "witness:complete");
   if (Object.values(getActiveSetCounts(hero)).some((count) => count >= SET_FULL)) storyEvent(hero, "set:full");
   if (storyHasFlag(hero, "bridge_decided")) storyEvent(hero, "town:settlers");
   // After the Archive the camp talks first: the council comes before the Limit opens.

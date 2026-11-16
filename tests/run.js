@@ -1669,6 +1669,9 @@ const report = run(`(function () {
     syncStoryEvents(hero);
     Object.values(LAIR_CATALOG).forEach((lair) => markStorySeen(hero, "lair:" + lair.master));
     syncStoryEvents(hero);
+    assert(hero.story.queue.includes("camp:trial_forge") && !hero.story.queue.includes("witness:complete"), "first a trial forging with three witnesses");
+    markStorySeen(hero, "camp:trial_forge");
+    syncStoryEvents(hero);
     assert(hero.story.queue.includes("witness:complete"), "the witnesses add up");
     markStorySeen(hero, "witness:complete");
     assert(options().includes("shared"), "now the fourth is there");
