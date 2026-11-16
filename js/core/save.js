@@ -67,6 +67,7 @@ function normalizeCompanions(list) {
     trust: clamp(safeNumber(c.trust), 0, c.legal === "contract" ? 39 : 100), tripTrust: clamp(safeNumber(c.tripTrust), 0, 10),
     deeds: Math.max(0, Math.round(safeNumber(c.deeds))), hpRatio: clamp(safeNumber(c.hpRatio, 1), 0.05, 1),
     fallStreak: clamp(Math.round(safeNumber(c.fallStreak)), 0, COMPANION_FALLS_TO_FORGET - 1),
+    formState: c.formState === "retired" ? "retired" : null,
     recent: safeList(c.recent).filter((entry) => entry && typeof entry === "object").slice(-12),
     habits: safeList(c.habits).filter((id) => COMPANION_HABITS[id]).slice(0, 2),
     memories: safeList(c.memories).filter((n) => Number.isInteger(n) && n >= 0 && n < 3), metAt: safeNumber(c.metAt, 1),

@@ -37,7 +37,7 @@ function viewCompanions() {
     ${hero.companions.length ? `<div class="comp-grid">${hero.companions.map((c) => companionCard(hero, c)).join("")}</div>` : `<p class="muted">Пока с тобой никого нет. ${hero.defeatedGuardians.includes("greyfang") ? "" : "Первый человек встретится за Серым Клыком."}</p>`}
     ${market.length ? `<h2 class="section-title">${icon("gold")}Торг</h2>
       <p class="muted small">Здесь продают людей. ${market[0].closed ? "Закрытые торги: те, кто держит договоры, показывают лучших." : "Открытые прилавки."} Купленный по договору идёт в бой, но не даёт клятв и не верит тебе больше чем на 39. Выкупить и отпустить — дороже для совести рынка, но человек свободен.</p>
-      <div class="market">${market.map((offer) => marketCard(hero, offer)).join("")}</div>` : isMarketOpen(hero) ? "" : `<p class="muted small">${ensureTown(hero).decided.caravan === "market_permitted" ? "Невольничий рынок ещё строится." : ensureTown(hero).decided.caravan ? "В этом лагере людьми не торгуют." : "Людьми здесь не торгуют. Пока."}</p>`}
+      <div class="market">${market.map((offer) => marketCard(hero, offer)).join("")}</div>` : isMarketOpen(hero) ? "" : `<p class="muted small">${forgeShared(hero) && ensureTown(hero).decided.caravan === "market_permitted" ? "Торговля людьми отменена. Бывший рынок переоборудуют под общий склад." : ensureTown(hero).decided.caravan === "market_permitted" ? "Невольничий рынок ещё строится." : ensureTown(hero).decided.caravan ? "В этом лагере людьми не торгуют." : "Людьми здесь не торгуют. Пока."}</p>`}
     ${hero.companions.some((c) => c.legal === "contract") ? `<p class="small warn-text comp-ahead">Пока кто-то в лагере держится договором, финал «Право выпустить молот» закрыт.</p>` : ""}
     ${byRegion.length ? `<p class="muted small comp-ahead">Ещё встретятся на тропах: ${byRegion.map(([name, n]) => `${name} — ${n}`).join(", ")}.</p>` : ""}
     ${rumours.length ? `<ul class="comp-rumours">${rumours.map((text) => `<li>${esc(text)}</li>`).join("")}</ul>` : ""}
@@ -86,7 +86,7 @@ function companionCard(hero, c) {
     ${c.memories.length ? `<div class="comp-memories">${c.memories.map((index) => `<button class="chip-btn" data-action="compMemory" data-id="${esc(c.id)}" data-index="${index}">${esc(def.memories[index].title)}</button>`).join("")}</div>` : ""}
     ${companionStoryBlock(hero, c)}
     <div class="comp-actions">
-      ${active ? '<span class="chip on">Идёт с тобой</span>' : `<button class="btn small" data-action="compActive" data-id="${esc(c.id)}" ${hero.expedition ? "disabled" : ""}>Взять в поход</button>`}
+      ${c.formState === "retired" ? '<span class="chip">Рабочая форма разрушена · живёт в поселении</span>' : active ? '<span class="chip on">Идёт с тобой</span>' : `<button class="btn small" data-action="compActive" data-id="${esc(c.id)}" ${hero.expedition ? "disabled" : ""}>Взять в поход</button>`}
       ${next ? `<button class="btn small${oath.ok ? " primary" : ""}" data-action="compOath" data-id="${esc(c.id)}" ${oath.ok && !hero.expedition ? "" : "disabled"} data-tip="text|Клятва у костра|${esc(oath.ok ? `Ранг ${RANK_ROMAN[c.rank + 1]}: ${COMPANION_RANKS[c.rank + 1].gives}` : oath.reason)}">Клятва</button>` : ""}
       ${c.legal === "contract" ? `<button class="btn small" data-action="compTear" data-id="${esc(c.id)}">Разорвать договор</button>` : ""}
     </div>

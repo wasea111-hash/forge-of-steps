@@ -96,16 +96,17 @@ function playStoryScene(sceneId, { replay = false, onDone = null } = {}) {
     }, 260);
   };
   const showChoice = () => {
-    const options = getStoryOptions(hero, scene.choice);
+    const view = getStoryChoiceView(hero, scene.choice);
+    const options = view.map((entry) => entry.option);
     if (replay || !scene.choice) { close(); return; }
-    if (!options.length) { close(); return; }
+    if (!view.some((entry) => entry.ok)) { close(); return; }
     state.waitingChoice = true;
     nameEl.textContent = "";
     faceEl.innerHTML = "";
     layer.classList.add("is-narrator");
     textEl.textContent = storyText(hero, scene.choice.prompt || "");
     nextEl.hidden = true;
-    choicesEl.innerHTML = options.map((option, index) => `<button class="story-choice" type="button" data-index="${index}"><small>${index + 1}</small>${esc(storyText(hero, option.label))}</button>`).join("") + (scene.allowReturnToCamp ? `<button class="story-choice later" type="button" data-later="1"><small>·</small>Пока вернуться в лагерь. Молот подождёт поперёк шва.</button>` : "");
+    choicesEl.innerHTML = view.map((entry, index) => `<button class="story-choice${entry.ok ? "" : " shut"}" type="button" data-index="${index}" ${entry.ok ? "" : "disabled aria-disabled=\"true\""}><small>${index + 1}</small><span class="story-label">${esc(storyText(hero, entry.option.label))}</span>${entry.reasons.length ? `<em class="story-why">${entry.reasons.map(esc).join(" ")}</em>` : ""}</button>`).join("") + (scene.allowReturnToCamp ? `<button class="story-choice later" type="button" data-later="1"><small>·</small>Вернуться в лагерь за подготовкой. Зажим обслужат смены.</button>` : "");
     choicesEl.querySelectorAll("button").forEach((button) => button.addEventListener("click", (event) => {
       event.stopPropagation();
       if (button.dataset.later) {
@@ -115,10 +116,11 @@ function playStoryScene(sceneId, { replay = false, onDone = null } = {}) {
         close();
         return;
       }
-      pick(options[Number(button.dataset.index)]);
+      if (view[Number(button.dataset.index)]?.ok) pick(options[Number(button.dataset.index)]);
     }));
   };
   const pick = (option) => {
+    if (option.ending && !getEndingState(hero, option.ending).ok) return;
     chooseStoryOption(hero, sceneId, option);
     if (!replay) markStorySeen(hero, sceneId);
     persist();
@@ -147,9 +149,8 @@ function playStoryScene(sceneId, { replay = false, onDone = null } = {}) {
   const onKey = (event) => {
     if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); skip(); return; }
     if (state.waitingChoice && /^[1-9]$/.test(event.key)) {
-      const options = getStoryOptions(hero, scene.choice);
-      const option = options[Number(event.key) - 1];
-      if (option) { event.preventDefault(); event.stopPropagation(); pick(option); }
+      const entry = getStoryChoiceView(hero, scene.choice)[Number(event.key) - 1];
+      if (entry?.ok) { event.preventDefault(); event.stopPropagation(); pick(entry.option); }
       return;
     }
     if (event.key === " " || event.key === "Enter") { event.preventDefault(); event.stopPropagation(); advance(); }

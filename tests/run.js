@@ -1404,6 +1404,27 @@ const report = run(`(function () {
     if (talk) assert(talk.answers.every((line) => !/{memory}/.test(line.text)), "no line about a new loss after the key is empty");
   });
 
+  test("story: the finale shows every road with its reasons, and the freed forge changes the town", () => {
+    const hero = newHero("warrior");
+    hero.defeatedGuardians.push("smith");
+    const view = getStoryChoiceView(hero, STORY_SCENES["final:choice"].choice);
+    eq(view.length, 4, "all four roads are shown");
+    const shared = view.find((entry) => entry.option.ending === "shared");
+    assert(!shared.ok && shared.reasons.some((r) => /логов/.test(r)) && shared.reasons.some((r) => /Свидетельств/.test(r)), "the closed road says why");
+    eq(chooseStoryOption(hero, "final:choice", shared.option), false, "a closed road can not be taken");
+    assert(!hero.story.ending, "nothing chosen");
+    assert(/^[0-9]+ [0-9]+ [0-9]+ [0-9]+$/.test(storyText(hero, "{memoriesLeft} {witnessCount} {lairsBeaten} {heldContracts}")), "numbers are filled in");
+    const town = ensureTown(hero); town.built.slave_market = { stage: TOWN_BUILD_STAGES.length - 1, since: 0 };
+    assert(isMarketOpen(hero), "the market works before");
+    hero.story.ending = "shared";
+    assert(!isMarketOpen(hero) && townBuildingView(hero, "slave_market").name === "Общий склад", "and is a common store after");
+    const c = recruitCompanion(hero, "tessa");
+    const st = { companionId: c.id, fell: true, front: true, deedsNow: new Set() };
+    c.fallStreak = COMPANION_FALLS_TO_FORGET - 1;
+    const res = settleCompanionBattle(hero, { allyState: st, ally: { currentHp: 0, maxHp: 1 }, over: "enemy" });
+    assert(res.retired && hero.companions.includes(c) && c.formState === "retired" && !getActiveCompanion(hero), "after the finale a third fall breaks the form, the person stays");
+  });
+
   test("story: the camp council comes right after the Archive, before the Limit", () => {
     const hero = newHero("warrior");
     hero.story.queue = ["region:limit"];

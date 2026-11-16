@@ -888,6 +888,11 @@ function settleCompanionBattle(hero, battle) {
   if (st.fell) {
     companion.fallStreak = Number(companion.fallStreak || 0) + 1;
     result.streak = companion.fallStreak;
+    if (companion.fallStreak >= COMPANION_FALLS_TO_FORGET && hero.story?.ending) {
+      retireCompanionForm(hero, companion);
+      result.retired = true;
+      return result;
+    }
     if (companion.fallStreak >= COMPANION_FALLS_TO_FORGET) {
       forgetCompanion(hero, companion.id);
       result.forgotten = true;

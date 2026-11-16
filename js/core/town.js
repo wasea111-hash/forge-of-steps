@@ -37,6 +37,19 @@ function startBuilding(hero, id) {
   town.built[id] = { stage: 0, since: Number(hero.records?.expeditions || 0) };
 }
 
+// After «Право выпустить молот» people are not owned: the market becomes a common store, the overseers' quarter workshops.
+function forgeShared(hero) {
+  return hero?.story?.ending === "shared";
+}
+const FREED_BUILDINGS = {
+  slave_market: { name: "Общий склад", effect: "Бывший невольничий рынок. Торговля людьми отменена" },
+  overseers: { name: "Мастерские", effect: "Бывший квартал надзирателей. Хартия отменена" }
+};
+function townBuildingView(hero, id) {
+  const building = TOWN_BUILDINGS[id];
+  return building && forgeShared(hero) && FREED_BUILDINGS[id] ? { ...building, ...FREED_BUILDINGS[id], dark: false } : building;
+}
+
 function townBuilt(hero, id) {
   return Number(ensureTown(hero).built[id]?.stage ?? -1) >= TOWN_BUILD_STAGES.length - 1;
 }
@@ -71,7 +84,7 @@ function applyTownToTrip(hero, summary) {
     summary.resources[id] = Number(summary.resources[id] || 0) + amount;
   };
   if (townBuilt(hero, "workshops")) bonusMaterial(1);
-  if (townBuilt(hero, "overseers")) bonusMaterial(Object.values(summary.resources).reduce((sum, n) => sum + n, 0) * 0.1);
+  if (townBuilt(hero, "overseers") && !forgeShared(hero)) bonusMaterial(Object.values(summary.resources).reduce((sum, n) => sum + n, 0) * 0.1);
 }
 
 function townExpBonus(hero) {

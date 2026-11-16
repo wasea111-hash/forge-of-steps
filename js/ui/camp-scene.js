@@ -77,7 +77,7 @@ function campScene(hero) {
 function townLayer(hero) {
   const town = ensureTown(hero);
   return Object.entries(town.built).filter(([id]) => !(id === "shelter_seed" && town.built.shelter)).map(([id, state]) => {
-    const building = TOWN_BUILDINGS[id];
+    const building = townBuildingView(hero, id);
     if (!building) return "";
     const done = state.stage >= TOWN_BUILD_STAGES.length - 1;
     const art = done && hasCampArt(`town_${id}`) ? `town_${id}` : "town_scaffold";
@@ -92,7 +92,7 @@ function townLayer(hero) {
 function campPanorama(hero) {
   const index = TOWN_STAGES.indexOf(townStage(hero));
   if (index <= 0) return "camp_panorama";
-  const dark = index >= 2 && (townBuilt(hero, "slave_market") || townBuilt(hero, "overseers"));
+  const dark = index >= 2 && !forgeShared(hero) && (townBuilt(hero, "slave_market") || townBuilt(hero, "overseers"));
   const id = `camp_stage${index}${dark ? "_dark" : ""}`;
   return hasCampArt(id) ? id : "camp_panorama";
 }

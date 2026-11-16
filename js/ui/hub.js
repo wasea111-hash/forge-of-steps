@@ -1151,7 +1151,7 @@ function viewTown() {
   const finished = Object.keys(town.built).filter((id) => townBuilt(hero, id) && id !== "shelter_seed").length;
   const offer = getTownOffer(hero);
   const rows = Object.entries(town.built).filter(([id]) => !(id === "shelter_seed" && town.built.shelter)).map(([id, state]) => {
-    const building = TOWN_BUILDINGS[id];
+    const building = townBuildingView(hero, id);
     if (!building) return "";
     const done = state.stage >= TOWN_BUILD_STAGES.length - 1;
     return `<li class="town-row${building.dark ? " dark" : ""}${done ? "" : " rising"}">${hasCampArt(`town_${id}`) ? `<img src="assets/camp/town_${id}.webp" alt="" loading="lazy">` : ""}<div><b>${esc(building.name)}</b><small>${done ? esc(building.effect) : `Строится: ${TOWN_BUILD_STAGES[state.stage].toLowerCase()}. Ещё ${TOWN_BUILD_STAGES.length - 1 - state.stage} возвращ.`}</small></div></li>`;

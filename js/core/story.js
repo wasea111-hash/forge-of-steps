@@ -85,7 +85,11 @@ function storyLineVisible(hero, line) {
 }
 
 function storyText(hero, text) {
-  return String(text || "").replace(/\{name\}/g, hero.name);
+  return String(text || "").replace(/\{name\}/g, hero.name)
+    .replace(/\{memoriesLeft\}/g, () => String(keptMemories(hero)))
+    .replace(/\{heldContracts\}/g, () => String(heldByContract(hero)))
+    .replace(/\{witnessCount\}/g, () => String(countWitnesses(hero)))
+    .replace(/\{lairsBeaten\}/g, () => String(getStoryLairsBeaten(hero)));
 }
 
 // The lines of a scene for this hero, with names filled in and conditions applied.
@@ -93,16 +97,39 @@ function getStoryLines(hero, lines) {
   return (lines || []).filter((line) => storyLineVisible(hero, line)).map((line) => ({ ...line, text: storyText(hero, line.text) }));
 }
 
+function countWitnesses(hero) {
+  return Array.from({ length: 8 }, (_, index) => `witness_${index + 1}`).filter((flag) => storyHasFlag(hero, flag)).length;
+}
+
+function heldByContract(hero) {
+  return (hero.companions || []).filter((c) => c.legal === "contract").length;
+}
+
+// Whether a road of the finale is open, and every reason it is not: the choice shows them all.
 function getEndingState(hero, endingId) {
   const ending = STORY_ENDINGS.find((entry) => entry.id === endingId);
-  if (!ending) return { ok: true };
-  const missing = (ending.needs || []).filter((flag) => !storyHasFlag(hero, flag));
+  if (!ending) return { ok: true, reasons: [] };
   const lairs = getStoryLairsBeaten(hero);
-  if (missing.length || lairs < Number(ending.needsLairs || 0)) return { ok: false, lairs };
-  const held = (hero.companions || []).filter((c) => c.legal === "contract").length;
-  if (endingId === "hearth" && keptMemories(hero) < MEMORIES_FOR_HEARTH) return { ok: false, lairs, reason: `Молотом платят собственной памятью, а её осталось ${keptMemories(hero)} из ${STORY_MEMORIES.length}. Нужно хотя бы ${MEMORIES_FOR_HEARTH}.` };
-  if (endingId === "shared" && held) return { ok: false, lairs, held, reason: `В лагере держатся договором: ${held}. Право выпустить молот — только у свободных.` };
-  return { ok: true, lairs };
+  const held = heldByContract(hero);
+  const reasons = [];
+  if ((ending.needs || []).includes("boss_smith") && !storyHasFlag(hero, "boss_smith")) reasons.push("Сначала разорви связь Кузнеца с молотом.");
+  if (endingId === "hearth" && keptMemories(hero) < MEMORIES_FOR_HEARTH) reasons.push(`Переживаний у ключа осталось ${keptMemories(hero)} из ${STORY_MEMORIES.length}; молотом платят собственной памятью, нужно хотя бы ${MEMORIES_FOR_HEARTH}.`);
+  if (endingId === "shared") {
+    if (lairs < Number(ending.needsLairs || 0)) reasons.push(`Пройдено разных логов: ${lairs} из ${ending.needsLairs}.`);
+    const witnesses = countWitnesses(hero);
+    if (witnesses < 8) reasons.push(`Свидетельств получено: ${witnesses} из 8.`);
+    else if (!storyHasFlag(hero, "shared_method")) reasons.push("Порядок ещё не сверён у костра: дождись сцены восьми свидетельств.");
+    if (held) reasons.push(`Спутников на договоре: ${held}. Право выпустить молот — только у свободных.`);
+  }
+  return { ok: !reasons.length, lairs, held, reasons, reason: reasons[0] || "" };
+}
+
+// The finale shows every road; the closed ones say why. Other choices stay as they were.
+function getStoryChoiceView(hero, choice) {
+  return (choice?.options || []).filter((option) => storyLineVisible(hero, option) && (option.ending || (option.needs || []).every((flag) => storyHasFlag(hero, flag)))).map((option) => {
+    const state = option.ending ? getEndingState(hero, option.ending) : { ok: true, reasons: [] };
+    return { option, ok: state.ok, reasons: state.reasons || [] };
+  });
 }
 
 function getStoryLairsBeaten(hero) {
@@ -125,6 +152,7 @@ function chooseStoryOption(hero, sceneId, option) {
   const story = hero.story;
   // One scene, one choice: a reload in the middle of the answer can not add a second one.
   if (story.choices[sceneId] !== undefined && STORY_SCENES[sceneId]?.choice) return false;
+  if (option.ending && !getEndingState(hero, option.ending).ok) return false;
   story.choices[sceneId] = option.label;
   if (option.flag && !story.flags.includes(option.flag)) story.flags.push(option.flag);
   applyStoryEffect(hero, option.effect);

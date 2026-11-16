@@ -1028,6 +1028,7 @@ function onBattleOver() {
   if (allyResult?.forgotten && won) showCompanionForgotten();
   else if (!won) { /* told in the return sequence below */ }
   else if (allyResult?.ready?.length) toast(`${allyResult.name} может освоить: ${allyResult.ready.join(", ")}. Загляни в «Спутники».`, "good");
+  else if (allyResult?.retired) toast(`${allyResult.name}: рабочая форма разрушена. Походы этого спутника закончились; человек остаётся в поселении.`, "warn");
   else if (allyResult?.fell) toast(`${allyResult.name} падает. Подряд: ${allyResult.streak} из ${COMPANION_FALLS_TO_FORGET}.`, "warn");
   hero.records.maxHit = Math.max(Number(hero.records.maxHit || 0), battle.stats.maxHit);
   clearBattleState(hero);

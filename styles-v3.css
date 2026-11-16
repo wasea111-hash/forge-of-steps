@@ -1206,3 +1206,8 @@ body { background: var(--iron-0); }
   .cine-text { bottom: 11vh; font-size: 1.05rem; }
 }
 @media (prefers-reduced-motion: reduce) { .cine-shot.on img { animation: none; } }
+/* 4.11: the finale shows closed roads with their reasons */
+.story-choice.shut { opacity: .55; cursor: not-allowed; filter: grayscale(.4); }
+.story-choice.shut { flex-wrap: wrap; }
+.story-choice .story-why { display: block; flex-basis: 100%; padding-left: 22px; margin-top: 4px; font-style: normal; font-size: .82em; color: #f0b46a; opacity: 1; }
+.story-choice .story-label { flex: 1; min-width: 0; }

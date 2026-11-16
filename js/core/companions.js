@@ -22,7 +22,14 @@ function getCompanionClass(companion) {
 
 function getActiveCompanion(hero) {
   ensureCompanionState(hero);
-  return hero.companions.find((c) => c.id === hero.party.activeId) || null;
+  return hero.companions.find((c) => c.id === hero.party.activeId && c.formState !== "retired") || null;
+}
+
+// After the finale companions walk in working forms: a third fall in a row breaks the form, not the person.
+function retireCompanionForm(hero, companion) {
+  companion.formState = "retired";
+  companion.fallStreak = 0;
+  if (hero.party.activeId === companion.id) hero.party.activeId = hero.companions.find((c) => c.id !== companion.id && c.formState !== "retired")?.id || null;
 }
 
 // Someone you have met, freed, bought or lost can not be met again.
@@ -63,6 +70,7 @@ function setActiveCompanion(hero, id) {
   ensureCompanionState(hero);
   if (hero.expedition) return { ok: false, reason: "Спутника меняют только в лагере." };
   if (id && !hero.companions.some((c) => c.id === id)) return { ok: false, reason: "Такого спутника нет." };
+  if (id && hero.companions.find((c) => c.id === id)?.formState === "retired") return { ok: false, reason: "Рабочая форма разрушена: походы этого спутника закончились." };
   hero.party.activeId = id || null;
   return { ok: true };
 }
@@ -142,7 +150,7 @@ const KARMA_FLAGS = { mot_freed: 8, mot_bound: -6 };
 
 // ---------- the market (Ashlands onwards) ----------
 function isMarketOpen(hero) {
-  return townBuilt(hero, "slave_market");
+  return townBuilt(hero, "slave_market") && !forgeShared(hero);
 }
 
 function getMarketOffers(hero) {
@@ -183,7 +191,7 @@ function tearContract(hero, id) {
 function getRescueFor(hero, regionId) {
   ensureCompanionState(hero);
   // Under the overseers' charter nobody comes to you of their own will.
-  if (townBuilt(hero, "overseers")) return null;
+  if (townBuilt(hero, "overseers") && !forgeShared(hero)) return null;
   const def = Object.values(COMPANIONS).find((entry) => entry.ready && !entry.marketOnly && entry.region === regionId && COMPANION_RESCUES[entry.id] && !companionTaken(hero, entry.id));
   return def ? { def, rescue: COMPANION_RESCUES[def.id] } : null;
 }
@@ -195,7 +203,7 @@ const COMPANION_ARRIVALS = {
   bran: (hero) => townBuilt(hero, "crossing"),
   asya: (hero) => townBuilt(hero, "shelter") && Number(hero.karma || 0) >= 25 && Number(hero.unlockedRegion || 0) >= 2,
   til: (hero) => townBuilt(hero, "shelter") && Number(hero.karma || 0) >= 60 && Number(hero.unlockedRegion || 0) >= 3,
-  skar: (hero) => townBuilt(hero, "overseers")
+  skar: (hero) => townBuilt(hero, "overseers") && !forgeShared(hero)
 };
 
 function getPendingMeeting(hero) {
