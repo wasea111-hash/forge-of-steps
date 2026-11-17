@@ -158,7 +158,6 @@ const GameAudio = (() => {
   setInterval(() => {
     const dt = 0.05;
     duckTimer -= dt;
-    if (voiceEl && !voiceEl.paused) duck(0.4);
     if (duckTimer <= 0) duckLevel += (1 - duckLevel) * 0.05;
     Object.entries(lanes).forEach(([name, lane]) => {
       if (lane.el) {
@@ -224,25 +223,6 @@ const GameAudio = (() => {
     Object.values(lanes).forEach((lane) => { if (!lane.el) return; if (document.hidden) lane.el.pause(); else lane.el.play().catch(() => {}); });
   });
 
-  // A spoken line: the music steps back while it sounds. Only one line at a time.
-  let voiceEl = null;
-  function voice(src) {
-    stopVoice();
-    if (!settings.enabled) return null;
-    const el = new Audio(src);
-    el.volume = Math.min(1, 0.35 + settings.sfx * 0.8);
-    voiceEl = el;
-    el.play().catch(() => { if (voiceEl === el) voiceEl = null; });
-    el.addEventListener("ended", () => { if (voiceEl === el) voiceEl = null; });
-    return el;
-  }
-  function stopVoice() {
-    if (!voiceEl) return;
-    voiceEl.pause();
-    voiceEl.src = "";
-    voiceEl = null;
-  }
-
   function configure({ enabled, sfx, music, ambience }) {
     if (enabled !== undefined) settings.enabled = enabled;
     if (sfx !== undefined) settings.sfx = sfx;
@@ -251,7 +231,7 @@ const GameAudio = (() => {
     if (master) master.gain.value = settings.sfx;
   }
 
-  return { play, syncScene, configure, unlock, voice, stopVoice, get loaded() { return Object.values(buffers).filter(Boolean).length; }, get total() { return Object.values(INDEX.bank).flat().length; }, get context() { return ctx; }, lanes };
+  return { play, syncScene, configure, unlock, get loaded() { return Object.values(buffers).filter(Boolean).length; }, get total() { return Object.values(INDEX.bank).flat().length; }, get context() { return ctx; }, lanes };
 })();
 
 // All older calls keep working: recordings first, the synth as a fallback.

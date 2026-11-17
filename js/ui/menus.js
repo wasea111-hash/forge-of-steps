@@ -220,7 +220,6 @@ Actions.openSettings = () => {
     <label class="field-label">Эффекты<input type="range" min="0" max="1" step="0.05" value="${s.volume}" data-input="setVolume"></label>
     <label class="field-label">Музыка<input type="range" min="0" max="1" step="0.05" value="${s.music ?? 0.5}" data-input="setMusic"></label>
     <label class="field-label">Окружение<input type="range" min="0" max="1" step="0.05" value="${s.ambience ?? 0.3}" data-input="setAmbience"></label>
-    <label class="check-row"><input type="checkbox" data-input="setVoice" ${s.voice ? "checked" : ""}> Голос рассказчика во вступлении</label>
     <label class="check-row"><input type="checkbox" data-input="setMotion" ${s.reducedMotion ? "checked" : ""}> Меньше анимации и тряски экрана</label>
     <div class="modal-actions wrap"><button class="btn small" data-action="openNews">Новости обновлений${typeof newsUnread === "function" && newsUnread() ? ` <i class="news-dot" aria-label="есть непрочитанные"></i>` : ""}</button><button class="btn small" data-action="openControls">Управление и клавиши</button><button class="btn small" data-action="replayIntro">Посмотреть вступление</button><button class="btn small" data-action="resetTips">Показать подсказки снова</button><button class="btn small" data-action="exportSave">Экспорт сохранения</button><button class="btn small" data-action="importSave">Импорт</button></div>
     <div class="modal-actions"><button class="btn primary" data-action="closeModal" data-autofocus>Готово</button></div>`);
@@ -229,7 +228,6 @@ Actions.setSound = (el) => { App.save.settings.sound = el.checked; applySettings
 Actions.setMusic = (el) => { App.save.settings.music = Number(el.value); applySettings(); writeSave(App.save); };
 Actions.setAmbience = (el) => { App.save.settings.ambience = Number(el.value); applySettings(); writeSave(App.save); };
 Actions.setVolume = (el) => { App.save.settings.volume = Number(el.value); applySettings(); writeSave(App.save); };
-Actions.setVoice = (el) => { App.save.settings.voice = el.checked; writeSave(App.save); };
 Actions.setMotion = (el) => { App.save.settings.reducedMotion = el.checked; applySettings(); writeSave(App.save); };
 Actions.resetTips = () => { App.save.settings.tips = {}; writeSave(App.save); toast("Подсказки появятся снова.", "good"); };
 Actions.exportSave = () => {
