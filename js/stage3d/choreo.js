@@ -332,6 +332,8 @@ async function travel(stage, actor, spot, style, tint) {
     const seconds = Math.min(0.5, 0.22 + distance * 0.05);
     groundFx("#8a7a64", 8);
     SFX.play("swing_heavy", { gain: 0.6, rate: [0.7, 0.85] });
+    // Push off: the body stretches up as it leaves the ground.
+    if (actor.squash !== undefined) actor.squash = -0.12;
     await new Promise((resolve) => {
       actor.tweens = actor.tweens.filter((tween) => { if (tween.kind !== "move") return true; tween.resolve?.(); return false; });
       actor.tweens.push({ kind: "move", age: 0, duration: seconds, resolve, update: (t) => {
@@ -340,6 +342,8 @@ async function travel(stage, actor, spot, style, tint) {
       } });
     });
     actor.root.position.y = 0;
+    // Landing: the weight sinks into the knees before the blow.
+    if (actor.squash !== undefined) actor.squash = 0.16;
     return;
   }
   if (style === "dash" || style === "charge") {
@@ -353,6 +357,8 @@ async function travel(stage, actor, spot, style, tint) {
     if (heavy) { stage.shake(0.08); SFX.play("step"); SFX.play("step", { delay: 0.09 }); SFX.play("step", { delay: 0.18 }); }
     SFX.play("dash", { gain: heavy ? 0.6 : 1 });
     await actor.moveTo(spot, seconds, (t) => t * t);
+    // A rush ends in a short skid: the body leans back as it stops.
+    if (actor.squash !== undefined) { actor.squash = heavy ? 0.1 : 0.06; actor.kick = (actor.kick || 0) - (heavy ? 0.12 : 0.08); }
     return;
   }
   actor.play("run", { loop: true, fade: 0.06 });
@@ -471,8 +477,8 @@ function impactDressing(stage, victim, ev, tint, plan, weight) {
   const big = crit || ev.heavy || weight === "heavy" || plan.ult;
   const hit = chest.clone();
   hit.x -= dir * 0.18;
-  stage.flare(hit, tint, crit ? 2.1 : big ? 1.7 : 1.15, crit ? 0.2 : 0.15);
-  if (crit) stage.speedLines(hit, tint === "#ffffff" ? "#fff2c8" : tint, 3);
+  stage.flare(hit, tint, crit ? 1.35 : big ? 1.1 : 0.8, crit ? 0.18 : 0.13);
+  if (crit) stage.speedLines(hit, tint === "#ffffff" ? "#fff2c8" : tint, 2.4);
   const matter = ev.target === "enemy" ? BODY_MATTER[victim.foe?.art] || {} : HERO_MATTER[stage.battle.hero.classKey] || {};
   const physical = ev.kind !== "magic";
   if (physical) {

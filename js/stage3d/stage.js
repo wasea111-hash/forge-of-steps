@@ -976,7 +976,7 @@ const Stage3D = (() => {
       sprite.position.z += 0.2;
       sprite.renderOrder = 7;
       this.scene.add(sprite);
-      this.fxItems.push({ age: 0, duration: seconds, update: (t) => {
+      this.fxItems.push({ age: 0, real: true, duration: seconds, update: (t) => {
         sprite.scale.setScalar(size * (0.5 + Math.min(1, t * 5) * 0.9));
         material.opacity = 1 - t * t;
       }, end: () => { this.scene.remove(sprite); material.dispose(); } });
@@ -990,7 +990,7 @@ const Stage3D = (() => {
       sprite.position.z += 0.25;
       sprite.renderOrder = 7;
       this.scene.add(sprite);
-      this.fxItems.push({ age: 0, duration: 0.3, update: (t) => {
+      this.fxItems.push({ age: 0, real: true, duration: 0.3, update: (t) => {
         sprite.scale.setScalar(size * (1.25 - t * 0.45));
         material.opacity = t < 0.15 ? t / 0.15 : 1 - (t - 0.15) / 0.85;
       }, end: () => { this.scene.remove(sprite); material.dispose(); } });
@@ -1243,7 +1243,8 @@ const Stage3D = (() => {
         }
       });
       this.fxItems = this.fxItems.filter((item) => {
-        item.age += dt;
+        // Flashes keep to the real clock: a blink stays a blink even while the stage runs slow.
+        item.age += item.real ? realDt * speed() : dt;
         const t = Math.min(1, item.age / item.duration);
         item.update(t, dt);
         if (t >= 1) { item.end?.(); return false; }

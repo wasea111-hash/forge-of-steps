@@ -140,11 +140,48 @@ const StageSprites = (() => {
       this.hoverPhase = Math.random() * 6;
       this.timeline = [];
       this.tintGoal = 0;
+      // The pose that was just left stays a moment as a fading copy where it stood: the eye reads two drawings
+      // in a row as one movement, the way a smear frame works in hand-drawn animation.
+      this.echoUniforms = {
+        map: { value: this.textures.idle }, texel: this.uniforms.texel, time: { value: 0 }, breathe: { value: 0 }, phase: { value: 0 },
+        light: this.uniforms.light, rimPower: { value: 0 }, rimColor: this.uniforms.rimColor, flash: { value: 0 }, flashColor: this.uniforms.flashColor,
+        tintColor: this.uniforms.tintColor, tintAmount: this.uniforms.tintAmount, ghost: { value: 1 }
+      };
+      this.echoMaterial = new T.ShaderMaterial({ uniforms: this.echoUniforms, vertexShader: VERTEX, fragmentShader: FRAGMENT, transparent: true, depthWrite: false, side: T.DoubleSide });
+      this.materials.push(this.echoMaterial);
+      this.echoHolder = new T.Group();
+      this.echo = new T.Mesh(geometry, this.echoMaterial);
+      this.echo.frustumCulled = false;
+      this.echo.visible = false;
+      this.echoHolder.add(this.echo);
+      this.root.add(this.echoHolder);
+      this.echoLeft = 0;
+      this.smear = 0;
+      this.tremble = 0;
+      this.charging = false;
+      this.running = false;
       this.showPose("idle");
       this.applyFacing();
     }
 
-    showPose(name) {
+    // Leaves a fading copy of the current drawing where it is now.
+    leaveEcho(seconds = 0.1, strength = 0.55) {
+      if (!this.root.visible || this.ghost > 0.5) return;
+      this.echoUniforms.map.value = this.uniforms.map.value;
+      this.echo.scale.copy(this.mesh.scale);
+      this.echo.position.copy(this.mesh.position);
+      this.echoHolder.position.copy(this.pivot.position);
+      this.echoHolder.rotation.copy(this.pivot.rotation);
+      this.echoHolder.scale.copy(this.pivot.scale);
+      this.echo.visible = true;
+      this.echoLeft = seconds;
+      this.echoTime = seconds;
+      this.echoStrength = strength;
+      this.echoUniforms.ghost.value = 1 - strength;
+    }
+
+    showPose(name, echo = 0.09) {
+      if (this.echo && this.pose && this.pose !== name && echo > 0) this.leaveEcho(echo);
       const pose = this.sheet.poses[name] || this.sheet.poses.idle;
       this.pose = name;
       this.uniforms.map.value = this.textures[name] || this.textures.idle;
@@ -204,6 +241,8 @@ const StageSprites = (() => {
       this.clock = 0;
       this.uniforms.breathe.value = 0;
       this.liftGoal = 0;
+      this.charging = false;
+      this.running = false;
       let length = 0.5;
       if (name === "idle") {
         this.showPose("idle");
@@ -213,6 +252,7 @@ const StageSprites = (() => {
         return 1;
       }
       if (name === "run") {
+        this.running = true;
         this.showPose("dash");
         this.leanGoal = 0.05;
         return 0.5;
@@ -224,7 +264,9 @@ const StageSprites = (() => {
       }
       const action = ACTIONS[name];
       if (name === "hit" || name === "heavy_hit") {
-        this.showPose("hit");
+        this.showPose("hit", 0.06);
+        // The struck body shudders for a moment; the shudder lives through the hit-stop.
+        this.tremble = name === "hit" ? 0.035 : 0.07;
         this.kick = name === "hit" ? -0.16 : -0.34;
         this.kickGoal = 0;
         this.leanGoal = 0;
@@ -262,15 +304,20 @@ const StageSprites = (() => {
         this.kickGoal = action.back ?? -0.16;
         this.leanGoal = action.lean ?? -0.04;
         this.squash = action.coil ?? 0.04;
+        // A heavy blow gathers its strength: the body trembles a little while it winds up.
+        this.charging = Boolean(action.drop || action.coil);
         add(impact, () => {
-          this.showPose(this.pick(action.pose, action.fallback || "strike"));
+          this.charging = false;
+          this.showPose(this.pick(action.pose, action.fallback || "strike"), 0.12);
+          // The snap into the blow stretches the drawing along the strike for a few frames.
+          this.smear = Math.min(0.2, 0.08 + Math.abs(action.lunge ?? 0.22) * 0.35);
           this.kick = action.lunge ?? 0.22;
           this.kickGoal = action.hold ?? 0.03;
           this.leanGoal = action.after ?? 0;
           this.squash = action.stretch ?? -0.05;
           if (action.drop) this.squash = 0.1;
         });
-        if (action.then2) add(impact + 0.13, () => { this.showPose(this.pick(action.then2, "strike")); this.kick = 0.16; this.squash = -0.04; });
+        if (action.then2) add(impact + 0.13, () => { this.showPose(this.pick(action.then2, "strike"), 0.1); this.kick = 0.16; this.squash = -0.04; this.smear = 0.12; });
         length = impact + (action.tail ?? 0.46);
       } else {
         // Anything else: a plain cast.
@@ -289,7 +336,8 @@ const StageSprites = (() => {
       const order = ["thrust", "slam", "strike"].filter((pose) => this.has(pose) && pose !== this.pose);
       if (!order.length) return;
       this.flurry = ((this.flurry || 0) + 1) % order.length;
-      this.showPose(order[this.flurry]);
+      this.showPose(order[this.flurry], 0.1);
+      this.smear = 0.12;
       this.kick = 0.22;
       this.squash = -0.05;
       this.timeline = this.timeline.map((step) => ({ ...step, at: Math.max(step.at, this.clock + 0.22) }));
@@ -347,12 +395,25 @@ const StageSprites = (() => {
       this.kick += (this.kickGoal - this.kick) * Math.min(1, dt * 11);
       this.lean += (this.leanGoal - this.lean) * Math.min(1, dt * 11);
       this.squash *= Math.max(0, 1 - dt * 10);
+      this.smear *= Math.max(0, 1 - dt * 16);
+      this.tremble *= Math.max(0, 1 - Math.max(dt, 0.004) * 9);
+      if (this.charging) this.tremble = Math.max(this.tremble, 0.02);
+      if (this.echoLeft > 0) {
+        this.echoLeft -= Math.max(dt, 0.004);
+        const k = Math.max(0, this.echoLeft / this.echoTime);
+        this.echoUniforms.ghost.value = 1 - this.echoStrength * k * k;
+        if (this.echoLeft <= 0) this.echo.visible = false;
+      }
       this.hoverPhase += dt * 1.8;
       const floatY = this.hover && this.alive ? this.hover + Math.sin(this.hoverPhase) * 0.05 : 0;
-      this.pivot.position.set(this.kick * this.direction, floatY, 0);
+      // Shudder on a real clock: it keeps going while the stage holds a blow still.
+      const shudder = this.tremble ? Math.sin(performance.now() * 0.09) * this.tremble : 0;
+      // A running fighter bobs with each stride.
+      const stride = this.running ? Math.abs(Math.sin(this.clock * 15)) * 0.06 * Math.min(1.3, this.height / 2.1) : 0;
+      this.pivot.position.set((this.kick + shudder) * this.direction, floatY + stride, 0);
       this.pivot.rotation.z = -this.lean * this.direction;
-      this.pivot.scale.y = 1 - this.squash;
-      this.pivot.scale.x = this.direction * this.sheet.faces * (1 + this.squash * 0.7);
+      this.pivot.scale.y = (1 - this.squash) * (1 - this.smear * 0.35);
+      this.pivot.scale.x = this.direction * this.sheet.faces * (1 + this.squash * 0.7) * (1 + this.smear);
       this.uniforms.flash.value *= Math.max(0, 1 - Math.max(dt, 0.016) * 9);
       this.uniforms.tintAmount.value += (this.tintGoal - this.uniforms.tintAmount.value) * Math.min(1, dt * 6);
       if (Math.abs(this.ghost - this.ghostTarget) > 0.002) {
