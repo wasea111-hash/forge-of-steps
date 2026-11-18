@@ -194,6 +194,33 @@ function syncKnownSkills(hero) {
 }
 
 // --- Forms ---
+// --- Mastery: at skill level V each skill offers its own upgrades (js/core/data.mastery.*.js). ---
+// An option is shaped like a form: patch (an object, or a function of the skill as the hero has it),
+// addEffects / replaceEffects, and combat hooks in on (they run only when their check on c.skill?.id passes).
+// Unlike a form, mastery is a pure gain: it sharpens one side of what the skill already does.
+const SKILL_MASTERY = {};
+function defineSkillMastery(skillId, options) {
+  SKILL_MASTERY[skillId] = options.map((option) => ({ ...option, skillId, mastery: true }));
+}
+
+function getSkillMasteryOptions(skillId) {
+  return SKILL_MASTERY[skillId] || [];
+}
+
+function getHeroMastery(hero, skillId) {
+  const choice = hero?.skillProgress?.[skillId]?.bonusChoice;
+  return choice ? getSkillMasteryOptions(skillId).find((option) => option.id === choice) || null : null;
+}
+
+function applySkillMastery(skill, option) {
+  if (!option) return skill;
+  const patch = typeof option.patch === "function" ? option.patch(skill) : option.patch;
+  const merged = { ...skill, ...(patch || {}), masteryName: option.name };
+  if (option.replaceEffects) merged.appliedEffects = typeof option.replaceEffects === "function" ? option.replaceEffects(skill) : option.replaceEffects;
+  if (option.addEffects) merged.appliedEffects = [...(merged.appliedEffects || []), ...option.addEffects];
+  return merged;
+}
+
 function getSkillForms(skillId) {
   return SKILL_FORMS[skillId] || [];
 }
@@ -213,7 +240,13 @@ function applySkillForm(skill, form) {
 }
 
 function getHeroSkill(hero, skill) {
-  return skill ? applySkillForm(skill, getHeroSkillForm(hero, skill.id)) : skill;
+  if (!skill) return skill;
+  return applySkillMastery(applySkillForm(skill, getHeroSkillForm(hero, skill.id)), getHeroMastery(hero, skill.id));
+}
+
+// The chosen masteries of the skills this hero can use: their hooks and mods join the battle.
+function getPickedMasteries(hero) {
+  return Object.keys(hero?.skillProgress || {}).map((id) => getHeroMastery(hero, id)).filter((option) => option && isSkillLearned(hero, option.skillId) && doesSkillMatchBranch(getSkillDefinition(option.skillId), hero));
 }
 
 function canChooseForm(hero, skillId, formId) {
@@ -477,6 +510,7 @@ function getBuildFxDefs(hero) {
   if (drill) defs.push({ id: "class-drill", name: "Выучка Клейма", mods: drill });
   if (getSkillTree(hero) && !hero.freeSkills) getPickedTreeSkills(hero).forEach((skill) => { if (skill.on || skill.mods) defs.push({ id: `tree-${skill.id}`, name: skill.name, on: skill.on, mods: skill.mods }); });
   getPickedForms(hero).forEach((form) => { if (form.on || form.mods) defs.push({ id: `form-${form.id}`, name: form.name, on: form.on, mods: form.mods }); });
+  getPickedMasteries(hero).forEach((option) => { if (option.on || option.mods) defs.push({ id: `mastery-${option.skillId}-${option.id}`, name: option.name, on: option.on, mods: option.mods }); });
   const style = getHeroStyle(hero);
   if (style && hero.level >= STYLE_UNLOCK_LEVEL) defs.push({ id: `style-${style.id}`, name: style.name, on: style.on, mods: style.mods });
   const ult = getHeroUltimate(hero);

@@ -258,8 +258,9 @@ function skillTooltip(rawSkill) {
   // The tip tells about the skill as this hero really uses it.
   const form = hero ? getHeroSkillForm(hero, rawSkill.id) : null;
   const skill = hero ? getHeroSkill(hero, rawSkill) : rawSkill;
-  if (form) return skillTooltipBody({ ...skill, description: `${form.name}. ${form.description}` }, hero);
-  return skillTooltipBody(skill, hero);
+  const mastery = hero ? getHeroMastery(hero, rawSkill.id) : null;
+  const base = form ? { ...skill, description: `${form.name}. ${form.description}` } : skill;
+  return skillTooltipBody(base, hero) + (mastery ? `<div class="tip-meta mastery-tip">Мастерство: ${esc(mastery.name)}. ${esc(mastery.description)}</div>` : "");
 }
 
 function skillTooltipBody(skill, hero) {

@@ -532,7 +532,7 @@ function treeNodeHtml(hero, node) {
   const state = getSkillStudyState(hero, skill);
   const reachable = doesSkillMatchBranch(skill, hero);
   const progress = state === "LEARNED" ? getSkillProgress(hero, skill.id) : null;
-  const needBonus = progress && progress.level >= SKILL_MAX_LEVEL && !progress.bonusChoice;
+  const needBonus = progress && progress.level >= SKILL_MAX_LEVEL && !getSkillBonusChoice(skill, progress.bonusChoice);
   const slotted = hero.activeSkillSlots.includes(skill.id);
   const classes = [state === "LEARNED" ? "learned" : state === "AVAILABLE" ? "ready" : "shut", skill.category === "passive" ? "passive" : "active", reachable ? "" : "foreign", App.treePick === skill.id ? "picked" : "", slotted ? "slotted" : "", needBonus ? "bonus" : ""].join(" ");
   return `<button class="tree-node ${classes}" style="${style}" data-action="treePick" data-id="${skill.id}" data-tip="skill|${skill.id}" aria-label="${esc(skill.name)}">${skillIcon(skill)}${Number(skill.unlockLevel) > hero.level ? `<i>${skill.unlockLevel}</i>` : ""}${progress ? `<u>${progress.level}</u>` : ""}</button>`;
@@ -676,7 +676,7 @@ function skillRow(skill) {
   const learned = stateKey === "LEARNED";
   const progress = learned ? getSkillProgress(hero, skill.id) : null;
   const inSlot = hero.activeSkillSlots.indexOf(skill.id);
-  const needBonus = progress && progress.level >= SKILL_MAX_LEVEL && !progress.bonusChoice;
+  const needBonus = progress && progress.level >= SKILL_MAX_LEVEL && !getSkillBonusChoice(skill, progress.bonusChoice);
   let action = "";
   const treeChoice = getSkillTree(hero) && !learned;
   if (treeChoice) action = "";
@@ -686,11 +686,11 @@ function skillRow(skill) {
   else if (stateKey === "LOCKED") action = `<span class="tag lock">${icon("lock")}${skill.unlockLevel} ур.</span>`;
   else if (skill.category === "active") action = inSlot === App.skillSlot ? `<span class="tag on">Слот ${inSlot + 1}</span>` : `<button class="btn small" data-action="assignSkill" data-id="${skill.id}">${inSlot >= 0 ? `Из ${inSlot + 1} в ${App.skillSlot + 1}` : `В слот ${App.skillSlot + 1}`}</button>`;
   else action = `<span class="tag on">Действует</span>`;
-  const masteryLine = progress ? `<div class="mastery"><div class="pips">${Array.from({ length: SKILL_MAX_LEVEL }, (_, i) => `<i class="${i < progress.level ? "on" : ""}"></i>`).join("")}</div><small>${progress.level >= SKILL_MAX_LEVEL ? (progress.bonusChoice ? esc(getSkillBonusChoice(skill, progress.bonusChoice)?.name || "") : "Выбери бонус") : `${progress.exp} / ${progress.expToNext}`}${progress.mutation ? ` · ${esc(MUTATIONS[progress.mutation].name)}` : ""}</small></div>` : "";
+  const masteryLine = progress ? `<div class="mastery"><div class="pips">${Array.from({ length: SKILL_MAX_LEVEL }, (_, i) => `<i class="${i < progress.level ? "on" : ""}"></i>`).join("")}</div><small>${progress.level >= SKILL_MAX_LEVEL ? (getSkillBonusChoice(skill, progress.bonusChoice) ? esc(getSkillBonusChoice(skill, progress.bonusChoice).name) : "Выбери усиление") : `${progress.exp} / ${progress.expToNext}`}${progress.mutation ? ` · ${esc(MUTATIONS[progress.mutation].name)}` : ""}</small></div>` : "";
   return `<article class="skill-row${learned ? "" : " locked"}" data-tip="skill|${skill.id}">
     ${skillIcon(skill)}
     <div class="skill-row-text"><strong>${esc(skill.name)}</strong><small>${esc(skill.description)}</small>${skill.category === "passive" ? `<small class="accent-text">${esc(getPassiveBonusDescription(skill))}</small>` : ""}${masteryLine}</div>
-    <div class="skill-row-action">${action}${needBonus ? `<button class="btn primary small" data-action="openMastery" data-id="${skill.id}">Бонус</button>` : ""}</div>
+    <div class="skill-row-action">${action}${needBonus ? `<button class="btn primary small" data-action="openMastery" data-id="${skill.id}">Усиление</button>` : ""}</div>
   </article>`;
 }
 
@@ -785,7 +785,7 @@ function openMasteryModal(skillId, onDone = null) {
   const skill = getSkillDefinition(skillId);
   const choices = getSkillMasteryChoices(skill);
   App.masteryDone = onDone;
-  openModal(`<span class="eyebrow">Мастерство V</span><h2>${esc(skill.name)}</h2><p class="muted">Выбери постоянный бонус. Этот выбор нельзя изменить.</p>
+  openModal(`<span class="eyebrow">Мастерство V</span><h2>${esc(skill.name)}</h2><p class="muted">Навык освоен до конца. Выбери, какую его сторону усилить. Этот выбор нельзя изменить.</p>
     <div class="choice-list">${choices.map((choice) => `<button class="choice-card" data-action="chooseMastery" data-skill="${skillId}" data-choice="${choice.id}" data-sound="level"><strong>${esc(choice.name)}</strong><small>${esc(choice.description)}</small></button>`).join("")}</div>
     <div class="modal-actions"><button class="btn" data-action="closeModal">Решу позже</button></div>`, { onClose: () => { const done = App.masteryDone; App.masteryDone = null; done?.(); } });
 }

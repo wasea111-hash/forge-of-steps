@@ -114,6 +114,8 @@ function getSkillProgress(unit, skillId) {
 
 function getSkillMasteryChoices(skill) {
   if (!skill || skill.category !== "active") return [];
+  const own = typeof getSkillMasteryOptions === "function" ? getSkillMasteryOptions(skill.id) : [];
+  if (own.length) return own;
   if (skill.masteryChoices?.length) return skill.masteryChoices.map((id) => SKILL_BONUS_OPTIONS[id]).filter(Boolean);
   const options = SKILL_BONUS_OPTIONS;
   const hasEffects = (skill.appliedEffects || []).length > 0;
@@ -176,7 +178,8 @@ function getPendingMasterySkills(unit) {
   return Object.keys(unit?.skillProgress || {}).filter((id) => {
     const skill = getSkillDefinition(id);
     const progress = unit.skillProgress[id];
-    return skill && doesSkillMatchBranch(skill, unit) && progress.level >= SKILL_MAX_LEVEL && !progress.bonusChoice;
+    // A choice from the old shared list does not count once the skill has its own masteries: it is chosen again.
+    return skill && doesSkillMatchBranch(skill, unit) && progress.level >= SKILL_MAX_LEVEL && (!progress.bonusChoice || !getSkillBonusChoice(skill, progress.bonusChoice));
   });
 }
 

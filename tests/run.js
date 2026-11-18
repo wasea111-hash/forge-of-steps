@@ -1513,6 +1513,26 @@ const report = run(`(function () {
     eq(getPendingMeeting(other)?.id, "tessa", "Tessa comes after the guardian");
   });
 
+  test("every skill of the trees has three masteries of its own", () => {
+    const tree = Object.values(SKILL_TREES).flatMap((t) => t.stages.flatMap((st) => st.tiers.flatMap((ti) => ti.options))).filter((id, i, all) => all.indexOf(id) === i);
+    tree.forEach((id) => {
+      const options = getSkillMasteryChoices(getSkillDefinition(id));
+      eq(options.length, 3, id + " has three masteries");
+      assert(options.every((o) => o.mastery && o.name && o.description), id + " masteries are its own and described");
+    });
+    // An old shared choice is chosen again; a new one is kept and joins the battle.
+    const hero = newHero("warrior");
+    const id = tree.find((each) => getSkillDefinition(each).classId === "warrior");
+    hero.knownSkillIds.push(id);
+    hero.skillProgress = { [id]: { level: SKILL_MAX_LEVEL, exp: 0, expToNext: 0, bonusChoice: "power", mutation: null } };
+    assert(getPendingMasterySkills(hero).includes(id), "the old shared bonus asks again");
+    const pick = getSkillMasteryChoices(getSkillDefinition(id))[0].id;
+    assert(chooseSkillBonus(hero, id, pick), "a mastery of the skill can be chosen");
+    assert(!getPendingMasterySkills(hero).includes(id), "and then it is settled");
+    assert(!chooseSkillBonus(hero, id, getSkillMasteryChoices(getSkillDefinition(id))[1].id), "the choice cannot be changed");
+    eq(getHeroSkill(hero, getSkillDefinition(id)).masteryName, getHeroMastery(hero, id).name, "the hero's skill carries it");
+  });
+
   test("road rescues in a region are not met in a fixed order", () => {
     const firsts = new Set();
     for (let i = 0; i < 200; i += 1) { const hero = newHero("mage"); firsts.add(getRescueFor(hero, "ruins")?.def.id); }

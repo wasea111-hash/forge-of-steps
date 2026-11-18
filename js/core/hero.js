@@ -207,7 +207,7 @@ function clearSkillSlot(hero, slotIndex) {
 function chooseSkillBonus(hero, skillId, choiceId) {
   const skill = getSkillDefinition(skillId);
   const progress = getSkillProgress(hero, skillId);
-  if (!skill || !progress || progress.level < SKILL_MAX_LEVEL || progress.bonusChoice) return false;
+  if (!skill || !progress || progress.level < SKILL_MAX_LEVEL || getSkillBonusChoice(skill, progress.bonusChoice)) return false;
   if (!getSkillBonusChoice(skill, choiceId)) return false;
   progress.bonusChoice = choiceId;
   return true;

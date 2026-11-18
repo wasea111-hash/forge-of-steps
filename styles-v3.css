@@ -1238,3 +1238,4 @@ body { -webkit-touch-callout: none; }
 .icon-btn.has-news::after, .news-dot { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); vertical-align: middle; }
 .icon-btn.has-news::after { position: absolute; top: 3px; right: 3px; }
 .news-modal { max-height: 70vh; overflow-y: auto; padding-right: 6px; }
+.mastery-tip { color: var(--gold); margin-top: 6px; }
