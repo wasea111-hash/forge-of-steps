@@ -190,7 +190,7 @@ const StageVFX = (() => {
         const k = Math.min(1, Math.max(0, local));
         mesh.position.set(x + (1 - k) * 4 * Math.sin(lean), 0.3 + (1 - k) * 9, z);
         mesh.material.opacity = t > 0.9 ? 0 : 1;
-        if (k >= 1 && !mesh.userData.hit) { mesh.userData.hit = true; stage.burst(new T.Vector3(x, 0.2, z), "#d8c8a0", 4, 1.4, 0.05, 0.25); }
+        if (k >= 1 && !mesh.userData.hit) { mesh.userData.hit = true; stage.burst(new T.Vector3(x, 0.2, z), "#d8c8a0", 4, 1.4, 0.05, 0.25); stage.debris(new T.Vector3(x, 0.1, z), "#6a5a48", 2, 1.6); }
       });
     }
   }
@@ -209,9 +209,9 @@ const StageVFX = (() => {
 
   const ELEMENT_RECIPE = {
     fire: (stage, point) => flames(stage, point),
-    frost: (stage, point) => { spikes(stage, point, "#9fdcff", 6, 1.3, 0.75); stage.burst(point, "#c8f2ff", 16, 2.4, 0.08, 0.5, 1); },
+    frost: (stage, point) => { spikes(stage, point, "#9fdcff", 6, 1.3, 0.75); stage.decal(point, "frost", "#9fe4ff", 1.2, 2.2, true); stage.burst(point, "#c8f2ff", 16, 2.4, 0.08, 0.5, 1); },
     water: (stage, point) => { stage.burst(point, "#5fb7ff", 30, 3.2, 0.09, 0.55, 2); stage.shock(point, "#5fb7ff", 1.8, 0.45); },
-    earth: (stage, point) => { spikes(stage, point, "#8a6e4c", 8, 1.5, 0.95); stage.shake(0.12); stage.smoke(new T.Vector3(point.x, 0.2, point.z), "#6a5a44", 12, 0.6); stage.burst(point, "#c8a878", 12, 2.6, 0.08, 0.5, 1); },
+    earth: (stage, point) => { spikes(stage, point, "#8a6e4c", 8, 1.5, 0.95); stage.shake(0.12); stage.decal(point, "crack", "#140e0a", 1.3, 2.2); stage.smoke(new T.Vector3(point.x, 0.2, point.z), "#6a5a44", 12, 0.6); stage.burst(point, "#c8a878", 12, 2.6, 0.08, 0.5, 1); },
     air: (stage, point) => { lightning(stage, point, "#d6f4ff"); },
     holy: (stage, point) => { beam(stage, point, "#ffe9a0", 0.5, 0.55); stage.burst(point, "#fff2c0", 14, 2.2, 0.08, 0.6, 3); },
     dark: (stage, point) => voidPull(stage, point),

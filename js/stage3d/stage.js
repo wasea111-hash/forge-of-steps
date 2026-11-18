@@ -35,11 +35,33 @@ const Stage3D = (() => {
   // Frame of the impact in each clip: effects and damage are timed to it.
   const IMPACT = { overhead: 13, sweep: 11, bash: 8, warcry: 12, staff_swing: 9, bow_shot: 16, bow_rapid: 6, bow_rain: 14, trap_set: 8, kick: 7, strum: 8, song: 12, shout: 10, stab: 9, twin_slash: 8, throw: 9, low_sweep: 9, backstab: 11, cast_forward: 11, cast_up: 16, cast_heavy: 20, bite: 9, pounce: 15, howl: 14, lunge: 11, spit: 11, mend: 14, potion: 12, smoke: 7, guard: 4 };
   const ELEMENT = { fire: "#ff8a3c", frost: "#9fe4ff", water: "#5fb7ff", earth: "#c49a5c", air: "#c8f0e8", holy: "#ffe9a0", dark: "#a974ff", arcane: "#8fa0ff", poison: "#9be34f", blood: "#ff3d52", steel: "#ffffff" };
+  // What a lasting effect looks like on the body, each in its own shape: a burning fighter is licked by flame tongues,
+  // a bleeding one drips, a poisoned one breathes out bubbles, a shocked one crackles with sparks.
+  // shape: particle shape; gravity: it falls; low/high: where on the body it starts (share of height); puff: drawn dark, not glowing;
+  // side: it streams sideways (haste); jitter: it flies out in all directions.
   const STATUS_FX = {
-    poison: { color: "#8fe04a", rise: 0.55, rate: 10, size: 0.14, spread: 0.32 }, burn: { color: "#ff7a2c", rise: 1.15, rate: 20, size: 0.22, spread: 0.26 }, bleed: { color: "#ff2f46", rise: -0.9, rate: 12, size: 0.1, spread: 0.26 },
-    frost: { color: "#a6e6ff", rise: 0.3, rate: 9, size: 0.1, spread: 0.36 }, frostbite: { color: "#c8f2ff", rise: 0.2, rate: 12, size: 0.1, spread: 0.36 }, freeze: { color: "#e2f8ff", rise: 0.1, rate: 18, size: 0.12, spread: 0.42 },
-    shock: { color: "#fff27a", rise: 0.9, rate: 12, size: 0.1, spread: 0.42 }, corruption: { color: "#a65cff", rise: 0.5, rate: 10, size: 0.15, spread: 0.34 }, regeneration: { color: "#8dff9a", rise: 0.8, rate: 7, size: 0.11, spread: 0.36 },
-    rage: { color: "#ff5a3c", rise: 0.9, rate: 8, size: 0.13, spread: 0.34 }, haste: { color: "#d8fff0", rise: 0.3, rate: 7, size: 0.08, spread: 0.3 }, soaked: { color: "#6fb8ff", rise: -0.8, rate: 7, size: 0.07, spread: 0.3 }, mark: { color: "#ffd25a", rise: 0.1, rate: 3, size: 0.13, spread: 0.2 }
+    poison: { color: "#8fe04a", rise: 0.45, rate: 7, size: 0.13, spread: 0.3, shape: 7, low: 0.3, high: 0.85 },
+    burn: { color: "#ff7a2c", rise: 1.15, rate: 20, size: 0.22, spread: 0.26, shape: 4, embers: "#ffb04a" },
+    bleed: { color: "#e0263c", rise: 0, rate: 6, size: 0.14, spread: 0.2, shape: 2, gravity: 6, low: 0.45, high: 0.7 },
+    wound: { color: "#b81c30", rise: 0, rate: 4, size: 0.13, spread: 0.18, shape: 2, gravity: 6, low: 0.4, high: 0.65 },
+    frost: { color: "#a6e6ff", rise: 0.3, rate: 8, size: 0.1, spread: 0.36, shape: 1 }, frostbite: { color: "#c8f2ff", rise: 0.2, rate: 11, size: 0.11, spread: 0.36, shape: 1 },
+    freeze: { color: "#e2f8ff", rise: 0.1, rate: 14, size: 0.12, spread: 0.42, shape: 3 },
+    shock: { color: "#fff27a", rise: 0, rate: 14, size: 0.22, spread: 0.3, shape: 5, jitter: 3.5 },
+    corruption: { color: "#a65cff", rise: 0.5, rate: 8, size: 0.15, spread: 0.34, smoke: "#24123a" },
+    dark_fury: { color: "#b47cff", rise: 1.1, rate: 14, size: 0.2, spread: 0.28, shape: 4 },
+    regeneration: { color: "#8dff9a", rise: 0.8, rate: 6, size: 0.15, spread: 0.36, shape: 3 },
+    rage: { color: "#ff5a3c", rise: 1.6, rate: 10, size: 0.22, spread: 0.32, shape: 5 },
+    haste: { color: "#d8fff0", rise: 0, rate: 9, size: 0.26, spread: 0.3, shape: 5, side: 3.2 },
+    soaked: { color: "#6fb8ff", rise: 0, rate: 6, size: 0.12, spread: 0.3, shape: 2, gravity: 5, low: 0.6, high: 0.95 },
+    weaken: { color: "#6a6a88", rise: -0.35, rate: 6, size: 0.24, spread: 0.32, puff: true, low: 0.5, high: 0.9 },
+    blind: { color: "#1c1a24", rise: 0.05, rate: 9, size: 0.3, spread: 0.18, puff: true, low: 0.8, high: 0.95 },
+    armor_break: { color: "#a8a094", rise: 0, rate: 2.5, size: 0.2, spread: 0.24, shape: 6, gravity: 9, puff: true, low: 0.4, high: 0.7 },
+    exposed: { color: "#ffb06a", rise: 0, rate: 2.5, size: 0.2, spread: 0.24, shape: 6, gravity: 9, puff: true, low: 0.4, high: 0.7 },
+    fortify: { color: "#d8c8a0", rise: 0.15, rate: 5, size: 0.11, spread: 0.5, shape: 1, low: 0.02, high: 0.25 },
+    thorns: { color: "#b8d070", rise: 0, rate: 5, size: 0.12, spread: 0.42, shape: 1, low: 0.2, high: 0.8 },
+    slow: { color: "#a8b8d8", rise: 0.05, rate: 6, size: 0.14, spread: 0.5, puff: true, low: 0, high: 0.12 },
+    stagger: { color: "#c49a5c", rise: 0.4, rate: 4, size: 0.2, spread: 0.4, puff: true, low: 0, high: 0.15 },
+    mark: { color: "#ffd25a", rise: 0.1, rate: 3, size: 0.13, spread: 0.2 }
   };
   // The most important status colours the body. The first match in this list wins.
   const HERO_RIM = new T.Color("#ffd9a8");
@@ -57,7 +79,18 @@ const Stage3D = (() => {
     if (SIGN_TEX[kind]) return SIGN_TEX[kind];
     const canvas = document.createElement("canvas");
     const g = canvas.getContext("2d");
-    if (kind === "sigil") {
+    if (kind === "silence") {
+      canvas.width = canvas.height = 128;
+      g.translate(64, 64);
+      g.shadowColor = "#000"; g.shadowBlur = 8; g.lineCap = "round";
+      g.strokeStyle = "#d8dcf0"; g.lineWidth = 7;
+      g.beginPath(); g.moveTo(-14, -26); g.lineTo(-14, 14); g.stroke();
+      g.beginPath(); g.ellipse(-22, 16, 10, 7, -0.4, 0, Math.PI * 2); g.fillStyle = "#d8dcf0"; g.fill();
+      g.beginPath(); g.moveTo(-14, -26); g.quadraticCurveTo(6, -22, 12, -6); g.stroke();
+      g.strokeStyle = "#ff5a5a"; g.lineWidth = 8;
+      g.beginPath(); g.arc(0, 0, 46, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.moveTo(-32, 32); g.lineTo(32, -32); g.stroke();
+    } else if (kind === "sigil") {
       canvas.width = canvas.height = 128;
       g.translate(64, 64);
       g.strokeStyle = "#ffd27a"; g.shadowColor = "#ff8a2c"; g.shadowBlur = 12; g.lineCap = "round";
@@ -78,6 +111,82 @@ const Stage3D = (() => {
     const texture = new T.CanvasTexture(canvas);
     texture.colorSpace = T.SRGBColorSpace;
     SIGN_TEX[kind] = texture;
+    return texture;
+  }
+
+  // Marks and flares painted once on a canvas. Ground marks are white-on-transparent masks tinted per use:
+  // crack (a split in the ground), scorch (a burnt patch), frost (a star of rime), splat (a splash of blood or venom).
+  // flare is the white star of a landing blow, lines are the speed lines around a critical hit.
+  const FX_TEX = {};
+  function fxTexture(kind) {
+    if (FX_TEX[kind]) return FX_TEX[kind];
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 256;
+    const g = canvas.getContext("2d");
+    const R = (a, b) => a + Math.random() * (b - a);
+    g.translate(128, 128);
+    if (kind === "crack") {
+      g.strokeStyle = "#fff"; g.lineCap = "round"; g.lineJoin = "round";
+      const branch = (x, y, angle, length, width, depth) => {
+        let px = x; let py = y;
+        g.lineWidth = width; g.beginPath(); g.moveTo(px, py);
+        const steps = 5;
+        for (let i = 0; i < steps; i += 1) {
+          angle += R(-0.45, 0.45);
+          px += Math.cos(angle) * length / steps; py += Math.sin(angle) * length / steps;
+          g.lineTo(px, py);
+          if (depth > 0 && Math.random() < 0.35) { g.stroke(); branch(px, py, angle + R(-1, 1), length * 0.45, width * 0.6, depth - 1); g.lineWidth = width; g.beginPath(); g.moveTo(px, py); }
+        }
+        g.stroke();
+      };
+      for (let i = 0; i < 9; i += 1) branch(0, 0, (i / 9) * Math.PI * 2 + R(-0.2, 0.2), R(70, 118), R(4, 7), 2);
+      const pit = g.createRadialGradient(0, 0, 0, 0, 0, 34); pit.addColorStop(0, "rgba(255,255,255,.9)"); pit.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = pit; g.beginPath(); g.arc(0, 0, 34, 0, Math.PI * 2); g.fill();
+    } else if (kind === "scorch") {
+      for (let i = 0; i < 14; i += 1) {
+        const a = R(0, 6.28); const d = R(0, 46); const r = R(36, 70);
+        const blot = g.createRadialGradient(Math.cos(a) * d, Math.sin(a) * d, 0, Math.cos(a) * d, Math.sin(a) * d, r);
+        blot.addColorStop(0, "rgba(255,255,255,.55)"); blot.addColorStop(1, "rgba(255,255,255,0)");
+        g.fillStyle = blot; g.beginPath(); g.arc(Math.cos(a) * d, Math.sin(a) * d, r, 0, Math.PI * 2); g.fill();
+      }
+    } else if (kind === "frost") {
+      g.strokeStyle = "#fff"; g.lineCap = "round";
+      for (let i = 0; i < 12; i += 1) {
+        const a = (i / 12) * Math.PI * 2; const len = R(70, 120);
+        g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * len, Math.sin(a) * len); g.stroke();
+        for (let j = 1; j < 4; j += 1) {
+          const bx = Math.cos(a) * len * j / 4; const by = Math.sin(a) * len * j / 4; const s = 22 - j * 4;
+          g.lineWidth = 2.5;
+          g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + Math.cos(a + 0.7) * s, by + Math.sin(a + 0.7) * s); g.stroke();
+          g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + Math.cos(a - 0.7) * s, by + Math.sin(a - 0.7) * s); g.stroke();
+        }
+      }
+    } else if (kind === "splat") {
+      g.fillStyle = "#fff";
+      g.beginPath(); g.arc(0, 0, 44, 0, Math.PI * 2); g.fill();
+      for (let i = 0; i < 16; i += 1) {
+        const a = R(0, 6.28); const d = R(40, 110); const r = R(5, 16) * (1 - d / 160);
+        g.beginPath(); g.arc(Math.cos(a) * d, Math.sin(a) * d * 0.9, r, 0, Math.PI * 2); g.fill();
+        g.lineWidth = r * 0.9; g.strokeStyle = "#fff"; g.beginPath(); g.moveTo(Math.cos(a) * 30, Math.sin(a) * 30); g.lineTo(Math.cos(a) * d, Math.sin(a) * d * 0.9); g.stroke();
+      }
+    } else if (kind === "flare") {
+      const core = g.createRadialGradient(0, 0, 0, 0, 0, 70); core.addColorStop(0, "rgba(255,255,255,1)"); core.addColorStop(0.25, "rgba(255,255,255,.55)"); core.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = core; g.beginPath(); g.arc(0, 0, 70, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#fff";
+      for (let i = 0; i < 8; i += 1) {
+        const a = (i / 8) * Math.PI * 2 + (i % 2 ? 0.2 : 0); const len = i % 2 ? 70 : 124; const w = i % 2 ? 5 : 9;
+        g.save(); g.rotate(a); g.beginPath(); g.moveTo(0, -w); g.lineTo(len, 0); g.lineTo(0, w); g.closePath(); g.fill(); g.restore();
+      }
+    } else if (kind === "lines") {
+      for (let i = 0; i < 26; i += 1) {
+        const a = R(0, 6.28); const from = R(58, 80); const to = R(104, 127); const w = R(1.5, 4);
+        const grad = g.createLinearGradient(Math.cos(a) * from, Math.sin(a) * from, Math.cos(a) * to, Math.sin(a) * to);
+        grad.addColorStop(0, "rgba(255,255,255,0)"); grad.addColorStop(0.4, "rgba(255,255,255,.95)"); grad.addColorStop(1, "rgba(255,255,255,0)");
+        g.strokeStyle = grad; g.lineWidth = w; g.beginPath(); g.moveTo(Math.cos(a) * from, Math.sin(a) * from); g.lineTo(Math.cos(a) * to, Math.sin(a) * to); g.stroke();
+      }
+    }
+    const texture = new T.CanvasTexture(canvas);
+    FX_TEX[kind] = texture;
     return texture;
   }
 
@@ -227,29 +336,39 @@ const Stage3D = (() => {
       this.base = new Float32Array(max);
       this.drag = new Float32Array(max);
       this.grow = new Float32Array(max);
-      // 0 soft dot, 1 shard, 2 drop, 3 sparkle, 4 flame tongue: elements differ by shape, not only by colour.
+      // 0 soft dot, 1 shard, 2 drop, 3 sparkle, 4 flame tongue, 5 spark streak, 6 rock chunk, 7 bubble:
+      // elements differ by shape, not only by colour.
       this.shape = new Float32Array(max);
+      // Sparks, chunks and drops fall and bounce; streaks and chunks turn along their flight.
+      this.gravity = new Float32Array(max);
+      this.angle = new Float32Array(max);
       geo.setAttribute("position", new T.BufferAttribute(this.pos, 3));
       geo.setAttribute("shape", new T.BufferAttribute(this.shape, 1));
+      geo.setAttribute("angle", new T.BufferAttribute(this.angle, 1));
       geo.setAttribute("color", new T.BufferAttribute(this.col, 3));
       geo.setAttribute("info", new T.BufferAttribute(this.data, 2));
       this.mesh = new T.Points(geo, new T.ShaderMaterial({
         transparent: true, depthWrite: false, blending,
         uniforms: { scale: { value: 500 } },
-        vertexShader: `attribute vec3 color; attribute vec2 info; attribute float shape; varying vec3 vColor; varying float vAlpha; varying float vShape; uniform float scale;
-          void main(){ vColor = color; vAlpha = info.y; vShape = shape; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = info.x * scale / max(.1, -mv.z); gl_Position = projectionMatrix * mv; }`,
-        fragmentShader: `varying vec3 vColor; varying float vAlpha; varying float vShape;
-          void main(){ vec2 q = gl_PointCoord - .5; float d;
+        vertexShader: `attribute vec3 color; attribute vec2 info; attribute float shape; attribute float angle; varying vec3 vColor; varying float vAlpha; varying float vShape; varying float vAngle; uniform float scale;
+          void main(){ vColor = color; vAlpha = info.y; vShape = shape; vAngle = angle; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = info.x * scale / max(.1, -mv.z); gl_Position = projectionMatrix * mv; }`,
+        fragmentShader: `varying vec3 vColor; varying float vAlpha; varying float vShape; varying float vAngle;
+          void main(){ vec2 q = gl_PointCoord - .5; q.y = -q.y; float d; vec3 tint = vColor;
+            float cs = cos(vAngle); float sn = sin(vAngle); vec2 r = vec2(q.x * cs + q.y * sn, -q.x * sn + q.y * cs);
             if (vShape < .5) d = length(q) * 2.;
             else if (vShape < 1.5) d = (abs(q.x) * 2.7 + abs(q.y) * 1.25) * 1.12;
-            else if (vShape < 2.5) d = length(vec2(q.x * 1.6, q.y - .06)) * 2.3 + max(0., -q.y) * 1.4;
+            else if (vShape < 2.5) d = length(vec2(q.x * 1.6, -q.y - .06)) * 2.3 + max(0., q.y) * 1.4;
             else if (vShape < 3.5) d = min(min(abs(q.x) * 9. + abs(q.y) * 1.9, abs(q.y) * 9. + abs(q.x) * 1.9), length(q) * 4.);
-            else d = length(vec2(q.x * 2.2, (q.y + .08) * 1.05)) * 2.; float a = smoothstep(1., ${softness}, d) * vAlpha; if (a < .004) discard; gl_FragColor = vec4(vColor * a${blending === T.AdditiveBlending ? "" : " + vColor * 0."}, a); }`
+            else if (vShape < 4.5) d = length(vec2(q.x * 2.2, (-q.y + .08) * 1.05)) * 2.;
+            else if (vShape < 5.5) { d = length(vec2(r.x * 2.05, r.y * 6.5)); tint = mix(vColor, vec3(1.), smoothstep(.1, .45, r.x) * .6); }
+            else if (vShape < 6.5) { float ang = atan(r.y, r.x); d = length(r) / (.3 + .07 * sin(ang * 3.) + .04 * sin(ang * 5. + 1.3)); tint = vColor * (.75 + .5 * smoothstep(.2, -.2, r.x + r.y)); }
+            else { float l = length(q) * 2.; d = abs(l - .78) * 5.5 + .15; d = min(d, length(q - vec2(-.14, .14)) * 9.); }
+            float a = smoothstep(1., ${softness}, d) * vAlpha; if (a < .004) discard; gl_FragColor = vec4(tint * a${blending === T.AdditiveBlending ? "" : " + tint * 0."}, a); }`
       }));
       this.mesh.frustumCulled = false;
     }
 
-    spawn(x, y, z, vx, vy, vz, size, life, tint, drag = 1.6, grow = 0, shape = 0) {
+    spawn(x, y, z, vx, vy, vz, size, life, tint, drag = 1.6, grow = 0, shape = 0, gravity = 0) {
       const i = this.next;
       this.next = (i + 1) % this.max;
       this.pos.set([x, y, z], i * 3);
@@ -261,6 +380,8 @@ const Stage3D = (() => {
       this.drag[i] = drag;
       this.grow[i] = grow;
       this.shape[i] = shape;
+      this.gravity[i] = gravity;
+      this.angle[i] = Math.atan2(vy, vx);
     }
 
     update(dt) {
@@ -274,10 +395,21 @@ const Stage3D = (() => {
           continue;
         }
         const k = Math.max(0, 1 - this.drag[i] * dt);
+        if (this.gravity[i]) this.vel[i * 3 + 1] -= this.gravity[i] * dt;
         for (let a = 0; a < 3; a += 1) {
           this.vel[i * 3 + a] *= k;
           this.pos[i * 3 + a] += this.vel[i * 3 + a] * dt;
         }
+        if (this.gravity[i] && this.pos[i * 3 + 1] < 0.03) {
+          // Whatever falls hits the ground, bounces a little and rolls to a stop.
+          this.pos[i * 3 + 1] = 0.03;
+          this.vel[i * 3 + 1] = Math.abs(this.vel[i * 3 + 1]) * 0.28;
+          this.vel[i * 3] *= 0.55;
+          this.vel[i * 3 + 2] *= 0.55;
+        }
+        const sh = this.shape[i];
+        if (sh === 5) this.angle[i] = Math.atan2(this.vel[i * 3 + 1], this.vel[i * 3]);
+        else if (sh === 6) this.angle[i] += dt * (this.vel[i * 3] >= 0 ? -1 : 1) * Math.min(9, Math.abs(this.vel[i * 3]) * 4);
         const t = age / lifetime;
         this.data[i * 2] = this.base[i] * (1 + this.grow[i] * t) * (this.grow[i] ? 1 : 1 - t * 0.5);
         this.data[i * 2 + 1] = t < 0.12 ? t / 0.12 : 1 - (t - 0.12) / 0.88;
@@ -287,6 +419,7 @@ const Stage3D = (() => {
       geo.attributes.color.needsUpdate = true;
       geo.attributes.info.needsUpdate = true;
       geo.attributes.shape.needsUpdate = true;
+      geo.attributes.angle.needsUpdate = true;
     }
   }
 
@@ -620,7 +753,7 @@ const Stage3D = (() => {
       scene.add(this.impactLight);
 
       this.glow = new Particles(1800, T.AdditiveBlending, "0.12");
-      this.puffs = new Particles(240, T.NormalBlending, "0.25");
+      this.puffs = new Particles(420, T.NormalBlending, "0.25");
       scene.add(this.glow.mesh, this.puffs.mesh);
 
       // Pollen or embers drifting through the clearing.
@@ -796,6 +929,79 @@ const Stage3D = (() => {
       }
     }
 
+    // Hot sparks: thin streaks that fly out, turn along their flight, fall and bounce off the ground.
+    // dir (+1 / -1) throws most of them away from the blow, as metal sparks leave a strike.
+    sparks(point, hex = "#ffd9a0", count = 16, power = 5, dir = 0) {
+      const tint = color(hex);
+      const hot = tint.clone().lerp(color("#ffffff"), 0.35);
+      for (let i = 0; i < count; i += 1) {
+        const a = dir ? (dir > 0 ? 0 : Math.PI) + rand(-1.1, 1.1) : rand(0, 6.28);
+        const v = power * rand(0.45, 1.15);
+        this.glow.spawn(point.x, point.y, point.z, Math.cos(a) * v, Math.sin(a) * v * 0.8 + rand(0.5, 2.2), rand(-1, 1), rand(0.2, 0.32), rand(0.28, 0.55), i % 3 ? tint : hot, 1.2, 0, 5, 9);
+      }
+    }
+
+    // Pieces of stone, ice or bark knocked loose: dark solid chunks that tumble and settle on the ground.
+    debris(point, hex = "#5a4a3c", count = 10, power = 3.2) {
+      const tint = color(hex);
+      for (let i = 0; i < count; i += 1) {
+        const a = rand(0, 6.28);
+        const v = power * rand(0.4, 1);
+        this.puffs.spawn(point.x + rand(-0.15, 0.15), Math.max(0.1, point.y + rand(-0.1, 0.1)), point.z + rand(-0.1, 0.1), Math.cos(a) * v * 0.8, rand(2, 4.5) * power / 3.2, Math.sin(a) * v * 0.4, rand(0.16, 0.3), rand(0.9, 1.4), tint.clone().multiplyScalar(rand(0.75, 1.15)), 0.6, 0, 6, 14);
+      }
+    }
+
+    // A mark left on the ground by a blow or a spell: it appears at once and fades over a second or two.
+    decal(point, kind, hex, radius = 1, seconds = 1.6, glow = false, turn = rand(0, 6.28)) {
+      const material = new T.MeshBasicMaterial({ map: fxTexture(kind), color: color(hex).multiplyScalar(glow ? 1.8 : 1), transparent: true, opacity: 0, depthWrite: false, blending: glow ? T.AdditiveBlending : T.NormalBlending });
+      const mesh = new T.Mesh(new T.PlaneGeometry(radius * 2, radius * 2), material);
+      mesh.rotation.set(-Math.PI / 2, 0, turn);
+      mesh.position.set(point.x, 0.02 + Math.random() * 0.01, point.z);
+      mesh.renderOrder = -1;
+      this.scene.add(mesh);
+      const peak = glow ? 0.9 : 0.95;
+      // A fresh split in the ground glows hot for a moment before it goes dark.
+      if (kind === "crack" && !glow) this.decal(point, kind, "#ff8a3a", radius, Math.min(0.7, seconds * 0.4), true, turn);
+      this.fxItems.push({ age: 0, duration: seconds, update: (t) => {
+        material.opacity = (t < 0.06 ? t / 0.06 : 1 - smooth(Math.max(0, (t - 0.45) / 0.55))) * peak;
+        mesh.scale.setScalar(t < 0.08 ? 0.6 + (t / 0.08) * 0.4 : 1);
+      }, end: () => { this.scene.remove(mesh); mesh.geometry.dispose(); material.dispose(); } });
+    }
+
+    // The white star where a blow lands: it snaps open and is gone in a blink.
+    flare(point, hex = "#ffffff", size = 1, seconds = 0.16) {
+      const material = new T.SpriteMaterial({ map: fxTexture("flare"), color: color(hex).lerp(color("#ffffff"), 0.55).multiplyScalar(1.6), transparent: true, depthWrite: false, depthTest: false, blending: T.AdditiveBlending, rotation: rand(0, 6.28) });
+      const sprite = new T.Sprite(material);
+      sprite.position.copy(point);
+      sprite.position.z += 0.2;
+      sprite.renderOrder = 7;
+      this.scene.add(sprite);
+      this.fxItems.push({ age: 0, duration: seconds, update: (t) => {
+        sprite.scale.setScalar(size * (0.5 + Math.min(1, t * 5) * 0.9));
+        material.opacity = 1 - t * t;
+      }, end: () => { this.scene.remove(sprite); material.dispose(); } });
+    }
+
+    // Speed lines rushing in around a critical hit, the way a drawn panel marks the blow that matters.
+    speedLines(point, hex = "#fff2c8", size = 2.6) {
+      const material = new T.SpriteMaterial({ map: fxTexture("lines"), color: color(hex).multiplyScalar(1.4), transparent: true, depthWrite: false, depthTest: false, blending: T.AdditiveBlending, rotation: rand(0, 6.28) });
+      const sprite = new T.Sprite(material);
+      sprite.position.copy(point);
+      sprite.position.z += 0.25;
+      sprite.renderOrder = 7;
+      this.scene.add(sprite);
+      this.fxItems.push({ age: 0, duration: 0.3, update: (t) => {
+        sprite.scale.setScalar(size * (1.25 - t * 0.45));
+        material.opacity = t < 0.15 ? t / 0.15 : 1 - (t - 0.15) / 0.85;
+      }, end: () => { this.scene.remove(sprite); material.dispose(); } });
+    }
+
+    // The whole stage runs slow for a moment: the fall of the last foe, the landing of an ultimate.
+    slowMo(seconds = 0.4, rate = 0.3) {
+      this.slowRate = this.slowLeft > 0 ? Math.min(this.slowRate || 1, rate) : rate;
+      this.slowLeft = Math.max(this.slowLeft || 0, seconds);
+    }
+
     light(point, hex, power = 40, seconds = 0.2) {
       this.impactLight.position.copy(point);
       this.impactLight.position.y += 0.5;
@@ -830,6 +1036,8 @@ const Stage3D = (() => {
       mesh.renderOrder = 5;
       this.scene.add(mesh);
       this.fxItems.push({ age: 0, duration: 0.24, update: (t) => { material.uniforms.t.value = t; mesh.scale.setScalar(0.95 + t * 0.15); }, end: () => { this.scene.remove(mesh); geo.dispose(); material.dispose(); } });
+      // The edge throws sparks off the way it travels.
+      this.sparks(point, color(hex).lerp(color("#ffe6b0"), 0.5).getStyle(), big ? 12 : 7, big ? 5.5 : 4.2, facing);
     }
 
     // A flat shock ring on the ground.
@@ -909,6 +1117,16 @@ const Stage3D = (() => {
       unit.root.add(unit.reticle);
     }
 
+    // A silenced fighter carries a crossed-out sign above the head: no spells until it fades.
+    setMuteSign(unit, on) {
+      if (!on) { unit.root.remove(unit.muteSign); unit.muteSign.material.dispose(); unit.muteSign = null; return; }
+      unit.muteSign = new T.Sprite(new T.SpriteMaterial({ map: signTexture("silence"), transparent: true, depthWrite: false, depthTest: false }));
+      unit.muteSign.renderOrder = 6;
+      unit.muteSign.scale.setScalar(0.42);
+      unit.muteSign.position.set(0, unit.height * unit.scale + 0.3, 0.1);
+      unit.root.add(unit.muteSign);
+    }
+
     // A frozen fighter stands inside jagged ice.
     setIceShell(unit, on) {
       if (!on) {
@@ -960,6 +1178,9 @@ const Stage3D = (() => {
           unit.tintGoal = look ? look.tint : 0;
           if (look) unit.uniforms.tintColor.value.set(look.color);
         }
+        unit.evading = (effects || []).some((effect) => effect.id === "evasion");
+        const silenced = (effects || []).some((effect) => effect.id === "silence");
+        if (silenced !== Boolean(unit.muteSign)) this.setMuteSign(unit, silenced);
         const marked = (effects || []).some((effect) => effect.id === "mark");
         if (marked !== Boolean(unit.reticle)) this.setReticle(unit, marked);
         const frozen = (effects || []).some((effect) => effect.id === "freeze");
@@ -974,7 +1195,12 @@ const Stage3D = (() => {
 
     // ---- frame ----
     update(realDt) {
-      const dt = realDt * speed();
+      let dt = realDt * speed();
+      if (this.slowLeft > 0) {
+        this.slowLeft -= realDt;
+        dt *= this.slowRate || 1;
+        if (this.slowLeft <= 0) this.slowRate = 1;
+      }
       this.time += dt;
       let unitDt = dt;
       if (this.hitStop > 0) {
@@ -989,18 +1215,29 @@ const Stage3D = (() => {
           unit.emitTimers[id] = (unit.emitTimers[id] || 0) + dt * fx.rate;
           while (unit.emitTimers[id] > 1) {
             unit.emitTimers[id] -= 1;
-            const h = rand(0.15, unit.height) * unit.scale;
+            const h = rand(fx.low ?? 0.07, fx.high ?? 1) * unit.height * unit.scale + unit.root.position.y;
             const a = rand(0, 6.28);
-            this.glow.spawn(unit.root.position.x + Math.cos(a) * fx.spread * unit.scale, h, unit.root.position.z + Math.sin(a) * fx.spread * unit.scale, 0, fx.rise, 0, fx.size, rand(0.4, 0.9), color(fx.color), 0.4);
+            const x = unit.root.position.x + Math.cos(a) * fx.spread * unit.scale;
+            const z = unit.root.position.z + Math.sin(a) * fx.spread * unit.scale;
+            const j = fx.jitter || 0;
+            const vx = (fx.side ? (unit.side === "foe" ? 1 : -1) * fx.side : 0) + rand(-j, j) + (fx.gravity ? rand(-0.3, 0.3) : 0);
+            const vy = fx.rise + rand(-j, j);
+            const layer = fx.puff ? this.puffs : this.glow;
+            layer.spawn(x, h, z, vx, vy, rand(-j, j) * 0.3, fx.size * rand(0.8, 1.2), rand(0.4, 0.9) * (fx.gravity ? 1.6 : 1), color(fx.color), fx.jitter ? 3 : 0.4, fx.puff && !fx.shape ? 1.2 : 0, fx.shape || 0, fx.gravity || 0);
+            if (fx.embers && Math.random() < 0.3) this.glow.spawn(x, h, z, rand(-0.4, 0.4), rand(1.2, 2.2), 0, 0.17, rand(0.5, 0.9), color(fx.embers), 0.6, 0, 5);
+            if (fx.smoke && Math.random() < 0.5) this.puffs.spawn(x, h, z, 0, fx.rise * 0.6, 0, 0.26, 0.9, color(fx.smoke), 1, 1.2);
           }
         });
         if (unit.stunned) {
-          const a = this.time * 5;
-          for (let i = 0; i < 2; i += 1) {
-            const b = a + i * Math.PI;
-            this.glow.spawn(unit.root.position.x + Math.cos(b) * 0.32, (unit.height + 0.1) * unit.scale, unit.root.position.z + Math.sin(b) * 0.32, 0, 0, 0, 0.1, 0.2, color("#ffe27a"));
+          // Stars wheel above the head of a stunned fighter.
+          const a = this.time * 4;
+          for (let i = 0; i < 3; i += 1) {
+            const b = a + (i * Math.PI * 2) / 3;
+            this.glow.spawn(unit.root.position.x + Math.cos(b) * 0.34, (unit.height + 0.12) * unit.scale + unit.root.position.y + Math.sin(b * 2) * 0.04, unit.root.position.z + Math.sin(b) * 0.2, 0, 0, 0, 0.16, 0.08, color("#ffe27a"), 0, 0, 3);
           }
         }
+        // An evading fighter leaves a faint copy of itself now and then.
+        if (unit.evading && unit.afterimage && Math.random() < dt * 1.4) unit.afterimage(this, "#c8d0e0", 0.45);
         if (unit === this.hero && unit.ghostTarget > 0 && Math.random() < dt * 12) {
           this.puffs.spawn(unit.root.position.x + rand(-0.4, 0.4), rand(0.1, 1.5), unit.root.position.z + rand(-0.3, 0.3), 0, rand(0.1, 0.4), 0, rand(0.28, 0.5), rand(0.6, 1), color("#37374a"), 1, 1.2);
         }

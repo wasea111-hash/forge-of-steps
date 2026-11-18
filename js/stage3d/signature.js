@@ -10,15 +10,15 @@ const SkillSignature = (() => {
     cross: (stage, c) => { c.units.forEach((u) => { stage.slash(u.chest(), c.color, c.facing, true); later(0.07, () => stage.slash(u.chest(), c.color, -c.facing, true)); }); },
     ring: (stage, c) => { c.units.forEach((u) => { for (let i = 0; i < c.n; i += 1) later(i * 0.09, () => stage.shock(u.root.position, c.color, 1.5 * c.size + i * 0.8, 0.5)); }); },
     pillar: (stage, c) => { c.units.forEach((u) => StageVFX.beam(stage, u.root.position, c.color, 0.55 * c.size, 0.65)); },
-    spikes: (stage, c) => { c.units.forEach((u) => StageVFX.spikes(stage, u.root.position, c.color, c.n + 5, 1.5 * c.size, 0.95)); },
+    spikes: (stage, c) => { c.units.forEach((u) => { StageVFX.spikes(stage, u.root.position, c.color, c.n + 5, 1.5 * c.size, 0.95); stage.debris(u.root.position.clone().setY(0.3), "#5a4a3c", 4 + c.n * 2, 2.6); stage.decal(u.root.position, "crack", "#140e0a", 0.9 * c.size, 1.8); }); },
     lightning: (stage, c) => { c.units.forEach((u) => { for (let i = 0; i < c.n; i += 1) later(i * 0.08, () => StageVFX.lightning(stage, u.chest(), c.color)); }); },
-    flames: (stage, c) => { c.units.forEach((u) => StageVFX.flames(stage, u.root.position, 46, 0.42 * c.size, 1.1 * c.size)); },
+    flames: (stage, c) => { c.units.forEach((u) => { StageVFX.flames(stage, u.root.position, 46, 0.42 * c.size, 1.1 * c.size); stage.decal(u.root.position, "scorch", "#120806", 1.1 * c.size, 2.4); stage.sparks(u.chest(), "#ff9a3c", 10, 3.5); }); },
     sigil: (stage, c) => { c.units.forEach((u) => StageVFX.runes(stage, u.root.position, c.color, 1.2 * c.size, 0.8)); },
     whirl: (stage, c) => { c.units.forEach((u) => StageVFX.whirl(stage, u.chest(), c.color, 40, 0.7 * c.size)); },
     void: (stage, c) => { c.units.forEach((u) => StageVFX.voidPull(stage, u.chest(), c.color)); },
     rain: (stage, c) => { c.units.forEach((u) => StageVFX.arrowRain(stage, u.root.position, 8 + c.n * 3)); },
     smoke: (stage, c) => { c.units.forEach((u) => stage.smoke(u.chest(), c.color, 22 + c.n * 4, 0.6 * c.size)); },
-    burst: (stage, c) => { c.units.forEach((u) => stage.burst(u.chest(), c.color, 26 + c.n * 6, 3.4 * c.size, 0.12, 0.6)); },
+    burst: (stage, c) => { c.units.forEach((u) => { stage.burst(u.chest(), c.color, 18 + c.n * 4, 3.4 * c.size, 0.12, 0.6); stage.sparks(u.chest(), c.color, 8 + c.n * 3, 4.5 * c.size); }); },
     glow: (stage, c) => { c.units.forEach((u) => { const p = u.chest(); const col = new T.Color(c.color); for (let i = 0; i < 28; i += 1) stage.glow.spawn(p.x + (Math.random() - 0.5) * 2 * c.size, p.y + (Math.random() - 0.5) * 2, p.z + (Math.random() - 0.5) * 2, 0, 0.6, 0, 0.12, 0.7, col); }); },
     flash: (stage, c) => { stage.screenFlash(0.04 * c.size); stage.light(c.units[0].chest(), c.color, 26 * c.size, 0.25); },
     // A note ring travels from the singer to every target.
@@ -34,6 +34,8 @@ const SkillSignature = (() => {
             const spot = v3(new T.Vector3().lerpVectors(from, to, t), 0);
             StageVFX.spikes(stage, spot, c.color, 4, 0.9 * c.size, 0.5);
             stage.shock(spot, c.color, 0.9, 0.3);
+            stage.decal(spot, "crack", "#140e0a", 0.7 * c.size, 1.6);
+            stage.debris(v3(spot, 0.2), "#5a4a3c", 4, 2.4);
           });
         }
         later(0.3, () => stage.shake(0.14));
@@ -54,7 +56,7 @@ const SkillSignature = (() => {
         }
       });
     },
-    shards: (stage, c) => { c.units.forEach((u) => { StageVFX.spikes(stage, u.root.position, c.color, 5, 0.9 * c.size, 0.6); stage.burst(u.chest(), c.color, 34, 4.2, 0.08, 0.5); }); },
+    shards: (stage, c) => { c.units.forEach((u) => { StageVFX.spikes(stage, u.root.position, c.color, 5, 0.9 * c.size, 0.6); stage.burst(u.chest(), c.color, 20, 4.2, 0.08, 0.5, 1); stage.debris(u.chest(), new THREE.Color(c.color).multiplyScalar(0.55).getStyle(), 7, 3); stage.sparks(u.chest(), c.color, 8, 5); }); },
     // Copies of the actor flicker around the target.
     afterimages: (stage, c) => { for (let i = 0; i < c.n + 2; i += 1) later(i * 0.06, () => c.actor.afterimage?.(stage, c.color, 0.35)); },
     // A wave rolls from the actor through the target.

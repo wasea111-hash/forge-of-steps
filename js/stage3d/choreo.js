@@ -226,7 +226,7 @@ async function stageAction(stage, ev) {
     if (plan.bump && actor.reachOf) spot.x += 0;
     await travel(stage, actor, spot, plan.move, tint);
     actor.face(target.root.position);
-    if (plan.move === "leap") { SFX.play("land"); stage.shock(actor.root.position, "#e8d8b8", 1.5, 0.35); stage.shake(0.18); stage.smoke(actor.root.position.clone(), "#8a7a64", 8, 0.4); }
+    if (plan.move === "leap") { SFX.play("land"); stage.shock(actor.root.position, "#e8d8b8", 1.5, 0.35); stage.shake(0.18); stage.smoke(actor.root.position.clone(), "#8a7a64", 8, 0.4); stage.decal(actor.root.position, "crack", "#140e0a", 0.8, 1.6); stage.debris(actor.root.position.clone().setY(0.2), "#5a4a3c", 6, 2.2); }
     const length = actor.play(plan.clip, { fade: 0.05, then: null });
     actor.trails.forEach((trail) => trail.fire(impactDelay + 0.3, tint));
     playSwingSound(plan, ev, Math.max(0, impactDelay - 0.14));
@@ -441,6 +441,81 @@ function returnHome(stage, actor, delay) {
   }, Math.max(0, delay) * 1000 / speedOf());
 }
 
+// What flies off a body when it is struck: stone chips off a golem, sparks off armour, a venom splash off a slime.
+const BODY_MATTER = {
+  golem: { debris: "#6e6a64", sparks: "#ffd9a0" }, shard: { debris: "#b8a8e8", sparks: "#e6d6ff" }, knight: { sparks: "#ffe2a8" }, smith: { sparks: "#ffc070" },
+  slime: { drops: "#7fd03a" }, wraith: { puff: "#3a3448" }, beast: { drops: "#a8202e" }, rogue: { drops: "#a8202e" }, caster: { drops: "#a8202e" }, imp: { drops: "#7a1a22" }
+};
+const HERO_MATTER = { warrior: { sparks: "#ffe2a8" } };
+// What an element leaves where it lands, in the air and on the ground.
+const ELEMENT_MATTER = {
+  fire: (stage, p, ground, big) => { stage.sparks(p, "#ff9a3c", big ? 18 : 10, 4, 0); if (big) stage.decal(ground, "scorch", "#120806", 1.1, 2.2); },
+  frost: (stage, p, ground, big) => { stage.debris(p, "#cfefff", big ? 9 : 5, 2.6); if (big) stage.decal(ground, "frost", "#9fe4ff", 1.1, 2, true); },
+  water: (stage, p) => { for (let i = 0; i < 12; i += 1) stage.glow.spawn(p.x, p.y, p.z, (Math.random() - 0.5) * 4, Math.random() * 3, (Math.random() - 0.5) * 2, 0.15, 0.7, new THREE.Color("#6fb8ff"), 0.6, 0, 2, 9); },
+  earth: (stage, p, ground, big) => { stage.debris(new THREE.Vector3(p.x, 0.4, p.z), "#6a5440", big ? 14 : 8, 3.4); stage.decal(ground, "crack", "#1a120c", big ? 1.3 : 0.9, 2.2); },
+  air: (stage, p) => stage.sparks(p, "#e8fbff", 12, 6.5, 0),
+  holy: (stage, p) => { for (let i = 0; i < 14; i += 1) stage.glow.spawn(p.x + (Math.random() - 0.5), p.y + Math.random(), p.z, 0, 1.2, 0, 0.16, 0.7, new THREE.Color("#fff2c0"), 1, 0, 3); },
+  dark: (stage, p) => stage.smoke(p, "#1a1226", 8, 0.35),
+  arcane: (stage, p) => { for (let i = 0; i < 12; i += 1) stage.glow.spawn(p.x, p.y, p.z, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, 0, 0.14, 0.5, new THREE.Color("#c0c8ff"), 2, 0, 3); },
+  poison: (stage, p, ground, big) => { for (let i = 0; i < 10; i += 1) stage.glow.spawn(p.x, p.y, p.z, (Math.random() - 0.5) * 3, Math.random() * 2.5, (Math.random() - 0.5), 0.15, 0.8, new THREE.Color("#9be34f"), 0.5, 0, 2, 9); if (big) stage.decal(ground, "splat", "#2c4a12", 0.9, 2.2); },
+  blood: (stage, p, ground, big) => { for (let i = 0; i < 12; i += 1) stage.glow.spawn(p.x, p.y, p.z, (Math.random() - 0.5) * 3.5, Math.random() * 2.5, (Math.random() - 0.5), 0.14, 0.8, new THREE.Color("#ff2f46"), 0.5, 0, 2, 9); if (big) stage.decal(ground, "splat", "#4a0810", 0.8, 2.2); }
+};
+
+// The dressing of a landing blow, shared by every attack: a white star at the point of contact,
+// matter knocked off the body, the trace of the element, and for the blows that matter a mark on the ground.
+function impactDressing(stage, victim, ev, tint, plan, weight) {
+  const chest = victim.chest();
+  const ground = victim.root.position.clone();
+  const dir = ev.target === "enemy" ? 1 : -1;
+  const crit = Boolean(ev.crit);
+  const big = crit || ev.heavy || weight === "heavy" || plan.ult;
+  const hit = chest.clone();
+  hit.x -= dir * 0.18;
+  stage.flare(hit, tint, crit ? 2.1 : big ? 1.7 : 1.15, crit ? 0.2 : 0.15);
+  if (crit) stage.speedLines(hit, tint === "#ffffff" ? "#fff2c8" : tint, 3);
+  const matter = ev.target === "enemy" ? BODY_MATTER[victim.foe?.art] || {} : HERO_MATTER[stage.battle.hero.classKey] || {};
+  const physical = ev.kind !== "magic";
+  if (physical) {
+    if (matter.sparks) stage.sparks(hit, matter.sparks, big ? 14 : 7, 5, dir);
+    if (matter.debris) stage.debris(hit, matter.debris, big ? 10 : 5, 2.8);
+    if (matter.drops) for (let i = 0; i < (big ? 9 : 4); i += 1) stage.glow.spawn(hit.x, hit.y, hit.z, dir * (1 + Math.random() * 2.5), Math.random() * 2.2, (Math.random() - 0.5), 0.13, 0.7, new THREE.Color(matter.drops), 0.5, 0, 2, 9);
+    if (matter.puff) stage.smoke(hit, matter.puff, 6, 0.3);
+  }
+  const element = ELEMENT_MATTER[ev.element];
+  if (element && (ev.kind === "magic" || ev.element !== "steel")) element(stage, hit, ground, big);
+  if (big) {
+    // A heavy blow drives the body into the ground: the ground splits and dust jumps up.
+    if (!element || !["earth"].includes(ev.element)) stage.decal(ground, "crack", "#140e0a", crit ? 1 : 1.25, 1.8);
+    stage.smoke(new THREE.Vector3(ground.x, 0.15, ground.z), "#7a6a58", 8, 0.45);
+  }
+}
+
+// The camera leans in for a moment; a stronger lean is never cut short by a weaker one.
+function punchZoom(stage, amount, ms) {
+  if (stage.zoomGoal > amount) return;
+  stage.zoomGoal = amount;
+  setTimeout(() => { if (stage.zoomGoal === amount) stage.zoomGoal = 0; }, ms);
+}
+
+// A blow that ends a fight is felt: the stage slows, the camera leans in and the light flares.
+function lethalBlow(stage, ev, victim) {
+  const foes = ev.snap?.foes || [];
+  const down = ev.target === "enemy" ? foes.find((foe) => foe.slot === ev.foe)?.down : ev.target === "hero" && ev.snap?.hero?.hp <= 0;
+  if (!down) return;
+  const last = ev.target !== "enemy" || foes.every((foe) => foe.down);
+  stage.slowMo(last ? 0.55 : 0.28, last ? 0.22 : 0.45);
+  stage.pause(last ? 0.14 : 0.08);
+  stage.screenFlash(last ? 0.08 : 0.04);
+  stage.shake(last ? 0.32 : 0.2);
+  const chest = victim.chest();
+  stage.sparks(chest, "#ffe6b0", last ? 26 : 14, 6, ev.target === "enemy" ? 1 : -1);
+  stage.shock(victim.root.position, "#ffe2b0", last ? 3 : 2, 0.5);
+  if (last) {
+    stage.focusGoal.set(Math.max(-1.3, Math.min(1.3, victim.root.position.x * 0.7)), 1.05, 0);
+    punchZoom(stage, 1.6, 900);
+  }
+}
+
 // Plays the blow landing: the effect depends on the attack that caused it.
 function stageImpact(stage, ev) {
   const victim = stageUnit(stage, ev.target, ev.foe);
@@ -450,7 +525,14 @@ function stageImpact(stage, ev) {
   const chest = victim.chest();
   const facing = ev.target === "enemy" ? 1 : -1;
   const heavy = ev.crit || ev.heavy;
-  victim.flash(ev.target !== "enemy" ? "#ff6a5a" : "#ffffff", heavy ? 0.7 : 0.4);
+  victim.flash(ev.target !== "enemy" ? "#ff6a5a" : "#ffffff", ev.crit ? 1.1 : heavy ? 0.8 : 0.5);
+  impactDressing(stage, victim, ev, tint, plan, plan.sig?.weight);
+  lethalBlow(stage, ev, victim);
+  if (ev.crit) {
+    // A critical hit is held a beat longer and pulls the camera in.
+    stage.pause(0.1);
+    punchZoom(stage, 1.3, 380);
+  }
   // A skill with its own staging answers with its own shapes instead of the common slash and spark.
   if (plan.sig) {
     const key = `${stage.lastAction}:${victim.slot}`;
@@ -461,7 +543,7 @@ function stageImpact(stage, ev) {
       const weight = SkillSignature.WEIGHTS[plan.sig.weight] || SkillSignature.WEIGHTS.mid;
       stage.shake(weight.shake);
       stage.pause(weight.pause);
-      if (plan.sig.weight === "heavy") { stage.screenFlash(0.03); stage.zoomGoal = 1.1; setTimeout(() => { if (stage.zoomGoal === 1.1) stage.zoomGoal = 0; }, 340); }
+      if (plan.sig.weight === "heavy") { stage.screenFlash(0.03); punchZoom(stage, 1.1, 340); }
     }
     if (victim.alive && !victim.busy) victim.play(heavy ? "heavy_hit" : "hit", { fade: 0.03 });
     stage.burst(chest, tint, heavy ? 22 : 10, 2.6, 0.08, 0.35);
@@ -469,6 +551,8 @@ function stageImpact(stage, ev) {
   }
   if (victim.alive && !victim.busy) {
     victim.play(heavy ? "heavy_hit" : "hit", { fade: 0.03 });
+    // A heavy blow without its own staging still throws the body back.
+    if (heavy) SkillSignature.react(victim, ev.heavy ? "knockback" : "stagger", ev.target !== "enemy" ? -1 : 1);
   }
   if (ev.kind === "magic" || plan.ranged) {
     stage.burst(chest, tint, heavy ? 44 : 26, heavy ? 4.4 : 3, 0.14, 0.6);
@@ -499,8 +583,7 @@ function stageImpact(stage, ev) {
   stage.shake(ev.heavy ? 0.3 : ev.crit ? 0.2 : 0.06);
   if (heavy) {
     stage.screenFlash(0.035);
-    stage.zoomGoal = 1.1;
-    setTimeout(() => { if (stage.zoomGoal === 1.1) stage.zoomGoal = 0; }, 340);
+    punchZoom(stage, 1.1, 340);
   }
 }
 

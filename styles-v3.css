@@ -1239,3 +1239,15 @@ body { -webkit-touch-callout: none; }
 .icon-btn.has-news::after { position: absolute; top: 3px; right: 3px; }
 .news-modal { max-height: 70vh; overflow-y: auto; padding-right: 6px; }
 .mastery-tip { color: var(--gold); margin-top: 6px; }
+
+/* A critical number slams in big, shudders and then rises like the others. */
+.floater.crit { font-size: 2.7rem; animation: crit-pop 1.3s ease-out forwards; }
+@keyframes crit-pop {
+  0% { transform: translate(-50%, 0) scale(2.4); opacity: 0; }
+  7% { transform: translate(-50%, -4px) scale(0.92); opacity: 1; }
+  12% { transform: translate(-52%, -8px) scale(1.18) rotate(-4deg); }
+  17% { transform: translate(-48%, -10px) scale(1.06) rotate(3deg); }
+  24% { transform: translate(-50%, -12px) scale(1) rotate(0); }
+  100% { transform: translate(-50%, -78px) scale(0.96); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .floater.crit { animation: float-up 1.2s ease-out forwards; } }
