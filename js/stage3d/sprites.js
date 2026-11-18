@@ -412,6 +412,8 @@ const StageSprites = (() => {
       this.lean += (this.leanGoal - this.lean) * Math.min(1, dt * 11);
       this.squash *= Math.max(0, 1 - dt * 10);
       this.smear *= Math.max(0, 1 - dt * 16);
+      // Less motion asked for: no stretching and no shudder, the poses still change.
+      if (typeof Stage3D !== "undefined" && Stage3D.calm()) { this.smear = 0; this.tremble = 0; this.charging = false; }
       this.tremble *= Math.max(0, 1 - Math.max(dt, 0.004) * 9);
       if (this.charging) this.tremble = Math.max(this.tremble, 0.02);
       if (this.echoLeft > 0) {

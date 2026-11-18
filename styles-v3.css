@@ -1258,3 +1258,8 @@ body { -webkit-touch-callout: none; }
 .cinema i { position: absolute; left: 0; right: 0; height: 0; background: #000; transition: height .22s ease-out; }
 .cinema i:first-child { top: 0; } .cinema i:last-child { bottom: 0; }
 .cinema.on i { height: 8%; }
+
+/* A compact plate for a fighter too tall to leave room above the head: no trait line, less padding. */
+.stage3d .plate-enemy.tight { padding-top: 3px !important; padding-bottom: 3px !important; }
+.stage3d .plate-enemy.tight .trait-row { display: none; }
+.field-label select { display: block; width: 100%; margin-top: 4px; padding: 5px 8px; background: #16110e; color: var(--text, #f1e6d4); border: 1px solid var(--gold-soft, #7a5e3a); border-radius: 3px; font: inherit; }

@@ -369,6 +369,8 @@ const Stage3D = (() => {
     }
 
     spawn(x, y, z, vx, vy, vz, size, life, tint, drag = 1.6, grow = 0, shape = 0, gravity = 0) {
+      // Light effects: every other particle is never born, so a weak machine draws half as many.
+      if (quality === "light" && Math.random() < 0.5) return;
       const i = this.next;
       this.next = (i + 1) % this.max;
       this.pos.set([x, y, z], i * 3);
@@ -998,6 +1000,7 @@ const Stage3D = (() => {
 
     // The whole stage runs slow for a moment: the fall of the last foe, the landing of an ultimate.
     slowMo(seconds = 0.4, rate = 0.3) {
+      if (calm()) return;
       this.slowRate = this.slowLeft > 0 ? Math.min(this.slowRate || 1, rate) : rate;
       this.slowLeft = Math.max(this.slowLeft || 0, seconds);
     }
@@ -1100,10 +1103,12 @@ const Stage3D = (() => {
     }
 
     shake(amount) {
+      if (calm()) amount *= 0.2;
       this.shakeAmount = Math.max(this.shakeAmount, amount);
     }
 
     screenFlash(power = 0.12) {
+      if (calm()) power *= 0.3;
       this.flashLevel = Math.max(this.flashLevel, power);
     }
 
@@ -1351,7 +1356,17 @@ const Stage3D = (() => {
           const intentEl = document.getElementById(`intent${unit.slot}`);
           const ih = intentEl?.classList.contains("show") ? intentEl.offsetHeight + 4 : 0;
           const iw = intentEl?.classList.contains("show") ? intentEl.offsetWidth : 0;
-          plates.push({ slot: unit.slot, x: clamp(x - 86, 6, this.width - 178), y: Math.max(112, yHead - (plateEl?.offsetHeight || 72) - 6), h: plateEl?.offsetHeight || 72, ih, w: Math.max(178, iw), anchorX: x - w / 2, anchorY: yFoot - h });
+          const ph = plateEl?.offsetHeight || 72;
+          // A tall fighter leaves no room above the head for the plate and the intent on top of it:
+          // then the plate goes compact and the intent stands beside it, so neither covers the head.
+          App.plateTight = App.plateTight || {};
+          const wasTight = Boolean(App.plateTight[unit.slot]);
+          const room = yHead - 6 - 112;
+          // A few pixels into the hair are fine; only a plate that would sit on the face goes compact.
+          const tight = wasTight ? room < ph + 16 : room < ph - 10;
+          if (tight !== wasTight) { App.plateTight[unit.slot] = tight; plateEl?.classList.toggle("tight", tight); }
+          const top = tight ? Math.max(76, yHead - ph - 6) : Math.max(112, yHead - ph - 6);
+          plates.push({ slot: unit.slot, tight, x: clamp(x - 86, 6 + (tight ? iw + 6 : 0), this.width - 178), y: top, h: ph, ih: tight ? 0 : ih, iw, w: tight ? 178 + (iw + 6) * 2 : Math.max(178, iw), anchorX: x - w / 2, anchorY: yFoot - h });
         }
       };
       place("fHero", this.hero);
@@ -1374,7 +1389,7 @@ const Stage3D = (() => {
             b.x += push;
           }
         }
-        plates.forEach((p) => { p.x = clamp(p.x, 6, this.width - plateWidth); });
+        plates.forEach((p) => { p.x = clamp(p.x, 6 + (p.tight ? p.iw + 6 : 0), this.width - plateWidth); });
       }
       App.plateAt = App.plateAt || {};
       plates.forEach((p) => {
@@ -1384,7 +1399,14 @@ const Stage3D = (() => {
         if (plate) plate.style.cssText = transform;
         // The intent stands on top of its plate, however tall the plate has grown.
         const intent = document.getElementById(`intent${p.slot}`);
-        if (intent && intent.offsetHeight) {
+        if (intent && intent.offsetHeight && p.tight) {
+          intent.style.setProperty("top", `${p.y + 2 - p.anchorY}px`, "important");
+          intent.style.bottom = "auto";
+          // Placed by its measured width, not by a transform: the intent's pop-in animation owns the transform.
+          intent.style.left = `${p.x - 6 - intent.offsetWidth - p.anchorX}px`;
+          intent.style.right = "auto";
+          intent.style.transform = "none";
+        } else if (intent && intent.offsetHeight) {
           const top = Math.max(64, p.y - intent.offsetHeight - 4);
           intent.style.setProperty("top", `${top - p.anchorY}px`, "important");
           intent.style.bottom = "auto";
@@ -1488,6 +1510,38 @@ const Stage3D = (() => {
     return c.multiplyScalar(0.92);
   }
 
+  // ---------- effect quality ----------
+  // "full" draws everything; "light" halves the particles and the pixel density. The setting "auto" starts full
+  // and steps down once, for the rest of the session, when a fight cannot hold about 40 frames a second.
+  let quality = "full";
+  let autoLowered = false;
+  const frameTimes = [];
+  const fxSetting = () => (typeof App !== "undefined" && App.save?.settings?.fxQuality) || "auto";
+  // The player asked for less motion: no shaking, no lean-ins, no slow motion.
+  function calm() { return Boolean(typeof App !== "undefined" && (App.save?.settings?.reducedMotion || (typeof FX !== "undefined" && FX.reduced))); }
+  function setQuality(next) {
+    quality = next;
+    if (renderer) renderer.setPixelRatio(next === "light" ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
+    stage?.resize();
+  }
+  function applyQuality() {
+    const want = fxSetting();
+    setQuality(want === "light" || (want === "auto" && autoLowered) ? "light" : "full");
+  }
+  function watchFrames(now) {
+    if (fxSetting() !== "auto" || quality === "light" || !stage || stage.time < 2) { frameTimes.length = 0; return; }
+    frameTimes.push(now);
+    if (frameTimes.length > 90) frameTimes.shift();
+    if (frameTimes.length < 90) return;
+    const fps = 89000 / (frameTimes[89] - frameTimes[0]);
+    if (fps < 40) {
+      autoLowered = true;
+      setQuality("light");
+      frameTimes.length = 0;
+      if (typeof toast === "function") toast("Эффекты боя облегчены, чтобы бой шёл плавно. Вернуть полные можно в настройках.", "good");
+    }
+  }
+
   let lastTick = 0;
 
   function tick(draw, limit) {
@@ -1502,8 +1556,9 @@ const Stage3D = (() => {
     if (draw) stage.render();
   }
 
-  function loop() {
+  function loop(now) {
     rafId = requestAnimationFrame(loop);
+    if (now && typeof App !== "undefined" && App.screen === "battle") watchFrames(now);
     tick(true, 0.05);
   }
 
@@ -1524,6 +1579,9 @@ const Stage3D = (() => {
 
   function mount(host, battle, regionId, mood) {
     initRenderer();
+    applyQuality();
+    frameTimes.length = 0;
+    if (typeof App !== "undefined") App.plateTight = {};
     const box = host.getBoundingClientRect();
     camera.aspect = Math.max(1, box.width) / Math.max(1, box.height);
     stage?.dispose();
@@ -1537,7 +1595,7 @@ const Stage3D = (() => {
     return stage;
   }
 
-  return { preload, supports, mount, unmount, IMPACT, ELEMENT, FPS, paintedFight, wait, get memory() { return renderer?.info.memory; }, get current() { return stage; }, get isReady() { return ready; } };
+  return { preload, supports, mount, unmount, applyQuality, calm, get quality() { return quality; }, IMPACT, ELEMENT, FPS, paintedFight, wait, get memory() { return renderer?.info.memory; }, get current() { return stage; }, get isReady() { return ready; } };
 })();
 
 Stage3D.preload();

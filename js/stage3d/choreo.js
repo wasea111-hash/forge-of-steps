@@ -315,7 +315,7 @@ function cinema(stage, actor, on) {
   if (on) {
     clearTimeout(stage.focusTimer);
     stage.focusGoal.set(Math.max(-1.3, Math.min(1.3, actor.root.position.x * 0.8)), 1.05, 0);
-    stage.zoomGoal = 1.5;
+    if (!Stage3D.calm()) stage.zoomGoal = 1.5;
   } else {
     if (stage.zoomGoal === 1.5) stage.zoomGoal = 0;
     stage.focusGoal.set(0, 1.05, 0);
@@ -537,7 +537,7 @@ function impactDressing(stage, victim, ev, tint, plan, weight) {
 
 // The camera leans in for a moment; a stronger lean is never cut short by a weaker one.
 function punchZoom(stage, amount, ms) {
-  if (stage.zoomGoal > amount) return;
+  if (stage.zoomGoal > amount || Stage3D.calm()) return;
   stage.zoomGoal = amount;
   setTimeout(() => { if (stage.zoomGoal === amount) stage.zoomGoal = 0; }, ms);
 }

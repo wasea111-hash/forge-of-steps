@@ -323,7 +323,7 @@ function renderFoePlates(snap) {
   wrap.innerHTML = (snap.foes || []).filter((entry) => !entry.down).map((entry) => {
     const foe = App.battle.foes[entry.slot];
     const traits = (foe.traits || []).filter((id) => ENEMY_TRAITS[id]);
-    return `<button class="plate plate-enemy${snap.target === entry.slot ? " targeted" : ""}" id="foePlate${entry.slot}" style="${App.plateAt?.[entry.slot] || ""}" data-action="setTarget" data-slot="${entry.slot}" aria-pressed="${snap.target === entry.slot}">
+    return `<button class="plate plate-enemy${snap.target === entry.slot ? " targeted" : ""}${App.plateTight?.[entry.slot] ? " tight" : ""}" id="foePlate${entry.slot}" style="${App.plateAt?.[entry.slot] || ""}" data-action="setTarget" data-slot="${entry.slot}" aria-pressed="${snap.target === entry.slot}">
       <div class="plate-name"><strong class="${foeTitleClass(foe)}">${esc(foe.name)}</strong><small>${foe.level} ур.</small></div>
       ${plateBar(entry, "enemy", "enemy")}
       ${plateIntent(foe)}
@@ -390,7 +390,8 @@ function statusCallout(side, id, def, hex) {
   el.innerHTML = `${icon(id)}<span><b>${esc(def.name || id)}</b>${STATUS_HINTS[id] ? `<small>${esc(STATUS_HINTS[id])}</small>` : ""}</span>`;
   const lane = laneFor(`s:${side}`, 2);
   el.style.left = `${center.x}px`;
-  el.style.top = `${center.y + lane.length * 44}px`;
+  // Further callouts stack upward, above the head, instead of down over the body.
+  el.style.top = `${center.y - lane.length * 44}px`;
   wrap.appendChild(el);
   lane.push(el);
   setTimeout(() => el.remove(), 1700 / Math.sqrt(fightSpeed()));

@@ -4,7 +4,7 @@ const LEGACY_ACCOUNTS_KEY = "forge-of-steps-accounts-v1";
 const LEGACY_SAVES_KEY = "forge-of-steps-character-saves-v1";
 const LEGACY_SESSION_KEY = "forge-of-steps-session-v1";
 const LEGACY_PROFILE_KEY = "forge-of-steps-profile-v1";
-const DEFAULT_SETTINGS = { sound: true, volume: 0.6, music: 0.5, ambience: 0.3, battleSpeed: 1, reducedMotion: false, tips: {} };
+const DEFAULT_SETTINGS = { sound: true, volume: 0.6, music: 0.5, ambience: 0.3, battleSpeed: 1, reducedMotion: false, fxQuality: "auto", tips: {} };
 const SAVED_HERO_FIELDS = [
   "id", "name", "classKey", "className", "subclass", "profession", "level", "experience", "statPoints", "skillPoints", "gold", "mutationShards",
   "resources", "potions", "stats", "startingStats", "inventory", "equipment", "knownSkillIds", "passiveIds", "activeSkillSlots", "skillProgress", "shopPassiveIds", "shopActive", "talents", "talentVersion", "talentsExchanged",
