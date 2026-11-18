@@ -59,6 +59,22 @@ const SkillSignature = (() => {
     shards: (stage, c) => { c.units.forEach((u) => { StageVFX.spikes(stage, u.root.position, c.color, 5, 0.9 * c.size, 0.6); stage.burst(u.chest(), c.color, 20, 4.2, 0.08, 0.5, 1); stage.debris(u.chest(), new THREE.Color(c.color).multiplyScalar(0.55).getStyle(), 7, 3); stage.sparks(u.chest(), c.color, 8, 5); }); },
     // Copies of the actor flicker around the target.
     afterimages: (stage, c) => { for (let i = 0; i < c.n + 2; i += 1) later(i * 0.06, () => c.actor.afterimage?.(stage, c.color, 0.35)); },
+    // Class handwriting (see StageVFX): each one is a picture of what the skill does, not only a colour.
+    bladestorm: (stage, c) => { c.units.forEach((u) => StageVFX.bladestorm(stage, u, c.color, 3 + c.n, c.size)); },
+    crescent: (stage, c) => { c.units.forEach((u) => StageVFX.crescent(stage, c.actor.root.position, u.root.position, c.color, Math.max(0.8, c.size))); },
+    dome: (stage, c) => { c.units.forEach((u) => StageVFX.dome(stage, u, c.color, Math.max(0.8, c.size))); },
+    roar: (stage, c) => { c.units.forEach((u) => StageVFX.roar(stage, u, c.color, Math.max(0.7, c.size))); },
+    staff: (stage, c) => { c.units.forEach((u) => StageVFX.staff(stage, c.actor.chest(), u.chest(), c.color, Math.max(0.8, c.size))); },
+    chord: (stage, c) => { c.units.forEach((u) => StageVFX.chord(stage, u, c.color, Math.max(0.7, c.size))); },
+    clones: (stage, c) => { c.units.filter((u) => u !== c.actor).forEach((u) => StageVFX.clones(stage, c.actor, u, c.color, 2 + c.n)); },
+    bloodburst: (stage, c) => { c.units.forEach((u) => StageVFX.bloodburst(stage, u, c.color, c.facing, Math.max(0.7, c.size))); },
+    aimline: (stage, c) => { c.units.forEach((u) => StageVFX.aimline(stage, c.actor.muzzle ? c.actor.muzzle() : c.actor.chest(), u.chest(), c.color)); },
+    pierce: (stage, c) => { c.units.forEach((u) => StageVFX.pierce(stage, c.actor.chest(), u.chest(), c.color, Math.max(0.8, c.size))); },
+    chains: (stage, c) => { c.units.forEach((u) => StageVFX.chains(stage, u, c.color, Math.max(0.8, c.size))); },
+    meteor: (stage, c) => { c.units.forEach((u) => StageVFX.meteor(stage, u, c.color, Math.max(0.8, c.size))); },
+    frostnova: (stage, c) => { c.units.forEach((u) => StageVFX.frostnova(stage, u, c.color, Math.max(0.7, c.size))); },
+    venom: (stage, c) => { c.units.forEach((u) => StageVFX.venom(stage, u, c.color, Math.max(0.7, c.size))); },
+    hammer: (stage, c) => { c.units.forEach((u) => StageVFX.hammer(stage, u, c.color, Math.max(0.8, c.size))); },
     // A wave rolls from the actor through the target.
     wave: (stage, c) => {
       c.units.forEach((u) => {
@@ -71,8 +87,35 @@ const SkillSignature = (() => {
     }
   };
 
+  // The heavy pictures play once, when the skill is released; on each landing blow only a small trace follows.
+  const ONCE = new Set(["bladestorm", "crescent", "dome", "roar", "staff", "chord", "clones", "aimline", "chains", "meteor", "frostnova", "venom", "hammer", "quake", "rain", "wave", "notes", "pillar", "flames", "spikes", "lightning", "chain"]);
+  // These belong to the moment of contact, not to the release.
+  const ON_CONTACT = new Set(["pierce", "bloodburst"]);
+  // These always happen on the fighter who acts: a dome guards, a cry and a chord sound from the one who makes them.
+  const ON_SELF = new Set(["dome", "roar", "chord"]);
+  const place = (prim) => (ON_SELF.has(prim.fx) ? { ...prim, at: "self" } : prim);
+
+  // The class handwriting table (handwriting.js) swaps the skill's main picture, adds an accent and sets the colour.
+  function handwrite(anim, id) {
+    const hand = typeof SKILL_HANDWRITING !== "undefined" ? SKILL_HANDWRITING[id] : null;
+    if (!hand || !hand.image) return anim;
+    const main = (anim.release || [])[0] || { at: anim.range === "self" ? "self" : "target", size: 0.8 };
+    const hit = (anim.impact || [])[0] || { at: main.at, size: (main.size || 0.8) * 0.45, delay: 0.06 };
+    const color = hand.tint || main.color || anim.tint;
+    const keep = (list) => (list || []).slice(1);
+    const release = ON_CONTACT.has(hand.image) ? [] : [{ ...main, fx: hand.image, color }];
+    const impact = [];
+    if (ON_CONTACT.has(hand.image)) impact.push({ ...hit, fx: hand.image, color, size: main.size || 0.8 });
+    else if (!ONCE.has(hand.image)) impact.push({ ...hit, fx: hand.image, color });
+    if (hand.accent && hand.accent !== hand.image) {
+      const accent = { ...hit, fx: hand.accent, color, size: (hit.size || 0.4) * 1.2 };
+      if (ONCE.has(hand.accent)) release.push({ ...accent, delay: 0.1 }); else impact.push(accent);
+    }
+    return { ...anim, tint: hand.tint || anim.tint, release: [...release.map(place), ...keep(anim.release)], impact: [...impact.map(place), ...keep(anim.impact)], anticipate: (anim.anticipate || []).map((p) => ({ ...p, color: hand.tint || p.color })) };
+  }
+
   function compile(skill) {
-    const anim = skill.anim;
+    const anim = handwrite(skill.anim, skill.id);
     const clip = `sig_${skill.id}`;
     if (anim.pose && !StageSprites.ACTIONS[clip]) StageSprites.ACTIONS[clip] = anim.pose;
     const plan = { clip: anim.pose ? clip : anim.clip || "cast_up", impact: anim.frame ?? 7, tint: anim.tint, sig: anim, reachCast: false };

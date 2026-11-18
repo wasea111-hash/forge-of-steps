@@ -377,6 +377,22 @@ const StageSprites = (() => {
       stage.fxItems.push({ age: 0, duration: life, update: (t) => { uniforms.ghost.value = 0.55 + t * 0.45; }, end: () => { stage.scene.remove(copy); material.dispose(); } });
     }
 
+    // A shadow double of this fighter standing somewhere else in a striking pose, dark and tinted, fading out.
+    shadeAt(stage, spot, facing, hex, life = 0.38) {
+      const poseName = this.pick("strike", "thrust", "slam");
+      const pose = this.sheet.poses[poseName];
+      const uniforms = { ...this.uniforms, map: { value: this.textures[poseName] }, texel: { value: new T.Vector2(1.6 / pose.w, 1.6 / pose.h) }, light: { value: new T.Color("#4a3a5a") }, flash: { value: 0.12 }, flashColor: { value: new T.Color(hex) }, ghost: { value: 0.2 }, breathe: { value: 0 }, rimPower: { value: 2.2 }, rimColor: { value: new T.Color(hex) }, tintAmount: { value: 0 }, time: { value: 0 } };
+      const material = new T.ShaderMaterial({ uniforms, vertexShader: VERTEX, fragmentShader: FRAGMENT, transparent: true, depthWrite: false, side: T.DoubleSide });
+      const copy = new T.Mesh(geometry, material);
+      const w = pose.w * this.pixel;
+      const sign = facing * this.sheet.faces;
+      copy.scale.set(w * sign, pose.h * this.pixel, 1);
+      const anchor = pose.cx ?? pose.ax ?? 0.5;
+      copy.position.set(spot.x + (0.5 - anchor) * w * sign, spot.y, spot.z);
+      stage.scene.add(copy);
+      stage.fxItems.push({ age: 0, duration: life, update: (t) => { uniforms.ghost.value = t < 0.2 ? 0.7 - t * 2.5 : 0.2 + (t - 0.2) * 1; uniforms.flash.value = 0.12 * (1 - t); }, end: () => { stage.scene.remove(copy); material.dispose(); } });
+    }
+
     update(dt) {
       this.uniforms.time.value += dt;
       this.clock = (this.clock || 0) + dt;

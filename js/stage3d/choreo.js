@@ -205,6 +205,8 @@ async function stageAction(stage, ev) {
   stage.lastAction = (stage.lastAction || 0) + 1;
   stage.lastActor = actor;
   stage.lastTint = tint;
+  const ultimate = hero && plan.ult;
+  if (ultimate) cinema(stage, actor, true);
   const impactFrame = plan.impact ?? Stage3D.IMPACT[plan.clip] ?? 8;
   const impactDelay = impactFrame / Stage3D.FPS;
 
@@ -233,6 +235,7 @@ async function stageAction(stage, ev) {
     if (plan.sig?.anticipate) SkillSignature.run(stage, plan.sig.anticipate, actor, target, tint);
     await Stage3D.wait(impactDelay);
     if (plan.sig?.release) SkillSignature.run(stage, plan.sig.release, actor, target, tint);
+    if (ultimate) ultLands(stage, actor, target);
     returnHome(stage, actor, length - impactDelay);
     return;
   }
@@ -260,6 +263,7 @@ async function stageAction(stage, ev) {
   if (plan.sig?.anticipate) SkillSignature.run(stage, plan.sig.anticipate, actor, target, tint);
   await Stage3D.wait(impactDelay);
   if (plan.sig?.release) SkillSignature.run(stage, plan.sig.release, actor, target, tint);
+  if (ultimate) ultLands(stage, actor, target);
   if (plan.fx === "aura") StageVFX.aura(stage, actor, tint);
   if (plan.fx === "summon") { StageVFX.runes(stage, actor.root.position, tint, 1.3, 0.9); stage.burst(actor.chest(), tint, 24, 1.8, 0.1, 0.8); }
   if (plan.fx === "shieldwall") { stage.shock(actor.root.position, tint, 1.8); StageVFX.aura(stage, actor, tint); }
@@ -298,6 +302,41 @@ async function stageAction(stage, ev) {
     }
     if (plan.cloud) stage.smoke(target.chest(), "#6f8f3a", 26, 0.55);
   }
+}
+
+// An ultimate is a small scene of its own: the frame narrows to black bars, the light falls away from the edges
+// and the camera leans in on the hero while the power gathers.
+function cinema(stage, actor, on) {
+  const host = document.getElementById("stage");
+  if (!host) return;
+  let el = host.querySelector(".cinema");
+  if (!el) { el = document.createElement("div"); el.className = "cinema"; el.innerHTML = "<i></i><i></i>"; host.appendChild(el); }
+  el.classList.toggle("on", on);
+  if (on) {
+    clearTimeout(stage.focusTimer);
+    stage.focusGoal.set(Math.max(-1.3, Math.min(1.3, actor.root.position.x * 0.8)), 1.05, 0);
+    stage.zoomGoal = 1.5;
+  } else {
+    if (stage.zoomGoal === 1.5) stage.zoomGoal = 0;
+    stage.focusGoal.set(0, 1.05, 0);
+  }
+}
+
+// What each class adds when its ultimate lands, over every foe still standing.
+const ULT_FLOURISH = {
+  warrior: (stage, actor, target) => { StageVFX.hammer(stage, target, "#ff7a3c", 1.3); StageVFX.roar(stage, actor, "#ffb35c", 1); },
+  mage: (stage, actor, target, foes) => foes.forEach((unit, i) => setTimeout(() => StageVFX.meteor(stage, unit, "#ff8a3c", 1.1), (i * 120) / speedOf())),
+  archer: (stage, actor, target, foes) => foes.forEach((unit) => StageVFX.aimline(stage, actor.muzzle ? actor.muzzle() : actor.chest(), unit.chest(), "#e8ffd0")),
+  bard: (stage, actor, target, foes) => { StageVFX.chord(stage, actor, "#ffe9a0", 1.3); foes.forEach((unit) => StageVFX.staff(stage, actor.chest(), unit.chest(), "#ffd27a", 1.2)); },
+  assassin: (stage, actor, target) => { StageVFX.clones(stage, actor, target, "#a974ff", 4); setTimeout(() => { if (target.root) StageVFX.bloodburst(stage, target, "#d01c34", 1, 1.2); }, 320 / speedOf()); }
+};
+
+function ultLands(stage, actor, target) {
+  const foes = stage.battle.foes.map((foe) => stage.units[`foe${foe.slot}`]).filter((unit) => unit?.alive);
+  ULT_FLOURISH[stage.battle.hero.classKey]?.(stage, actor, target, foes.length ? foes : [target]);
+  stage.slowMo(0.4, 0.35);
+  stage.screenFlash(0.07);
+  setTimeout(() => cinema(stage, actor, false), 900 / speedOf());
 }
 
 function speedOf() {

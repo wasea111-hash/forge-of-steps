@@ -1251,3 +1251,10 @@ body { -webkit-touch-callout: none; }
   100% { transform: translate(-50%, -78px) scale(0.96); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .floater.crit { animation: float-up 1.2s ease-out forwards; } }
+
+/* An ultimate narrows the frame: black bars close in and the edges darken while the hero gathers power. */
+.cinema { position: absolute; inset: 0; pointer-events: none; z-index: 7; opacity: 0; transition: opacity .2s ease-out; background: radial-gradient(ellipse at 45% 55%, transparent 38%, rgba(0, 0, 0, .58) 100%); }
+.cinema.on { opacity: 1; }
+.cinema i { position: absolute; left: 0; right: 0; height: 0; background: #000; transition: height .22s ease-out; }
+.cinema i:first-child { top: 0; } .cinema i:last-child { bottom: 0; }
+.cinema.on i { height: 8%; }
